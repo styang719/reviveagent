@@ -298,3 +298,10 @@
 @media (prefers-reduced-motion: reduce) {
   .rv-ai-tile, .rv-typing i { animation: none; }
 }
+/* AI action button: the AI gradient without the cyan end, so white text stays readable */
+.rv-ai-btn {
+  background: linear-gradient(110deg, #3f63c4, #7c4dff);
+  box-shadow: 0 2px 10px rgba(124, 77, 255, 0.35);
+  transition: filter 0.15s, box-shadow 0.15s;
+}
+.rv-ai-btn:hover { filter: brightness(1.08); box-shadow: 0 4px 14px rgba(124, 77, 255, 0.45); }

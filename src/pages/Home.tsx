@@ -53,9 +53,7 @@ export default function Home() {
         <p className="mt-1 text-[15px] text-ink-2">{sentence}</p>
       </header>
 
-      <div className="mt-6">
-        <StatCards tier={tier} opps={opps} />
-      </div>
+      <div className="mt-6">{isNew ? <ReviveAiIntro /> : <StatCards tier={tier} opps={opps} />}</div>
 
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex min-w-0 flex-col gap-5">
@@ -65,7 +63,6 @@ export default function Home() {
             <ProjectPulse key={o.id} o={o} />
           ))}
           {isNew && <YourBook opps={opps} />}
-          {isNew && <ReviveAiIntro />}
           {feed.length > 0 && (
             <section aria-labelledby="who-to-call">
               <div className="mb-3 flex items-end justify-between gap-3">
