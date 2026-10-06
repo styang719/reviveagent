@@ -48,7 +48,7 @@ function ReviveAiItem({ collapsed }: { collapsed: boolean }) {
           ) : (
             <Sparkles className="size-4 shrink-0" stroke="url(#rv-ai-stroke)" />
           )}
-          {!collapsed && <span className={cn('flex-1', isActive && 'rv-ai-text')}>Revive AI</span>}
+          {!collapsed && <span className={cn('flex-1', isActive ? 'rv-ai-text' : 'rv-ai-text-rest')}>Revive AI</span>}
         </>
       )}
     </NavLink>
@@ -77,7 +77,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
         </button>
       </div>
 
-      <nav className="mt-2 flex flex-col gap-1 px-3" aria-label="Main">
+      <nav className="mt-6 flex flex-col gap-1 px-3" aria-label="Main">
         <ReviveAiItem collapsed={collapsed} />
         {NAV.map(({ to, label, icon: Icon, end, badge }) => (
           <NavLink

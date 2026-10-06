@@ -282,6 +282,13 @@
   background-clip: text;
   color: transparent;
 }
+.rv-ai-text-rest {
+  /* same gradient as the resting icon */
+  background: linear-gradient(110deg, #7aa2ff, #a78bfa 55%, #5eead4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 @keyframes rv-ai-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 @keyframes rv-ai-pop { from { transform: scale(0.55) rotate(-25deg); } to { transform: scale(1) rotate(0); } }
 .rv-typing i { width: 7px; height: 7px; border-radius: 50%; background: #a5b4fc; animation: rv-dot 1s ease-in-out infinite; }
