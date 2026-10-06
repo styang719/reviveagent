@@ -23,7 +23,7 @@ export function ReviveAiIntro() {
     navigate(q.trim() ? askPath(q.trim()) : '/ai')
   }
   return (
-    <section aria-labelledby="ai-intro" className="h-full rounded-2xl border border-[#d9d3fb] bg-gradient-to-br from-[#f3f5ff] via-[#f6f2ff] to-[#effcfb] p-5 shadow-card sm:p-6">
+    <section aria-labelledby="ai-intro" className="rv-ai-card h-full rounded-2xl p-5 shadow-card sm:p-6">
       <div className="flex items-start gap-4">
         <span className="rv-ai-tile grid size-11 shrink-0 place-items-center rounded-xl text-white" aria-hidden="true">
           <Sparkles className="size-5" />
@@ -44,7 +44,7 @@ export function ReviveAiIntro() {
         {/* one box: the question on top, examples and the button along the bottom */}
         <form
           onSubmit={submit}
-          className="relative rounded-xl border border-white/80 bg-white/55 p-2 shadow-[0_4px_24px_rgba(27,37,89,0.08)] backdrop-blur-xl transition-shadow focus-within:bg-white/70 focus-within:shadow-[0_8px_32px_rgba(124,77,255,0.22)]"
+          className="relative rounded-xl border border-white/80 bg-white/55 p-2 shadow-[0_4px_24px_rgba(27,37,89,0.08)] backdrop-blur-xl transition-shadow focus-within:bg-white/70 focus-within:shadow-[0_8px_32px_rgba(97,0,158,0.16)]"
         >
           <label htmlFor="home-ask" className="sr-only">
             Ask Revive AI

@@ -24,6 +24,15 @@
   --amber-soft: #fef3c7;
   --red: #dc2626;
   --red-soft: #fef2f2;
+  /* Revive Design System x ShadCN: brand/primary + brand/agent (light mode) */
+  --brand-primary: #3e62b6;
+  --brand-primary-subtle: #f0f3fa;
+  --brand-primary-border: #c2ceea;
+  --brand-primary-border-subtle: #e1e7f5;
+  --brand-agent: #61009e;
+  --brand-agent-subtle: #efe6f7;
+  --brand-agent-border: #cda7ec;
+  --brand-agent-border-subtle: #e0caf2;
   --hot: #c2410c;
   --hot-ink: #9a3412;
   --hot-soft: #fff1e8;
@@ -305,19 +314,26 @@
   transition: filter 0.15s, box-shadow 0.15s;
 }
 .rv-ai-btn:hover { filter: brightness(1.08); box-shadow: 0 4px 14px rgba(124, 77, 255, 0.45); }
-/* soft animated gradient behind the glass ask box */
+/* soft animated gradient behind the glass ask box: light shades of brand blue and agent purple */
 .rv-ai-aurora {
   background:
-    radial-gradient(40% 70% at 20% 50%, rgba(122, 162, 255, 0.55), transparent 70%),
-    radial-gradient(35% 80% at 55% 40%, rgba(167, 139, 250, 0.5), transparent 70%),
-    radial-gradient(35% 70% at 85% 60%, rgba(94, 234, 212, 0.45), transparent 70%);
+    radial-gradient(42% 75% at 18% 50%, var(--brand-primary-border), transparent 70%),
+    radial-gradient(38% 80% at 52% 40%, var(--brand-agent-border-subtle), transparent 70%),
+    radial-gradient(38% 75% at 86% 60%, var(--brand-agent-border), transparent 70%),
+    radial-gradient(30% 60% at 70% 20%, var(--brand-primary-border-subtle), transparent 70%);
   background-size: 200% 200%;
   filter: blur(18px);
+  opacity: 0.9;
   animation: rv-aurora 12s ease-in-out infinite alternate;
 }
 @keyframes rv-aurora {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 30%; }
   100% { background-position: 50% 70%; }
+}
+/* the Ask card itself: brand primary-subtle into agent-subtle */
+.rv-ai-card {
+  background: linear-gradient(120deg, var(--brand-primary-subtle), #f6f2fb 50%, var(--brand-agent-subtle));
+  border: 1px solid var(--brand-agent-border-subtle);
 }
 @media (prefers-reduced-motion: reduce) { .rv-ai-aurora { animation: none; } }
