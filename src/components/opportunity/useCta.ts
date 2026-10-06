@@ -20,6 +20,7 @@ export function useCta() {
         })
         return
       case 'share':
+      case 'verify':
         return navigate(`/property/${pid}?tab=report`)
       case 'propose':
       case 'project':

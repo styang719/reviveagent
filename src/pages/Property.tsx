@@ -29,7 +29,7 @@ export default function Property() {
         <ArrowLeft className="size-3.5" /> Back
       </Link>
       <div className="mt-3 flex flex-col gap-5 rounded-xl border border-line bg-white p-5 shadow-card sm:flex-row">
-        <PropertyPhoto id={p.id} label={p.address} className="h-40 w-full sm:h-36 sm:w-56" />
+        <PropertyPhoto photo={p.photo} label={p.address} className="h-40 w-full sm:h-36 sm:w-56" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap gap-1.5">
             <UrgencyTag urgency={o.urgency} />

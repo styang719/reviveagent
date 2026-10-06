@@ -7,10 +7,9 @@ export const AGENT = {
   name: 'Michelle Phillips',
   firstName: 'Michelle',
   role: 'Realtor',
-  listings: 2,
-  contacts: 240,
-  office: { label: 'Your office · Lake Ave', lat: 34.1466, lng: -118.132 },
-  homeRadiusMiles: 3,
+  crm: 'Follow Up Boss',
+  office: { label: 'Pasadena office', lat: 34.1458, lng: -118.137 },
+  marketRadiusMiles: 20, // an agent's real market: 15–30 miles from the brokerage
 }
 
 export interface TierConfig {
@@ -20,7 +19,7 @@ export interface TierConfig {
   deals: number
   earned: number
   earnedNote: string
-  greeting: (ctx: { opportunities: number; projectName?: string; newReferral: boolean }) => string
+  greeting: (ctx: { opportunities: number; listings: number; contacts: number; projectName?: string; newReferral: boolean }) => string
 }
 
 // Per-tier copy and sample numbers. Everything else on screen derives from data + demo state.
@@ -32,7 +31,8 @@ export const TIERS: Record<Tier, TierConfig> = {
     deals: 0,
     earned: 0,
     earnedNote: 'Your first deal starts below',
-    greeting: () => `We scanned your ${AGENT.listings} listings and ${AGENT.contacts} contacts. Here’s where Revive can help.`,
+    greeting: ({ listings, contacts }) =>
+      `We scanned your ${listings} listings and ${contacts} contacts in ${AGENT.crm}. Here’s where Revive can help.`,
   },
   active: {
     id: 'active',

@@ -5,12 +5,13 @@ import { referrals } from '@/data/referrals'
 import { tierAllows } from '@/data/tiers'
 import type { Person, Property, Referral, Source, Stage, Tier, Urgency } from '@/data/types'
 import { useDemo } from '@/store/demo'
+import { photoUrl } from './assets'
 import { firstName } from './format'
 import { scoreOpportunity, topGain, type UrgencyResult } from './urgency'
 
 export type Tag = 'ADU room' | 'Renovation' | 'Listing issue' | 'Data check'
 
-export type CtaKind = 'share' | 'propose' | 'followup' | 'claim' | 'activity' | 'project'
+export type CtaKind = 'share' | 'propose' | 'followup' | 'claim' | 'activity' | 'project' | 'verify'
 
 export interface Cta {
   kind: CtaKind
@@ -33,7 +34,9 @@ export interface Opportunity {
   urgency: Urgency
   gain: number
   product?: string
+  photo?: string
   tags: Tag[]
+  reasons: string[] // top reason first, then up to two more
   cta: Cta
   activity: string[]
 }
@@ -63,18 +66,33 @@ export function stageFromCrmActivity(_property: Property, _person?: Person): Sta
 
 function tagsFor(p: Property, score: UrgencyResult): Tag[] {
   const tags: Tag[] = []
+  // a condo or multi-family parcel can't take one however big the lot is
   if (p.homeType === 'Single family' && p.lot && p.lot - p.sqft >= 6000) tags.push('ADU room')
   if (p.scenarios.some((s) => s.product.startsWith('Renovate') && (s.gain ?? 0) > 0)) tags.push('Renovation')
-  if (p.source === 'listings' && ((p.facts.daysOnMarket ?? 0) >= 30 || (p.facts.priceCutDaysAgo ?? 99) <= 7)) tags.push('Listing issue')
+  const f = p.facts
+  if ((p.source === 'listings' && ((f.daysOnMarket ?? 0) >= 30 || (f.priceCutDaysAgo ?? 99) <= 7)) || f.expiredDaysAgo !== undefined || f.withdrawnDaysAgo !== undefined)
+    tags.push('Listing issue')
   if (score.urgency === 'verify') tags.push('Data check')
   return tags
 }
 
-function ctaFor(p: Property, person: Person | undefined, stage: Stage, referral?: ReferralState): Cta {
+// CRM contacts explain themselves with the trigger wording (as on the Contacts page);
+// listings, leads and referrals carry hand-written signals.
+function reasonsFor(p: Property, score: UrgencyResult): string[] {
+  if (score.note && (score.urgency === 'hold' || score.urgency === 'verify')) return [score.note.split('. ')[0], ...p.signals].slice(0, 3)
+  if (p.source !== 'contacts' || score.triggers.length === 0) return p.signals.slice(0, 3)
+  const out = score.triggers.map((t) => t.label)
+  for (const s of p.signals) if (out.length < 3 && !out.some((o) => o.toLowerCase().includes(s.toLowerCase().slice(0, 12)))) out.push(s)
+  return out.slice(0, 3)
+}
+
+function ctaFor(p: Property, person: Person | undefined, stage: Stage, score: UrgencyResult, referral?: ReferralState): Cta {
   const name = person ? firstName(person.name) : 'the owner'
   if (stage === 'project') return { kind: 'project', label: 'Open project' }
   if (referral && !referral.claimedAt && referral.status === 'new') return { kind: 'claim', label: 'Claim lead' }
   if (stage === 'shared') return { kind: 'activity', label: 'See activity' }
+  if (score.urgency === 'hold') return { kind: 'activity', label: `See ${name}’s history` }
+  if (score.urgency === 'verify') return { kind: 'verify', label: 'Check the value' }
   if (p.source === 'listings') return { kind: 'propose', label: 'Propose Revive to seller' }
   if (p.source === 'leadform' || p.source === 'revive') return { kind: 'followup', label: `Follow up with ${name}` }
   return { kind: 'share', label: person ? `Share report with ${name}` : 'Share report' }
@@ -116,8 +134,10 @@ export function buildOpportunities(s: BuildState): Opportunity[] {
         urgency: score.urgency,
         gain: topGain(p),
         product: best?.gain ? best.product : undefined,
+        photo: photoUrl(p.photo),
         tags: tagsFor(p, score),
-        cta: ctaFor(p, person, stage, referral),
+        reasons: reasonsFor(p, score),
+        cta: ctaFor(p, person, stage, score, referral),
         activity: [...(s.activity[p.id] ?? []), ...[...p.activity].reverse()],
       }
     })

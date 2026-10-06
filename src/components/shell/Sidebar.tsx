@@ -1,5 +1,6 @@
 import { ChevronRight, Home, Inbox, Megaphone, PanelLeft, Hammer, Search, Target } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import avatar from '@/assets/avatar-michelle.jpg'
 import { AGENT } from '@/data/tiers'
 import { cn, focusGlobalSearch } from '@/lib/utils'
 import { ReviveLogo } from './Logo'
@@ -92,7 +93,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           </div>
         )}
         <button className={cn('flex w-full items-center gap-3 rounded-lg p-1 text-left hover:bg-white/5', collapsed && 'justify-center')}>
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#f3c5a8] to-[#b9785a] text-sm font-semibold text-white">MP</span>
+          <img src={avatar} alt="" className="size-9 shrink-0 rounded-full object-cover" />
           {!collapsed && (
             <>
               <span className="flex-1">

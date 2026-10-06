@@ -8,8 +8,11 @@ import { STAGE_LABEL, useOpportunities } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 
 const looksLikeAddress = (q: string) => /^\d+\s+[a-z]/i.test(q.trim())
+export const runAiPath = (address: string) => `/property/new?address=${encodeURIComponent(address)}&tab=report`
 
-export function GlobalSearch({ className }: { className?: string }) {
+/** "Ask Revive AI about any address or person". `bar` lives in the top bar; `hero` is the big Home search. */
+export function GlobalSearch({ className, variant = 'bar' }: { className?: string; variant?: 'bar' | 'hero' }) {
+  const hero = variant === 'hero'
   const navigate = useNavigate()
   const opps = useOpportunities() // already filtered to what this tier can see
   const [q, setQ] = useState('')
@@ -19,6 +22,7 @@ export function GlobalSearch({ className }: { className?: string }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (hero) return
       const typing = e.target instanceof HTMLElement && /INPUT|TEXTAREA/.test(e.target.tagName)
       if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typing)) {
         e.preventDefault()
@@ -34,7 +38,7 @@ export function GlobalSearch({ className }: { className?: string }) {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('mousedown', onClick)
     }
-  }, [])
+  }, [hero])
 
   const term = q.trim().toLowerCase()
   const visiblePeople = useMemo(() => {
@@ -47,6 +51,7 @@ export function GlobalSearch({ className }: { className?: string }) {
     : opps.slice(0, 3)
   const peopleResults = term ? visiblePeople.filter((p) => p.name.toLowerCase().includes(term)).slice(0, 5) : []
   const showRun = term.length > 0 && propResults.length === 0 && looksLikeAddress(q)
+  const showList = open && (!hero || term.length > 0)
 
   const go = (path: string) => {
     setOpen(false)
@@ -55,14 +60,29 @@ export function GlobalSearch({ className }: { className?: string }) {
     navigate(path)
   }
 
+  // Enter / "Generate insights": best match, else run Revive AI on the typed address
+  const submit = () => {
+    if (!term) return inputRef.current?.focus()
+    if (propResults[0]) return go(`/property/${propResults[0].id}?tab=report`)
+    if (peopleResults[0]) return go(`/person/${peopleResults[0].id}`)
+    go(runAiPath(q.trim()))
+  }
+
   return (
-    <div ref={wrapRef} className={cn('relative w-full max-w-xl', className)}>
+    <div ref={wrapRef} className={cn('relative w-full', hero ? 'max-w-2xl' : 'max-w-xl', className)}>
       <Command shouldFilter={false} label="Search" className="relative">
-        <div className="flex h-10 items-center gap-2 rounded-lg border border-line bg-white px-3 shadow-card focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
-          <Sparkles className="size-4 shrink-0 text-brand" aria-hidden="true" />
+        <div
+          className={cn(
+            'flex items-center gap-2 border bg-white focus-within:ring-2',
+            hero
+              ? 'h-14 rounded-xl border-transparent pr-1.5 pl-4 shadow-lg focus-within:ring-white/50'
+              : 'h-10 rounded-lg border-line px-3 shadow-card focus-within:border-brand focus-within:ring-brand/20',
+          )}
+        >
+          <Sparkles className={cn('shrink-0 text-brand', hero ? 'size-5' : 'size-4')} aria-hidden="true" />
           <Command.Input
-            data-global-search=""
             ref={inputRef}
+            {...(hero ? { 'aria-label': 'Search any address or person' } : { 'data-global-search': '' })}
             value={q}
             onValueChange={(v) => {
               setQ(v)
@@ -74,15 +94,34 @@ export function GlobalSearch({ className }: { className?: string }) {
                 setOpen(false)
                 inputRef.current?.blur()
               }
+              // with nothing highlighted, Enter falls through to submit
+              if (e.key === 'Enter' && !showList) submit()
             }}
-            placeholder="Ask Revive AI about any address or person"
-            className="h-full min-w-0 flex-1 truncate bg-transparent text-sm text-ink outline-none placeholder:text-faint"
+            placeholder={hero ? 'Enter an address, like 1847 Las Lunas St' : 'Ask Revive AI about any address or person'}
+            className={cn('h-full min-w-0 flex-1 truncate bg-transparent text-ink outline-none placeholder:text-faint', hero ? 'text-base' : 'text-sm')}
           />
-          <kbd className="hidden rounded border border-line px-1.5 text-[11px] text-muted sm:block">⌘K</kbd>
+          {hero ? (
+            <button
+              type="button"
+              onClick={submit}
+              className="flex h-11 shrink-0 items-center gap-2 rounded-lg bg-brand px-3 text-sm font-semibold text-white hover:bg-primary-hover sm:px-4"
+            >
+              <Sparkles className="size-4" />
+              <span className="hidden sm:inline">Generate insights</span>
+              <span className="sm:hidden">Go</span>
+            </button>
+          ) : (
+            <kbd className="hidden rounded border border-line px-1.5 text-[11px] text-muted sm:block">⌘K</kbd>
+          )}
         </div>
 
-        {open && (
-          <Command.List className="absolute top-12 right-0 left-0 z-30 max-h-[420px] overflow-y-auto rounded-xl border border-line bg-white p-2 shadow-xl">
+        {showList && (
+          <Command.List
+            className={cn(
+              'absolute right-0 left-0 z-30 max-h-[420px] overflow-y-auto rounded-xl border border-line bg-white p-2 text-left shadow-xl',
+              hero ? 'top-16' : 'top-12',
+            )}
+          >
             <Command.Empty className="px-3 py-6 text-center text-sm text-muted">
               No matches. Type a full address to run Revive AI on it.
             </Command.Empty>
@@ -92,9 +131,9 @@ export function GlobalSearch({ className }: { className?: string }) {
                 {propResults.map((o) => (
                   <Command.Item key={o.id} value={`p-${o.id}`} onSelect={() => go(`/property/${o.id}`)} className={itemCls}>
                     <Building2 className="size-4 text-muted" />
-                    <span className="flex-1">
+                    <span className="min-w-0 flex-1">
                       <span className="block font-medium text-ink">{o.property.address}</span>
-                      <span className="block text-xs text-muted">
+                      <span className="block truncate text-xs text-muted">
                         {o.property.city} · {STAGE_LABEL[o.stage]}
                         {o.person ? ` · ${o.person.name}` : ''}
                       </span>
@@ -123,11 +162,7 @@ export function GlobalSearch({ className }: { className?: string }) {
 
             {showRun && (
               <Command.Group heading="Revive AI" className={groupCls}>
-                <Command.Item
-                  value="run-ai"
-                  onSelect={() => go(`/property/new?address=${encodeURIComponent(q.trim())}&tab=report`)}
-                  className={itemCls}
-                >
+                <Command.Item value="run-ai" onSelect={() => go(runAiPath(q.trim()))} className={itemCls}>
                   <Search className="size-4 text-brand" />
                   <span className="flex-1 font-medium text-brand">Run Revive AI on “{q.trim()}”</span>
                 </Command.Item>
@@ -142,5 +177,4 @@ export function GlobalSearch({ className }: { className?: string }) {
 
 const groupCls =
   '[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-faint [&_[cmdk-group-heading]]:uppercase'
-const itemCls =
-  'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm data-[selected=true]:bg-brand-soft'
+const itemCls = 'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm data-[selected=true]:bg-brand-soft'

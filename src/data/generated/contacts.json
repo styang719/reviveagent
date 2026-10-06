@@ -1,0 +1,2620 @@
+[
+ {
+  "id": 100,
+  "contact": "Maya Chen",
+  "lat": 34.139,
+  "lng": -118.1215,
+  "lot": 5200,
+  "address": "1847 Las Lunas St Pasadena CA 91106",
+  "city": "Pasadena",
+  "state": "CA",
+  "zip": "91106",
+  "year_built": 1912,
+  "sqft": 2200,
+  "beds": null,
+  "baths": null,
+  "ptype": "Single Family Residential",
+  "avm": 1648317,
+  "avm_lwr": 1420207,
+  "avm_upr": 1876427,
+  "fsd": 0.1383894,
+  "condition": "C3",
+  "ladder": [
+   1348176,
+   1384346,
+   1446578,
+   1648317,
+   1742746,
+   1857647
+  ],
+  "current": 1648317,
+  "c2": 1742746,
+  "c1": 1857647,
+  "upside": 94429,
+  "upsidePct": 0.05728813086317741,
+  "attom_avm": 1845732,
+  "rel": "Homeowner",
+  "listing": "Not listed",
+  "cv": 1650000,
+  "pv": 1850000,
+  "sell": 84,
+  "revive": 94,
+  "conf": 0.85,
+  "act": 12,
+  "actLabel": "Emailed 12 days ago",
+  "opp": "Renovation opportunity",
+  "sig": "No permits in 22 yrs &middot; +$200K potential",
+  "sources": [
+   {
+    "n": "Zillow",
+    "v": 1698000
+   },
+   {
+    "n": "Redfin",
+    "v": 1640000
+   },
+   {
+    "n": "HouseCanary",
+    "v": 1648317
+   },
+   {
+    "n": "ATTOM",
+    "v": 1845732
+   },
+   {
+    "n": "Estated",
+    "v": 1650000
+   }
+  ],
+  "cvLo": 1640000,
+  "cvHi": 1845732,
+  "pvLo": 1780000,
+  "pvHi": 1920000,
+  "comps": 12,
+  "st": "Not listed",
+  "stSub": "Owned 18 yrs",
+  "iHead": "Potential pre-sale renovation",
+  "iBody": "No major updates in 22 yrs, and renovated comps suggest meaningful upside.",
+  "iProduct": "Renovate to Sell",
+  "touch": 12,
+  "touchVia": "Emailed",
+  "photo": "contact-100",
+  "dr": {
+   "head": "Potential pre-sale renovation",
+   "why": "No major permitted work in 22 years, while renovated homes in 91106 are trading near $841 a square foot. That gap is worth roughly $200K on this house.",
+   "product": "Renovate to Sell",
+   "spread": 0.12544634146341463,
+   "equity": 1290000,
+   "apprPct": 84,
+   "ppsf": 841,
+   "sqft": 2200,
+   "compsFound": 12,
+   "compsUsed": 10,
+   "comps": [
+    {
+     "addr": "1862 E California Blvd",
+     "sqft": 2270,
+     "ppsf": 891,
+     "price": 2022570,
+     "dist": 0.4,
+     "mo": 2,
+     "feat": [
+      "Updated kitchen",
+      "Refinished floors"
+     ],
+     "photo": "comp-100-0"
+    },
+    {
+     "addr": "1745 Oakdale St",
+     "sqft": 2020,
+     "ppsf": 816,
+     "price": 1648320,
+     "dist": 0.7,
+     "mo": 4,
+     "feat": [
+      "Renovated kitchen and baths"
+     ],
+     "photo": "comp-100-1"
+    },
+    {
+     "addr": "1980 E Del Mar Blvd",
+     "sqft": 2440,
+     "ppsf": 858,
+     "price": 2093520,
+     "dist": 1.1,
+     "mo": 5,
+     "feat": [
+      "Updated baths",
+      "New windows"
+     ],
+     "photo": "comp-100-2"
+    }
+   ],
+   "sellSig": [
+    {
+     "k": "Ownership",
+     "d": "Owned 18 years",
+     "s": "strong"
+    },
+    {
+     "k": "Listing history",
+     "d": "No listing on record",
+     "s": "neutral"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $1290K equity",
+     "s": "strong"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+84% since purchase",
+     "s": "mod"
+    },
+    {
+     "k": "Local market",
+     "d": "Strong market conditions",
+     "s": "mod"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "+$200K on a $1650K home",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No major permits in 22 yrs",
+     "s": "strong"
+    },
+    {
+     "k": "Condition vs comps",
+     "d": "Appears less updated than comps",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation economics",
+     "d": "Strong potential return",
+     "s": "strong"
+    },
+    {
+     "k": "Equity",
+     "d": "~$1290K estimated",
+     "s": "strong"
+    },
+    {
+     "k": "ADU potential",
+     "d": "5,200 sqft lot, limited",
+     "s": "low"
+    }
+   ],
+   "extras": [
+    {
+     "t": "Renovate to Stay",
+     "b": "Eighteen years of ownership and substantial equity mean modernising to stay is a real alternative to selling."
+    }
+   ],
+   "conf": "High",
+   "confKind": "ok",
+   "confLead": "Based on",
+   "confList": [
+    "5 valuation sources within 12.5%",
+    "12 comparable sales nearby",
+    "Year built, size and parcel matched in ATTOM"
+   ],
+   "sellNote": "",
+   "revNote": ""
+  },
+  "hist": [
+   {
+    "t": "email",
+    "d": 12,
+    "h": "Emailed: Pasadena spring market update",
+    "b": "Quarterly snapshot with three recent sales on her street.",
+    "tag": "Opened twice, no reply"
+   },
+   {
+    "t": "note",
+    "d": 40,
+    "h": "Note",
+    "b": "Youngest starts college next fall. Said the house will feel big with just the two of them."
+   },
+   {
+    "t": "call",
+    "d": 41,
+    "h": "Call, 14 min",
+    "b": "Caught up after the Las Lunas open house. Asked what homes like hers are going for."
+   },
+   {
+    "t": "meet",
+    "d": 210,
+    "h": "Coffee check-in",
+    "b": "Annual check-in. Not moving this year, \"maybe after graduation\"."
+   },
+   {
+    "t": "crm",
+    "d": 820,
+    "h": "Added to Follow Up Boss",
+    "b": "Source: open house sign-in."
+   }
+  ]
+ },
+ {
+  "id": 102,
+  "contact": "Robert Nguyen",
+  "lat": 34.2082,
+  "lng": -118.225,
+  "lot": 8400,
+  "address": "4218 Ocean View Blvd Montrose CA 91020",
+  "city": "Montrose",
+  "state": "CA",
+  "zip": "91020",
+  "year_built": 1968,
+  "sqft": 2378,
+  "beds": null,
+  "baths": null,
+  "ptype": "Single Family Residential",
+  "avm": 1020686,
+  "avm_lwr": 884274,
+  "avm_upr": 1157098,
+  "fsd": 0.1336478,
+  "condition": "C3",
+  "ladder": [
+   771080,
+   910686,
+   967069,
+   1020686,
+   1131503,
+   1295886
+  ],
+  "current": 1020686,
+  "c2": 1131503,
+  "c1": 1295886,
+  "upside": 110817,
+  "upsidePct": 0.10857109826136539,
+  "attom_avm": 923590,
+  "rel": "Homeowner",
+  "listing": "Expired 23 days ago",
+  "cv": 972000,
+  "pv": 1120000,
+  "sell": 79,
+  "revive": 88,
+  "conf": 0.8,
+  "act": 61,
+  "actLabel": "Listing expired 23 days ago",
+  "opp": "Expired listing opportunity",
+  "sig": "Expired 23 days ago &middot; Condition trails comps",
+  "sources": [
+   {
+    "n": "Zillow",
+    "v": 972000
+   },
+   {
+    "n": "Redfin",
+    "v": 948000
+   },
+   {
+    "n": "HouseCanary",
+    "v": 1020686
+   },
+   {
+    "n": "ATTOM",
+    "v": 923590
+   },
+   {
+    "n": "Estated",
+    "v": 995000
+   }
+  ],
+  "cvLo": 923590,
+  "cvHi": 1020686,
+  "pvLo": 1065000,
+  "pvHi": 1175000,
+  "comps": 9,
+  "st": "Expired",
+  "stSub": "23 days ago",
+  "iHead": "Worth reconnecting",
+  "iBody": "The listing expired 23 days ago, and the home appears less updated than nearby comps.",
+  "iProduct": "Renovate to Sell",
+  "touch": 61,
+  "touchVia": "Called",
+  "evt": {
+   "k": "expired",
+   "d": 23
+  },
+  "photo": "contact-102",
+  "dr": {
+   "head": "Expired listing worth revisiting",
+   "why": "The listing expired 23 days ago after failing to sell. Photos suggest the home is less updated than the renovated comps that did sell, which points at condition rather than price.",
+   "product": "Renovate to Sell",
+   "spread": 0.10512889918686863,
+   "equity": 702000,
+   "apprPct": 109,
+   "ppsf": 471,
+   "sqft": 2378,
+   "compsFound": 9,
+   "compsUsed": 9,
+   "comps": [
+    {
+     "addr": "3712 Ocean View Blvd",
+     "sqft": 2450,
+     "ppsf": 499,
+     "price": 1222550,
+     "dist": 0.4,
+     "mo": 2,
+     "feat": [
+      "Updated kitchen",
+      "Refinished floors"
+     ],
+     "photo": "comp-102-0"
+    },
+    {
+     "addr": "2311 Montrose Ave",
+     "sqft": 2190,
+     "ppsf": 457,
+     "price": 1000830,
+     "dist": 0.7,
+     "mo": 4,
+     "feat": [
+      "Renovated kitchen and baths"
+     ],
+     "photo": "comp-102-1"
+    },
+    {
+     "addr": "2430 Hermosa Ave",
+     "sqft": 2640,
+     "ppsf": 480,
+     "price": 1267200,
+     "dist": 1.1,
+     "mo": 5,
+     "feat": [
+      "Updated baths",
+      "New windows"
+     ],
+     "photo": "comp-102-2"
+    }
+   ],
+   "sellSig": [
+    {
+     "k": "Ownership",
+     "d": "Owned 12 years",
+     "s": "strong"
+    },
+    {
+     "k": "Listing history",
+     "d": "Listing expired 23 days ago",
+     "s": "strong"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $702K equity",
+     "s": "strong"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+109% since purchase",
+     "s": "strong"
+    },
+    {
+     "k": "Local market",
+     "d": "Steady market conditions",
+     "s": "neutral"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "+$148K on a $972K home",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No major permits in 15 yrs",
+     "s": "strong"
+    },
+    {
+     "k": "Condition vs comps",
+     "d": "Appears less updated than comps",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation economics",
+     "d": "Strong potential return",
+     "s": "strong"
+    },
+    {
+     "k": "Equity",
+     "d": "~$702K estimated",
+     "s": "strong"
+    },
+    {
+     "k": "ADU potential",
+     "d": "8,100 sqft lot, limited",
+     "s": "low"
+    }
+   ],
+   "extras": [],
+   "conf": "Limited",
+   "confKind": "warn",
+   "confLead": "Missing",
+   "confList": [
+    "Only 9 comparable sales found nearby",
+    "Interior photos for condition analysis"
+   ],
+   "sellNote": "",
+   "revNote": ""
+  },
+  "hist": [
+   {
+    "t": "mls",
+    "d": 23,
+    "h": "Listing expired",
+    "b": "Listed 94 days with another brokerage at $1.05M. No price change after July."
+   },
+   {
+    "t": "call",
+    "d": 61,
+    "h": "Call, 6 min",
+    "b": "They listed with the agent who sold their neighbor's place. Wished him luck and offered to help if anything changes."
+   },
+   {
+    "t": "email",
+    "d": 80,
+    "h": "Emailed: Your home's value, 4218 Ocean View Blvd",
+    "b": "CMA with six comps.",
+    "tag": "Opened"
+   },
+   {
+    "t": "note",
+    "d": 81,
+    "h": "Note",
+    "b": "Wants to be in Boise by spring. Motivated, but expects the top of the range."
+   }
+  ]
+ },
+ {
+  "id": 105,
+  "contact": "Priya Raghunathan",
+  "lat": 34.1128,
+  "lng": -118.1938,
+  "lot": 7600,
+  "address": "735 N Avenue 50 Los Angeles CA 90042",
+  "city": "Los Angeles",
+  "state": "CA",
+  "zip": "90042",
+  "year_built": 1922,
+  "sqft": 3590,
+  "beds": null,
+  "baths": null,
+  "ptype": "Multi-Family",
+  "avm": 594326,
+  "avm_lwr": 509417,
+  "avm_upr": 679235,
+  "fsd": 0.1428663,
+  "condition": "C4",
+  "ladder": [
+   464121,
+   547546,
+   594326,
+   599727,
+   608530,
+   627401
+  ],
+  "current": 594326,
+  "c2": 608530,
+  "c1": 627401,
+  "upside": 14204,
+  "upsidePct": 0.023899341438873616,
+  "attom_avm": null,
+  "rel": "Homeowner",
+  "listing": "Not listed",
+  "cv": 597663,
+  "pv": 736000,
+  "sell": 71,
+  "revive": 86,
+  "conf": 0.55,
+  "act": 47,
+  "actLabel": "Emailed 47 days ago",
+  "opp": "Renovation opportunity",
+  "sig": "1922 multi-family &middot; +$138K potential",
+  "sources": [
+   {
+    "n": "HouseCanary",
+    "v": 594326
+   },
+   {
+    "n": "Estated",
+    "v": 601000
+   }
+  ],
+  "cvLo": 594326,
+  "cvHi": 601000,
+  "pvLo": 700000,
+  "pvHi": 772000,
+  "comps": 4,
+  "st": "Not listed",
+  "stSub": "Owned 16 yrs",
+  "iHead": "Value may be hiding in the condition",
+  "iBody": "This older multifamily property shows meaningful improvement potential.",
+  "iProduct": "Renovate to Sell",
+  "touch": 47,
+  "touchVia": "Emailed",
+  "photo": "contact-105",
+  "dr": {
+   "head": "Dated multi-family with rental upside",
+   "why": "A 1922 three-unit building held 16 years with no permitted work on file. Unit-level updates could lift both resale and rent, though only two valuation sources cover this address.",
+   "product": "Renovate to Sell",
+   "spread": 0.011229527229163792,
+   "equity": 431000,
+   "apprPct": 110,
+   "ppsf": 205,
+   "sqft": 3590,
+   "compsFound": 4,
+   "compsUsed": 4,
+   "comps": [
+    {
+     "addr": "618 N Avenue 52",
+     "sqft": 3700,
+     "ppsf": 217,
+     "price": 802900,
+     "dist": 0.4,
+     "mo": 2,
+     "feat": [
+      "Updated kitchen",
+      "Refinished floors"
+     ],
+     "photo": "comp-105-0"
+    },
+    {
+     "addr": "5310 Echo St",
+     "sqft": 3300,
+     "ppsf": 199,
+     "price": 656700,
+     "dist": 0.7,
+     "mo": 4,
+     "feat": [
+      "Renovated kitchen and baths"
+     ],
+     "photo": "comp-105-1"
+    },
+    {
+     "addr": "742 N Avenue 49",
+     "sqft": 3980,
+     "ppsf": 209,
+     "price": 831820,
+     "dist": 1.1,
+     "mo": 5,
+     "feat": [
+      "Updated baths",
+      "New windows"
+     ],
+     "photo": "comp-105-2"
+    }
+   ],
+   "sellSig": [
+    {
+     "k": "Ownership",
+     "d": "Owned 16 years",
+     "s": "strong"
+    },
+    {
+     "k": "Listing history",
+     "d": "No listing on record",
+     "s": "neutral"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $431K equity",
+     "s": "strong"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+110% since purchase",
+     "s": "strong"
+    },
+    {
+     "k": "Local market",
+     "d": "Softer market conditions",
+     "s": "neutral"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "+$138K on a $597K home",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No major permits in 17 yrs",
+     "s": "strong"
+    },
+    {
+     "k": "Condition vs comps",
+     "d": "Appears less updated than comps",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation economics",
+     "d": "Strong potential return",
+     "s": "strong"
+    },
+    {
+     "k": "Equity",
+     "d": "~$431K estimated",
+     "s": "strong"
+    },
+    {
+     "k": "ADU potential",
+     "d": "6,400 sqft lot, limited",
+     "s": "low"
+    }
+   ],
+   "extras": [
+    {
+     "t": "Rental potential",
+     "b": "Three units at an estimated $1,850 each. Updated interiors typically support higher rents in this submarket."
+    }
+   ],
+   "conf": "Limited",
+   "confKind": "warn",
+   "confLead": "Missing",
+   "confList": [
+    "Consumer valuation sources (Zillow, Redfin)",
+    "Only 4 comparable sales found nearby",
+    "Interior photos for condition analysis"
+   ],
+   "sellNote": "",
+   "revNote": ""
+  },
+  "hist": [
+   {
+    "t": "email",
+    "d": 47,
+    "h": "Emailed: What your duplex could rent for after updates",
+    "b": "Rent comps for updated two-unit buildings in Highland Park.",
+    "tag": "Opened"
+   },
+   {
+    "t": "call",
+    "d": 120,
+    "h": "Call, 8 min",
+    "b": "Tenant in unit B moves out in the new year. Weighing selling against fixing it up."
+   },
+   {
+    "t": "note",
+    "d": 121,
+    "h": "Note",
+    "b": "Inherited the building from her parents. Lives in Pasadena and manages it herself."
+   }
+  ]
+ },
+ {
+  "id": 106,
+  "contact": "Omar Lewis",
+  "lat": 34.1382,
+  "lng": -118.209,
+  "lot": 9100,
+  "address": "2160 Chickasaw Ave Los Angeles CA 90041",
+  "city": "Los Angeles",
+  "state": "CA",
+  "zip": "90041",
+  "year_built": 1981,
+  "sqft": 2325,
+  "beds": null,
+  "baths": null,
+  "ptype": "Single Family Residential",
+  "avm": 587409,
+  "avm_lwr": 531821,
+  "avm_upr": 642997,
+  "fsd": 0.0946333,
+  "condition": "C3",
+  "ladder": [
+   506854,
+   517623,
+   580749,
+   587409,
+   610604,
+   660408
+  ],
+  "current": 587409,
+  "c2": 610604,
+  "c1": 660408,
+  "upside": 23195,
+  "upsidePct": 0.03948696734302675,
+  "attom_avm": 586737,
+  "rel": "Homeowner",
+  "listing": "Not listed",
+  "cv": 587000,
+  "pv": 704000,
+  "sell": 41,
+  "revive": 85,
+  "conf": 0.9,
+  "act": 96,
+  "actLabel": "Last contact 3 mo ago",
+  "opp": "Renovate to Stay",
+  "sig": "Long-term owner &middot; Dated condition",
+  "sources": [
+   {
+    "n": "Zillow",
+    "v": 590000
+   },
+   {
+    "n": "Redfin",
+    "v": 581000
+   },
+   {
+    "n": "HouseCanary",
+    "v": 587409
+   },
+   {
+    "n": "ATTOM",
+    "v": 586737
+   },
+   {
+    "n": "Estated",
+    "v": 587000
+   }
+  ],
+  "cvLo": 581000,
+  "cvHi": 590000,
+  "pvLo": 672000,
+  "pvHi": 736000,
+  "comps": 11,
+  "st": "Not listed",
+  "stSub": "Owned 24 yrs",
+  "iHead": "Strong stay-in-place opportunity",
+  "iBody": "A long-term owner with a dated home may have meaningful modernization potential.",
+  "iProduct": "Renovate to Stay",
+  "touch": 96,
+  "touchVia": null,
+  "photo": "contact-106",
+  "dr": {
+   "head": "Long-term owner, dated home",
+   "why": "Owned outright for 24 years with no permits on record. Nothing suggests this owner is selling, but the condition gap against nearby comps makes a modernisation conversation reasonable.",
+   "product": "Renovate to Stay",
+   "spread": 0.01549053356282272,
+   "equity": 587000,
+   "apprPct": 196,
+   "ppsf": 303,
+   "sqft": 2325,
+   "compsFound": 11,
+   "compsUsed": 10,
+   "comps": [
+    {
+     "addr": "2212 Chickasaw Ave",
+     "sqft": 2390,
+     "ppsf": 321,
+     "price": 767190,
+     "dist": 0.4,
+     "mo": 2,
+     "feat": [
+      "Updated kitchen",
+      "Refinished floors"
+     ],
+     "photo": "comp-106-0"
+    },
+    {
+     "addr": "5017 Hartwick St",
+     "sqft": 2140,
+     "ppsf": 294,
+     "price": 629160,
+     "dist": 0.7,
+     "mo": 4,
+     "feat": [
+      "Renovated kitchen and baths"
+     ],
+     "photo": "comp-106-1"
+    },
+    {
+     "addr": "2185 Merton Ave",
+     "sqft": 2580,
+     "ppsf": 309,
+     "price": 797220,
+     "dist": 1.1,
+     "mo": 5,
+     "feat": [
+      "Updated baths",
+      "New windows"
+     ],
+     "photo": "comp-106-2"
+    }
+   ],
+   "sellSig": [
+    {
+     "k": "Ownership",
+     "d": "Owned 24 years",
+     "s": "strong"
+    },
+    {
+     "k": "Listing history",
+     "d": "No listing on record",
+     "s": "neutral"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $587K equity",
+     "s": "strong"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+196% since purchase",
+     "s": "strong"
+    },
+    {
+     "k": "Local market",
+     "d": "Steady market conditions",
+     "s": "neutral"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "+$117K on a $587K home",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No major permits in 24 yrs",
+     "s": "strong"
+    },
+    {
+     "k": "Condition vs comps",
+     "d": "Appears less updated than comps",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation economics",
+     "d": "Strong potential return",
+     "s": "strong"
+    },
+    {
+     "k": "Equity",
+     "d": "~$587K estimated",
+     "s": "strong"
+    },
+    {
+     "k": "ADU potential",
+     "d": "9,800 sqft lot, limited",
+     "s": "low"
+    }
+   ],
+   "extras": [
+    {
+     "t": "Renovate to Stay",
+     "b": "Full ownership and a 45-year-old interior. Modernising may serve this owner better than a sale."
+    }
+   ],
+   "conf": "High",
+   "confKind": "ok",
+   "confLead": "Based on",
+   "confList": [
+    "5 valuation sources within 1.5%",
+    "11 comparable sales nearby",
+    "Year built, size and parcel matched in ATTOM"
+   ],
+   "sellNote": "",
+   "revNote": ""
+  },
+  "hist": [
+   {
+    "t": "text",
+    "d": 96,
+    "in": true,
+    "h": "Omar replied",
+    "b": "\"Thanks Michelle! Hope you're well.\""
+   },
+   {
+    "t": "text",
+    "d": 96,
+    "h": "Texted: Happy birthday",
+    "b": ""
+   },
+   {
+    "t": "note",
+    "d": 180,
+    "h": "Note",
+    "b": "Talked about redoing the kitchen \"someday\". Plans to stay through retirement."
+   },
+   {
+    "t": "meet",
+    "d": 290,
+    "h": "Client appreciation party",
+    "b": "Came with his wife. Asked if you knew a good contractor."
+   }
+  ]
+ },
+ {
+  "id": 103,
+  "contact": "Zoe Rivera",
+  "lat": 34.201,
+  "lng": -118.129,
+  "lot": 14500,
+  "address": "1455 Rubio Vista Rd Altadena CA 91001",
+  "city": "Altadena",
+  "state": "CA",
+  "zip": "91001",
+  "year_built": 1984,
+  "sqft": 3542,
+  "beds": null,
+  "baths": null,
+  "ptype": "Single Family Residential",
+  "avm": 779704,
+  "avm_lwr": 708553,
+  "avm_upr": 850855,
+  "fsd": 0.0912542,
+  "condition": "C4",
+  "ladder": [
+   664774,
+   764109,
+   779704,
+   803424,
+   830130,
+   899797
+  ],
+  "current": 779704,
+  "c2": 830130,
+  "c1": 899797,
+  "upside": 50426,
+  "upsidePct": 0.06467326062197962,
+  "attom_avm": 768191,
+  "rel": "Past client",
+  "listing": "Not listed",
+  "cv": 774000,
+  "pv": 1004000,
+  "sell": 44,
+  "revive": 79,
+  "conf": 0.95,
+  "act": 145,
+  "actLabel": "Last contact 5 mo ago",
+  "opp": "ADU + renovation",
+  "sig": "Large lot &middot; +$230K potential",
+  "sources": [
+   {
+    "n": "Zillow",
+    "v": 774000
+   },
+   {
+    "n": "Redfin",
+    "v": 762000
+   },
+   {
+    "n": "HouseCanary",
+    "v": 779704
+   },
+   {
+    "n": "ATTOM",
+    "v": 768191
+   },
+   {
+    "n": "Estated",
+    "v": 788000
+   }
+  ],
+  "cvLo": 762000,
+  "cvHi": 788000,
+  "pvLo": 940000,
+  "pvHi": 1068000,
+  "comps": 6,
+  "st": "Not listed",
+  "stSub": "Owned 21 yrs",
+  "iHead": "More potential in the property",
+  "iBody": "The large lot may support an ADU in addition to renovation value.",
+  "iProduct": "ADU",
+  "touch": 145,
+  "touchVia": null,
+  "photo": "contact-103",
+  "dr": {
+   "head": "Large lot with renovation upside",
+   "why": "A half-acre parcel held 21 years. The renovation gap alone is worth about $230K, and the lot is large enough that an accessory unit is worth checking.",
+   "product": "Renovate to Sell",
+   "spread": 0.03412073490813648,
+   "equity": 698000,
+   "apprPct": 215,
+   "ppsf": 283,
+   "sqft": 3542,
+   "compsFound": 6,
+   "compsUsed": 6,
+   "comps": [
+    {
+     "addr": "1530 Rubio Vista Rd",
+     "sqft": 3650,
+     "ppsf": 300,
+     "price": 1095000,
+     "dist": 0.4,
+     "mo": 2,
+     "feat": [
+      "Updated kitchen",
+      "Refinished floors"
+     ],
+     "photo": "comp-103-0"
+    },
+    {
+     "addr": "1610 E Loma Alta Dr",
+     "sqft": 3260,
+     "ppsf": 275,
+     "price": 896500,
+     "dist": 0.7,
+     "mo": 4,
+     "feat": [
+      "Renovated kitchen and baths"
+     ],
+     "photo": "comp-103-1"
+    },
+    {
+     "addr": "1388 E Mendocino St",
+     "sqft": 3930,
+     "ppsf": 289,
+     "price": 1135770,
+     "dist": 1.1,
+     "mo": 5,
+     "feat": [
+      "Updated baths",
+      "New windows"
+     ],
+     "photo": "comp-103-2"
+    }
+   ],
+   "sellSig": [
+    {
+     "k": "Ownership",
+     "d": "Owned 21 years",
+     "s": "strong"
+    },
+    {
+     "k": "Listing history",
+     "d": "No listing on record",
+     "s": "neutral"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $698K equity",
+     "s": "strong"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+215% since purchase",
+     "s": "strong"
+    },
+    {
+     "k": "Local market",
+     "d": "Strong market conditions",
+     "s": "mod"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "+$230K on a $774K home",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No major permits in 21 yrs",
+     "s": "strong"
+    },
+    {
+     "k": "Condition vs comps",
+     "d": "Appears less updated than comps",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation economics",
+     "d": "Strong potential return",
+     "s": "strong"
+    },
+    {
+     "k": "Equity",
+     "d": "~$698K estimated",
+     "s": "strong"
+    },
+    {
+     "k": "ADU potential",
+     "d": "22,200 sqft lot may support one",
+     "s": "strong"
+    }
+   ],
+   "extras": [
+    {
+     "t": "ADU potential",
+     "b": "At roughly 0.51 acres the lot may support an accessory dwelling. Zoning and setbacks still need to be verified with Douglas County."
+    },
+    {
+     "t": "Renovate to Stay",
+     "b": "Two decades of ownership and a largely original interior."
+    }
+   ],
+   "conf": "Limited",
+   "confKind": "warn",
+   "confLead": "Missing",
+   "confList": [
+    "Only 6 comparable sales found nearby",
+    "Interior photos for condition analysis"
+   ],
+   "sellNote": "",
+   "revNote": ""
+  },
+  "hist": [
+   {
+    "t": "email",
+    "d": 145,
+    "h": "Emailed: Your 2026 home value report",
+    "b": "",
+    "tag": "Not opened"
+   },
+   {
+    "t": "call",
+    "d": 300,
+    "h": "Call, 22 min",
+    "b": "Asked about adding a unit for her mother. Unsure what the lot allows or what permits cost."
+   },
+   {
+    "t": "crm",
+    "d": 7700,
+    "when": "Jun 2005",
+    "h": "Closed: purchase of 1455 Rubio Vista Rd",
+    "b": "You represented the buyer."
+   }
+  ]
+ },
+ {
+  "id": 101,
+  "contact": "Isaac Kim",
+  "lat": 34.0618,
+  "lng": -118.3292,
+  "lot": 8800,
+  "address": "621 S Hudson Ave Los Angeles CA 90005",
+  "city": "Los Angeles",
+  "state": "CA",
+  "zip": "90005",
+  "year_built": 1983,
+  "sqft": 1747,
+  "beds": null,
+  "baths": null,
+  "ptype": "Single Family Residential",
+  "avm": 802617,
+  "avm_lwr": 737132,
+  "avm_upr": 868102,
+  "fsd": 0.0815896,
+  "condition": "C3",
+  "ladder": [
+   701037,
+   745785,
+   774719,
+   802617,
+   879099,
+   1005416
+  ],
+  "current": 802617,
+  "c2": 879099,
+  "c1": 1005416,
+  "upside": 76482,
+  "upsidePct": 0.09529078003580786,
+  "attom_avm": 711723,
+  "rel": "Homeowner",
+  "listing": "Listed 11 days ago",
+  "cv": 758000,
+  "pv": 865000,
+  "sell": 44,
+  "revive": 31,
+  "conf": 0.75,
+  "act": 11,
+  "actLabel": "Listed 11 days ago",
+  "opp": "Limited Revive opportunity",
+  "sig": "Just listed &middot; Pre-sale window closed",
+  "sources": [
+   {
+    "n": "Zillow",
+    "v": 758000
+   },
+   {
+    "n": "Redfin",
+    "v": 745000
+   },
+   {
+    "n": "HouseCanary",
+    "v": 802617
+   },
+   {
+    "n": "ATTOM",
+    "v": 711723
+   },
+   {
+    "n": "Estated",
+    "v": 772000
+   }
+  ],
+  "cvLo": 711723,
+  "cvHi": 802617,
+  "pvLo": 828000,
+  "pvHi": 902000,
+  "comps": 14,
+  "st": "Active",
+  "stSub": "11 days on market",
+  "iHead": "Limited opportunity right now",
+  "iBody": "The home was just listed, so the window for a pre-sale Revive strategy may have passed.",
+  "iProduct": "",
+  "touch": 40,
+  "touchVia": null,
+  "evt": {
+   "k": "active",
+   "d": 11
+  },
+  "photo": "contact-101",
+  "dr": {
+   "head": "Already listed - pre-sale window has closed",
+   "why": "Listed 11 days ago. Pre-sale renovation is no longer available on this property, and there is nothing yet to suggest the listing is struggling.",
+   "product": null,
+   "spread": 0.12770979721043157,
+   "equity": 279000,
+   "apprPct": 40,
+   "ppsf": 495,
+   "sqft": 1747,
+   "compsFound": 14,
+   "compsUsed": 10,
+   "comps": [
+    {
+     "addr": "540 S Hudson Ave",
+     "sqft": 1800,
+     "ppsf": 525,
+     "price": 945000,
+     "dist": 0.4,
+     "mo": 2,
+     "feat": [
+      "Updated kitchen",
+      "Refinished floors"
+     ],
+     "photo": "comp-101-0"
+    },
+    {
+     "addr": "612 S Lucerne Blvd",
+     "sqft": 1610,
+     "ppsf": 480,
+     "price": 772800,
+     "dist": 0.7,
+     "mo": 4,
+     "feat": [
+      "Renovated kitchen and baths"
+     ],
+     "photo": "comp-101-1"
+    },
+    {
+     "addr": "655 S Rimpau Blvd",
+     "sqft": 1940,
+     "ppsf": 505,
+     "price": 979700,
+     "dist": 1.1,
+     "mo": 5,
+     "feat": [
+      "Updated baths",
+      "New windows"
+     ],
+     "photo": "comp-101-2"
+    }
+   ],
+   "sellSig": [
+    {
+     "k": "Ownership",
+     "d": "Owned 6 years",
+     "s": "mod"
+    },
+    {
+     "k": "Listing history",
+     "d": "Already listed, 11 days on market",
+     "s": "neutral"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $279K equity",
+     "s": "mod"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+40% since purchase",
+     "s": "low"
+    },
+    {
+     "k": "Local market",
+     "d": "Strong market conditions",
+     "s": "mod"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "+$107K on a $758K home",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No major permits in 13 yrs",
+     "s": "strong"
+    },
+    {
+     "k": "Timing",
+     "d": "Already on market, pre-sale window closed",
+     "s": "low"
+    },
+    {
+     "k": "Renovation economics",
+     "d": "Strong potential return",
+     "s": "strong"
+    },
+    {
+     "k": "Equity",
+     "d": "~$279K estimated",
+     "s": "mod"
+    },
+    {
+     "k": "ADU potential",
+     "d": "7,300 sqft lot, limited",
+     "s": "low"
+    }
+   ],
+   "extras": [],
+   "conf": "High",
+   "confKind": "ok",
+   "confLead": "Based on",
+   "confList": [
+    "5 valuation sources within 12.8%",
+    "14 comparable sales nearby",
+    "Year built, size and parcel matched in ATTOM"
+   ],
+   "revNote": "The renovation gap on this home is real, but it is <b>already on the market</b>. Pre-sale work is no longer an option, which caps this score regardless of the other signals.",
+   "sellNote": ""
+  },
+  "hist": [
+   {
+    "t": "mls",
+    "d": 11,
+    "h": "Listed with another brokerage",
+    "b": "Listed at $799K."
+   },
+   {
+    "t": "email",
+    "d": 40,
+    "h": "Emailed: Mid-Wilshire market snapshot",
+    "b": "",
+    "tag": "Opened"
+   },
+   {
+    "t": "call",
+    "d": 90,
+    "h": "Call, 5 min",
+    "b": "Said he was thinking about selling \"sometime next year\"."
+   }
+  ]
+ },
+ {
+  "id": 104,
+  "contact": "Natalie Park",
+  "lat": 34.1618,
+  "lng": -118.2848,
+  "lot": 6200,
+  "address": "1032 Elm Ave Glendale CA 91201",
+  "city": "Glendale",
+  "state": "CA",
+  "zip": "91201",
+  "year_built": 2005,
+  "sqft": 2498,
+  "beds": null,
+  "baths": null,
+  "ptype": "Single Family Residential",
+  "avm": 539255,
+  "avm_lwr": 485196,
+  "avm_upr": 593314,
+  "fsd": 0.1002476,
+  "condition": "C4",
+  "ladder": [
+   459768,
+   528469,
+   539255,
+   547701,
+   568187,
+   583924
+  ],
+  "current": 539255,
+  "c2": 568187,
+  "c1": 583924,
+  "upside": 28932,
+  "upsidePct": 0.053651797387135956,
+  "attom_avm": 545585,
+  "rel": "Past client",
+  "listing": "Not listed",
+  "cv": 542000,
+  "pv": 571000,
+  "sell": 83,
+  "revive": 34,
+  "conf": 0.95,
+  "act": 31,
+  "actLabel": "Texted 31 days ago",
+  "opp": "Strong seller opportunity",
+  "sig": "Owned 19 yrs &middot; High equity",
+  "sources": [
+   {
+    "n": "Zillow",
+    "v": 542000
+   },
+   {
+    "n": "Redfin",
+    "v": 536000
+   },
+   {
+    "n": "HouseCanary",
+    "v": 539255
+   },
+   {
+    "n": "ATTOM",
+    "v": 545585
+   },
+   {
+    "n": "Estated",
+    "v": 548000
+   }
+  ],
+  "cvLo": 536000,
+  "cvHi": 548000,
+  "pvLo": 558000,
+  "pvHi": 584000,
+  "comps": 18,
+  "st": "Not listed",
+  "stSub": "Owned 19 yrs",
+  "iHead": "Good time to reconnect",
+  "iBody": "Long ownership and high equity create a strong reason for a homeowner value conversation.",
+  "iProduct": "",
+  "touch": 31,
+  "touchVia": "Texted",
+  "photo": "contact-104",
+  "dr": {
+   "head": "Strong selling signals, limited renovation upside",
+   "why": "Nineteen years of ownership and an estimated $428K in equity make this a reasonable selling conversation. The home is only 21 years old, so the renovation upside is thin - about 5%.",
+   "product": null,
+   "spread": 0.022388059701492536,
+   "equity": 428000,
+   "apprPct": 70,
+   "ppsf": 229,
+   "sqft": 2498,
+   "compsFound": 18,
+   "compsUsed": 10,
+   "comps": [
+    {
+     "addr": "1110 Elm Ave",
+     "sqft": 2570,
+     "ppsf": 243,
+     "price": 624510,
+     "dist": 0.4,
+     "mo": 2,
+     "feat": [
+      "Updated kitchen",
+      "Refinished floors"
+     ],
+     "photo": "comp-104-0"
+    },
+    {
+     "addr": "1205 Ruberta Ave",
+     "sqft": 2300,
+     "ppsf": 222,
+     "price": 510600,
+     "dist": 0.7,
+     "mo": 4,
+     "feat": [
+      "Renovated kitchen and baths"
+     ],
+     "photo": "comp-104-1"
+    },
+    {
+     "addr": "1048 Raymond Ave",
+     "sqft": 2770,
+     "ppsf": 234,
+     "price": 648180,
+     "dist": 1.1,
+     "mo": 5,
+     "feat": [
+      "Updated baths",
+      "New windows"
+     ],
+     "photo": "comp-104-2"
+    }
+   ],
+   "sellSig": [
+    {
+     "k": "Ownership",
+     "d": "Owned 19 years",
+     "s": "strong"
+    },
+    {
+     "k": "Listing history",
+     "d": "No listing on record",
+     "s": "neutral"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $428K equity",
+     "s": "strong"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+70% since purchase",
+     "s": "mod"
+    },
+    {
+     "k": "Local market",
+     "d": "Strong market conditions",
+     "s": "mod"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "+$29K on a $542K home",
+     "s": "mod"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No major permits in 8 yrs",
+     "s": "neutral"
+    },
+    {
+     "k": "Condition vs comps",
+     "d": "Likely comparable to comps",
+     "s": "low"
+    },
+    {
+     "k": "Renovation economics",
+     "d": "Thin potential return",
+     "s": "low"
+    },
+    {
+     "k": "Equity",
+     "d": "~$428K estimated",
+     "s": "strong"
+    },
+    {
+     "k": "ADU potential",
+     "d": "5,900 sqft lot, limited",
+     "s": "low"
+    }
+   ],
+   "extras": [],
+   "conf": "High",
+   "confKind": "ok",
+   "confLead": "Based on",
+   "confList": [
+    "5 valuation sources within 2.2%",
+    "18 comparable sales nearby",
+    "Year built, size and parcel matched in ATTOM"
+   ],
+   "sellNote": "",
+   "revNote": ""
+  },
+  "hist": [
+   {
+    "t": "text",
+    "d": 30,
+    "in": true,
+    "h": "Natalie replied",
+    "b": "\"Wow, that's more than I thought! We should talk sometime.\""
+   },
+   {
+    "t": "text",
+    "d": 31,
+    "h": "Texted: A home on Elm Ave just sold",
+    "b": "Two doors down, $611K in 8 days."
+   },
+   {
+    "t": "email",
+    "d": 95,
+    "h": "Emailed: Your home value report",
+    "b": "",
+    "tag": "Opened 3 times"
+   },
+   {
+    "t": "crm",
+    "d": 7150,
+    "when": "Mar 2007",
+    "h": "Closed: purchase of 1032 Elm Ave",
+    "b": "You represented the buyer."
+   }
+  ]
+ },
+ {
+  "id": 110,
+  "contact": "Corinne Adler",
+  "lat": 34.1512,
+  "lng": -118.2552,
+  "lot": null,
+  "address": "500 N Central Ave Glendale CA 91203",
+  "city": "Glendale",
+  "state": "CA",
+  "zip": "91203",
+  "year_built": 2002,
+  "sqft": 2300,
+  "beds": null,
+  "baths": null,
+  "ptype": "Condominium",
+  "avm": 960520,
+  "avm_lwr": 875086,
+  "avm_upr": 1045954,
+  "fsd": 0.088946,
+  "condition": "C3",
+  "ladder": [
+   575876,
+   705560,
+   900743,
+   960520,
+   989786,
+   1009778
+  ],
+  "current": 960520,
+  "c2": 989786,
+  "c1": 1009778,
+  "upside": 29266,
+  "upsidePct": 0.030468912672302503,
+  "attom_avm": 991785,
+  "rel": "Sphere",
+  "listing": "Not listed",
+  "cv": 977000,
+  "pv": 1046000,
+  "sell": 61,
+  "revive": 64,
+  "conf": 0.9,
+  "act": 42,
+  "actLabel": "Last contact 7 mo ago",
+  "opp": "Stalled listing opportunity",
+  "sig": "42 days, no offers &middot; Priced with dated finishes",
+  "sources": [
+   {
+    "n": "Zillow",
+    "v": 977000
+   },
+   {
+    "n": "Redfin",
+    "v": 969000
+   },
+   {
+    "n": "HouseCanary",
+    "v": 960520
+   },
+   {
+    "n": "ATTOM",
+    "v": 991785
+   },
+   {
+    "n": "Estated",
+    "v": 984000
+   }
+  ],
+  "cvLo": 960520,
+  "cvHi": 991785,
+  "pvLo": 1018000,
+  "pvHi": 1074000,
+  "comps": 21,
+  "st": "Active",
+  "stSub": "42 days on market",
+  "iHead": "Condition may be holding back the listing",
+  "iBody": "After 42 days on market, dated finishes may be limiting buyer appeal.",
+  "iProduct": "Renovate to Sell",
+  "touch": 210,
+  "touchVia": null,
+  "evt": {
+   "k": "active",
+   "d": 42
+  },
+  "photo": "contact-110",
+  "dr": {
+   "head": "Listing stalled at 42 days",
+   "why": "Six weeks on market with no accepted offer. Listing photos read as original finishes against comps that sold updated, so the gap may be condition rather than price.",
+   "product": "Renovate to Sell",
+   "spread": 0.03255007704160247,
+   "equity": 381000,
+   "apprPct": 36,
+   "ppsf": 455,
+   "sqft": 2300,
+   "compsFound": 21,
+   "compsUsed": 10,
+   "comps": [
+    {
+     "addr": "520 N Central Ave #4",
+     "sqft": 2370,
+     "ppsf": 482,
+     "price": 1142340,
+     "dist": 0.4,
+     "mo": 2,
+     "feat": [
+      "Updated kitchen",
+      "Refinished floors"
+     ],
+     "photo": "comp-110-0"
+    },
+    {
+     "addr": "425 W Lexington Dr #12",
+     "sqft": 2120,
+     "ppsf": 441,
+     "price": 934920,
+     "dist": 0.7,
+     "mo": 4,
+     "feat": [
+      "Renovated kitchen and baths"
+     ],
+     "photo": "comp-110-1"
+    },
+    {
+     "addr": "600 N Kenwood St #7",
+     "sqft": 2550,
+     "ppsf": 464,
+     "price": 1183200,
+     "dist": 1.1,
+     "mo": 5,
+     "feat": [
+      "Updated baths",
+      "New windows"
+     ],
+     "photo": "comp-110-2"
+    }
+   ],
+   "sellSig": [
+    {
+     "k": "Ownership",
+     "d": "Owned 9 years",
+     "s": "mod"
+    },
+    {
+     "k": "Listing history",
+     "d": "Already listed, 42 days on market",
+     "s": "mod"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $381K equity",
+     "s": "mod"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+36% since purchase",
+     "s": "low"
+    },
+    {
+     "k": "Local market",
+     "d": "Steady market conditions",
+     "s": "neutral"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "+$69K on a $977K home",
+     "s": "mod"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No permit history retrieved",
+     "s": "neutral"
+    },
+    {
+     "k": "Condition vs comps",
+     "d": "Likely comparable to comps",
+     "s": "low"
+    },
+    {
+     "k": "Renovation economics",
+     "d": "Thin potential return",
+     "s": "low"
+    },
+    {
+     "k": "Equity",
+     "d": "~$381K estimated",
+     "s": "mod"
+    },
+    {
+     "k": "ADU potential",
+     "d": "Attached property, no lot",
+     "s": "low"
+    }
+   ],
+   "extras": [],
+   "conf": "High",
+   "confKind": "ok",
+   "confLead": "Based on",
+   "confList": [
+    "5 valuation sources within 3.3%",
+    "21 comparable sales nearby",
+    "Year built, size and parcel matched in ATTOM"
+   ],
+   "sellNote": "Already listed. Six weeks without an offer is a genuine signal, but it is a conversation about an existing listing, not a new one.",
+   "revNote": ""
+  },
+  "hist": [
+   {
+    "t": "mls",
+    "d": 42,
+    "h": "Listed with another brokerage",
+    "b": "Listed at $989K. No offers yet."
+   },
+   {
+    "t": "meet",
+    "d": 210,
+    "h": "Ran into her at the farmers market",
+    "b": "Mentioned downsizing once her daughter finishes school."
+   }
+  ]
+ },
+ {
+  "id": 109,
+  "contact": "Marcus Bell",
+  "lat": 34.2518,
+  "lng": -118.2888,
+  "lot": 10400,
+  "address": "8412 Pali Ave Tujunga CA 91042",
+  "city": "Tujunga",
+  "state": "CA",
+  "zip": "91042",
+  "year_built": 2009,
+  "sqft": 2470,
+  "beds": null,
+  "baths": null,
+  "ptype": "Single Family Residential",
+  "avm": 302784,
+  "avm_lwr": 260565,
+  "avm_upr": 345003,
+  "fsd": 0.1394353,
+  "condition": "C4",
+  "ladder": [
+   179523,
+   210361,
+   302784,
+   314122,
+   343533,
+   395359
+  ],
+  "current": 302784,
+  "c2": 343533,
+  "c1": 395359,
+  "upside": 40749,
+  "upsidePct": 0.13458108750792644,
+  "attom_avm": 267503,
+  "rel": "Homeowner",
+  "listing": "Withdrawn 4 mo ago",
+  "cv": 286000,
+  "pv": 319000,
+  "sell": 66,
+  "revive": 38,
+  "conf": 0.8,
+  "act": 124,
+  "actLabel": "Withdrawn 4 mo ago",
+  "opp": "Withdrawn listing opportunity",
+  "sig": "Withdrawn 4 mo ago &middot; Limited value-add",
+  "sources": [
+   {
+    "n": "Zillow",
+    "v": 286000
+   },
+   {
+    "n": "Redfin",
+    "v": 279000
+   },
+   {
+    "n": "HouseCanary",
+    "v": 302784
+   },
+   {
+    "n": "ATTOM",
+    "v": 267503
+   },
+   {
+    "n": "Estated",
+    "v": 292000
+   }
+  ],
+  "cvLo": 267503,
+  "cvHi": 302784,
+  "pvLo": 306000,
+  "pvHi": 332000,
+  "comps": 15,
+  "st": "Withdrawn",
+  "stSub": "4 mo ago",
+  "iHead": "Worth a homeowner check-in",
+  "iBody": "The previous listing was withdrawn, but renovation upside appears limited.",
+  "iProduct": "",
+  "touch": 124,
+  "touchVia": null,
+  "evt": {
+   "k": "withdrawn",
+   "d": 122
+  },
+  "photo": "contact-109",
+  "dr": {
+   "head": "Withdrawn listing, modest upside",
+   "why": "Withdrawn from market four months ago. The home is 17 years old and the renovation gap is around 12%, so a Revive project is possible but not compelling on these numbers.",
+   "product": null,
+   "spread": 0.13189010964363015,
+   "equity": 151000,
+   "apprPct": 51,
+   "ppsf": 129,
+   "sqft": 2470,
+   "compsFound": 15,
+   "compsUsed": 10,
+   "comps": [
+    {
+     "addr": "8320 Pali Ave",
+     "sqft": 2540,
+     "ppsf": 137,
+     "price": 347980,
+     "dist": 0.4,
+     "mo": 2,
+     "feat": [
+      "Updated kitchen",
+      "Refinished floors"
+     ],
+     "photo": "comp-109-0"
+    },
+    {
+     "addr": "10150 Tujunga Canyon Blvd",
+     "sqft": 2270,
+     "ppsf": 125,
+     "price": 283750,
+     "dist": 0.7,
+     "mo": 4,
+     "feat": [
+      "Renovated kitchen and baths"
+     ],
+     "photo": "comp-109-1"
+    },
+    {
+     "addr": "8511 Hillrose St",
+     "sqft": 2740,
+     "ppsf": 132,
+     "price": 361680,
+     "dist": 1.1,
+     "mo": 5,
+     "feat": [
+      "Updated baths",
+      "New windows"
+     ],
+     "photo": "comp-109-2"
+    }
+   ],
+   "sellSig": [
+    {
+     "k": "Ownership",
+     "d": "Owned 11 years",
+     "s": "mod"
+    },
+    {
+     "k": "Listing history",
+     "d": "Withdrawn 4 mo ago",
+     "s": "strong"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $151K equity",
+     "s": "mod"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+51% since purchase",
+     "s": "mod"
+    },
+    {
+     "k": "Local market",
+     "d": "Softer market conditions",
+     "s": "low"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "+$33K on a $286K home",
+     "s": "strong"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No permit history retrieved",
+     "s": "neutral"
+    },
+    {
+     "k": "Condition vs comps",
+     "d": "Likely comparable to comps",
+     "s": "low"
+    },
+    {
+     "k": "Renovation economics",
+     "d": "Strong potential return",
+     "s": "strong"
+    },
+    {
+     "k": "Equity",
+     "d": "~$151K estimated",
+     "s": "mod"
+    },
+    {
+     "k": "ADU potential",
+     "d": "10,400 sqft lot, limited",
+     "s": "low"
+    }
+   ],
+   "extras": [],
+   "conf": "High",
+   "confKind": "ok",
+   "confLead": "Based on",
+   "confList": [
+    "5 valuation sources within 13.2%",
+    "15 comparable sales nearby",
+    "Year built, size and parcel matched in ATTOM"
+   ],
+   "sellNote": "",
+   "revNote": ""
+  },
+  "hist": [
+   {
+    "t": "mls",
+    "d": 122,
+    "h": "Listing withdrawn",
+    "b": "Was listed 61 days at $329K with another brokerage."
+   },
+   {
+    "t": "call",
+    "d": 124,
+    "h": "Call, 3 min",
+    "b": "Pulling it to wait for rates to come down. \"Try me again in the fall.\""
+   },
+   {
+    "t": "email",
+    "d": 200,
+    "h": "Emailed: Tujunga market snapshot",
+    "b": "",
+    "tag": "Not opened"
+   }
+  ]
+ },
+ {
+  "id": 111,
+  "contact": "Delia Moreau",
+  "lat": 34.1545,
+  "lng": -118.084,
+  "lot": 12600,
+  "address": "1290 Sierra Madre Villa Ave Pasadena CA 91107",
+  "city": "Pasadena",
+  "state": "CA",
+  "zip": "91107",
+  "year_built": 2010,
+  "sqft": 1824,
+  "beds": null,
+  "baths": null,
+  "ptype": "Single Family Residential",
+  "avm": 575043,
+  "avm_lwr": 528690,
+  "avm_upr": 621396,
+  "fsd": 0.0806075,
+  "condition": "C3",
+  "ladder": [
+   475497,
+   546549,
+   569322,
+   575043,
+   589325,
+   605132
+  ],
+  "current": 575043,
+  "c2": 589325,
+  "c1": 605132,
+  "upside": 14282,
+  "upsidePct": 0.02483640353851799,
+  "attom_avm": 535231,
+  "rel": "Homeowner",
+  "listing": "Not listed",
+  "cv": 555000,
+  "pv": 578000,
+  "sell": 18,
+  "revive": 47,
+  "conf": 0.95,
+  "act": 58,
+  "actLabel": "Last contact 9 mo ago",
+  "opp": "Renovate to Stay",
+  "sig": "New owner &middot; Dated finishes",
+  "sources": [
+   {
+    "n": "Zillow",
+    "v": 555000
+   },
+   {
+    "n": "Redfin",
+    "v": 548000
+   },
+   {
+    "n": "HouseCanary",
+    "v": 575043
+   },
+   {
+    "n": "ATTOM",
+    "v": 535231
+   },
+   {
+    "n": "Estated",
+    "v": 562000
+   }
+  ],
+  "cvLo": 535231,
+  "cvHi": 575043,
+  "pvLo": 566000,
+  "pvHi": 590000,
+  "comps": 16,
+  "st": "Sold",
+  "stSub": "2 mo ago",
+  "iHead": "Post-purchase improvement opportunity",
+  "iBody": "A recently purchased home with dated finishes may be a good candidate for personalization.",
+  "iProduct": "Renovate to Stay",
+  "touch": 270,
+  "touchVia": null,
+  "evt": {
+   "k": "bought",
+   "d": 60
+  },
+  "photo": "contact-111",
+  "dr": {
+   "head": "Recent buyer, post-purchase updates",
+   "why": "Sold two months ago. The selling conversation is over, but new owners of a 16-year-old home with original finishes are often open to updating before they move in properly.",
+   "product": "Renovate to Stay",
+   "spread": 0.07438283656963068,
+   "equity": 112000,
+   "apprPct": 1,
+   "ppsf": 317,
+   "sqft": 1824,
+   "compsFound": 16,
+   "compsUsed": 10,
+   "comps": [
+    {
+     "addr": "1335 Sierra Madre Villa Ave",
+     "sqft": 1880,
+     "ppsf": 336,
+     "price": 631680,
+     "dist": 0.4,
+     "mo": 2,
+     "feat": [
+      "Updated kitchen",
+      "Refinished floors"
+     ],
+     "photo": "comp-111-0"
+    },
+    {
+     "addr": "3530 Yorkshire Rd",
+     "sqft": 1680,
+     "ppsf": 307,
+     "price": 515760,
+     "dist": 0.7,
+     "mo": 4,
+     "feat": [
+      "Renovated kitchen and baths"
+     ],
+     "photo": "comp-111-1"
+    },
+    {
+     "addr": "1270 N Rosemead Blvd",
+     "sqft": 2020,
+     "ppsf": 323,
+     "price": 652460,
+     "dist": 1.1,
+     "mo": 5,
+     "feat": [
+      "Updated baths",
+      "New windows"
+     ],
+     "photo": "comp-111-2"
+    }
+   ],
+   "sellSig": [
+    {
+     "k": "Listing history",
+     "d": "Sold 2 mo ago",
+     "s": "low"
+    },
+    {
+     "k": "Ownership",
+     "d": "New owner",
+     "s": "low"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $112K equity",
+     "s": "low"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+1% since purchase",
+     "s": "low"
+    },
+    {
+     "k": "Local market",
+     "d": "Strong market conditions",
+     "s": "mod"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "+$23K on a $555K home",
+     "s": "mod"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No permit history retrieved",
+     "s": "neutral"
+    },
+    {
+     "k": "Condition vs comps",
+     "d": "Likely comparable to comps",
+     "s": "low"
+    },
+    {
+     "k": "Renovation economics",
+     "d": "Thin potential return",
+     "s": "low"
+    },
+    {
+     "k": "Equity",
+     "d": "~$112K estimated",
+     "s": "low"
+    },
+    {
+     "k": "ADU potential",
+     "d": "6,100 sqft lot, limited",
+     "s": "low"
+    }
+   ],
+   "extras": [
+    {
+     "t": "Renovate to Stay",
+     "b": "New ownership and dated finishes. Timing is good if they want work done before settling in."
+    }
+   ],
+   "conf": "High",
+   "confKind": "ok",
+   "confLead": "Based on",
+   "confList": [
+    "5 valuation sources within 7.4%",
+    "16 comparable sales nearby",
+    "Year built, size and parcel matched in ATTOM"
+   ],
+   "sellNote": "This home <b>sold two months ago</b>. The selling conversation is finished - the low score reflects that, not a weak owner profile.",
+   "revNote": ""
+  },
+  "hist": [
+   {
+    "t": "mls",
+    "d": 60,
+    "h": "Bought 1290 Sierra Madre Villa Ave",
+    "b": "Recorded sale. Another agent represented her."
+   },
+   {
+    "t": "email",
+    "d": 270,
+    "h": "Emailed: Pasadena market snapshot",
+    "b": "",
+    "tag": "Opened"
+   }
+  ]
+ },
+ {
+  "id": 108,
+  "contact": "Grant Whitaker",
+  "lat": 34.1482,
+  "lng": -118.0032,
+  "lot": 13800,
+  "address": "445 W Palm Ave Monrovia CA 91016",
+  "city": "Monrovia",
+  "state": "CA",
+  "zip": "91016",
+  "year_built": 2003,
+  "sqft": 2108,
+  "beds": null,
+  "baths": null,
+  "ptype": "Single Family Residential",
+  "avm": 432610,
+  "avm_lwr": 370181,
+  "avm_upr": 495039,
+  "fsd": 0.1443071,
+  "condition": "C3",
+  "ladder": [
+   202892,
+   297202,
+   420247,
+   432610,
+   471240,
+   508303
+  ],
+  "current": 432610,
+  "c2": 471240,
+  "c1": 508303,
+  "upside": 38630,
+  "upsidePct": 0.0892952081551513,
+  "attom_avm": 269215,
+  "rel": "Homeowner",
+  "listing": "Not listed",
+  "cv": 350912,
+  "pv": null,
+  "sell": 54,
+  "revive": 41,
+  "conf": 0.15,
+  "act": 88,
+  "actLabel": "Last contact 3 mo ago",
+  "opp": "Data check needed",
+  "sig": "Valuation sources differ by 61%",
+  "sources": [
+   {
+    "n": "HouseCanary",
+    "v": 432610
+   },
+   {
+    "n": "ATTOM",
+    "v": 269215
+   }
+  ],
+  "cvLo": 269215,
+  "cvHi": 432610,
+  "pvLo": null,
+  "pvHi": null,
+  "comps": 0,
+  "st": "Not listed",
+  "stSub": "Owned 7 yrs",
+  "iHead": "Value needs verification",
+  "iBody": "Valuation sources differ significantly, so avoid relying on the current estimate yet.",
+  "iProduct": "",
+  "touch": 88,
+  "touchVia": null,
+  "photo": "contact-108",
+  "dr": {
+   "head": "Property record needs verifying",
+   "why": "Our valuation sources differ by 61% on this address, which usually means the record is matched to the wrong parcel. Nothing downstream of the value can be trusted until that is resolved.",
+   "product": null,
+   "spread": 0.6069312631168396,
+   "equity": 119000,
+   "apprPct": 51,
+   "comps": [],
+   "compsFound": 0,
+   "compsUsed": 0,
+   "sellSig": [
+    {
+     "k": "Ownership",
+     "d": "Owned 7 years",
+     "s": "mod"
+    },
+    {
+     "k": "Listing history",
+     "d": "No listing on record",
+     "s": "neutral"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $119K equity",
+     "s": "mod"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+51% since purchase",
+     "s": "mod"
+    },
+    {
+     "k": "Local market",
+     "d": "Unknown",
+     "s": "neutral"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "Cannot be estimated",
+     "s": "low"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No permit history retrieved",
+     "s": "neutral"
+    },
+    {
+     "k": "Condition vs comps",
+     "d": "Likely comparable to comps",
+     "s": "low"
+    },
+    {
+     "k": "Equity",
+     "d": "~$119K estimated",
+     "s": "mod"
+    },
+    {
+     "k": "ADU potential",
+     "d": "8,800 sqft lot, limited",
+     "s": "low"
+    }
+   ],
+   "extras": [],
+   "conf": "Needs review",
+   "confKind": "warn",
+   "confList": [
+    "Valuation sources differ by 60.7%",
+    "No usable baseline for an after-renovation estimate",
+    "Property record should be re-matched"
+   ],
+   "confLead": "Concerns",
+   "revNote": "We cannot establish what this home is worth today, so <b>the value-potential signal underneath this score is unusable</b>. Treat the number as provisional.",
+   "sellNote": ""
+  },
+  "hist": [
+   {
+    "t": "call",
+    "d": 88,
+    "h": "Call, no answer",
+    "b": ""
+   },
+   {
+    "t": "note",
+    "d": 150,
+    "h": "Note",
+    "b": "Prefers texts over calls."
+   }
+  ]
+ },
+ {
+  "id": 107,
+  "contact": "Fatima Hassan",
+  "lat": 33.942,
+  "lng": -117.386,
+  "lot": 9600,
+  "address": "5280 Victoria Ave Riverside CA 92506",
+  "city": "Riverside",
+  "state": "CA",
+  "zip": "92506",
+  "year_built": null,
+  "sqft": 3246,
+  "beds": null,
+  "baths": null,
+  "ptype": "Single Family Residential",
+  "avm": 435310,
+  "avm_lwr": 373317,
+  "avm_upr": 497303,
+  "fsd": 0.1424121,
+  "condition": "C4",
+  "ladder": [
+   351972,
+   396902,
+   435310,
+   448794,
+   494345,
+   567661
+  ],
+  "current": 435310,
+  "c2": 494345,
+  "c1": 567661,
+  "upside": 59035,
+  "upsidePct": 0.13561599779467506,
+  "attom_avm": 278972,
+  "rel": "Homeowner",
+  "listing": "Not listed",
+  "cv": 357141,
+  "pv": null,
+  "sell": 22,
+  "revive": 18,
+  "conf": 0.1,
+  "act": 6,
+  "actLabel": "Last contact 5 mo ago",
+  "opp": "Limited Revive opportunity",
+  "sig": "Under contract &middot; No action while pending",
+  "sources": [
+   {
+    "n": "HouseCanary",
+    "v": 435310
+   },
+   {
+    "n": "ATTOM",
+    "v": 278972
+   }
+  ],
+  "cvLo": 278972,
+  "cvHi": 435310,
+  "pvLo": null,
+  "pvHi": null,
+  "comps": 0,
+  "st": "Pending",
+  "stSub": "6 days",
+  "iHead": "Nothing actionable right now",
+  "iBody": "The property is under contract, and the value behind it has not been verified.",
+  "iProduct": "",
+  "touch": 150,
+  "touchVia": null,
+  "evt": {
+   "k": "pending",
+   "d": 6
+  },
+  "photo": "contact-107",
+  "dr": {
+   "head": "Under contract, and the record is unreliable",
+   "why": "The property is pending sale, so there is no action here. Separately, no build year is on file and our sources differ by 56%, so the value shown is not dependable.",
+   "product": null,
+   "spread": 0.5604074960927978,
+   "equity": 143000,
+   "apprPct": 67,
+   "comps": [],
+   "compsFound": 0,
+   "compsUsed": 0,
+   "sellSig": [
+    {
+     "k": "Listing history",
+     "d": "Under contract",
+     "s": "low"
+    },
+    {
+     "k": "Ownership",
+     "d": "Owned 9 years",
+     "s": "neutral"
+    },
+    {
+     "k": "Equity",
+     "d": "Est. $143K equity",
+     "s": "mod"
+    },
+    {
+     "k": "Appreciation",
+     "d": "+67% since purchase",
+     "s": "mod"
+    },
+    {
+     "k": "Local market",
+     "d": "Unknown",
+     "s": "neutral"
+    }
+   ],
+   "revSig": [
+    {
+     "k": "Value potential",
+     "d": "Cannot be estimated",
+     "s": "low"
+    },
+    {
+     "k": "Renovation history",
+     "d": "No permit history retrieved",
+     "s": "neutral"
+    },
+    {
+     "k": "Timing",
+     "d": "Under contract",
+     "s": "low"
+    },
+    {
+     "k": "Equity",
+     "d": "~$143K estimated",
+     "s": "mod"
+    },
+    {
+     "k": "ADU potential",
+     "d": "Attached property, no lot",
+     "s": "low"
+    }
+   ],
+   "extras": [],
+   "conf": "Needs review",
+   "confKind": "warn",
+   "confList": [
+    "Valuation sources differ by 56%",
+    "No usable baseline for an after-renovation estimate",
+    "Property record should be re-matched"
+   ],
+   "confLead": "Concerns",
+   "revNote": "The property is <b>under contract</b>, and the valuation behind these signals is unreliable. Both cap this score.",
+   "sellNote": ""
+  },
+  "hist": [
+   {
+    "t": "mls",
+    "d": 6,
+    "h": "Under contract with another brokerage",
+    "b": ""
+   },
+   {
+    "t": "email",
+    "d": 150,
+    "h": "Emailed: Your home value report",
+    "b": "",
+    "tag": "Opened"
+   }
+  ]
+ }
+]

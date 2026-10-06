@@ -1,10 +1,13 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { FoundOpportunities } from '@/components/home/FoundOpportunities'
 import { NearbyMini } from '@/components/home/NearbyMini'
 import { ProjectPulse } from '@/components/home/ProjectPulse'
-import { LockedReferrals, ReferEarn } from '@/components/home/ReferralCards'
+import { ReferEarn } from '@/components/home/ReferralCards'
 import { ReferralHero } from '@/components/home/ReferralHero'
 import { ReferralUpdates } from '@/components/home/ReferralUpdates'
+import { RevivePathCard } from '@/components/home/RevivePathCard'
+import { SearchHero } from '@/components/home/SearchHero'
 import { SetupChecklist } from '@/components/home/SetupChecklist'
 import { StatCards } from '@/components/home/StatCards'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
@@ -32,9 +35,13 @@ export default function Home() {
 
   const sentence = TIERS[tier].greeting({
     opportunities: actionableCount,
+    listings: opps.filter((o) => o.property.source === 'listings').length,
+    contacts: opps.filter((o) => o.property.source === 'contacts').length,
     projectName: projects[0]?.property.address.split(' ').slice(1, -1).join(' '),
     newReferral: !!newReferral,
   })
+
+  const isNew = tier === 'new'
 
   return (
     <div className="mx-auto max-w-[1240px] px-4 py-6 sm:px-8 sm:py-8">
@@ -45,11 +52,9 @@ export default function Home() {
         <p className="mt-1 text-[15px] text-ink-2">{sentence}</p>
       </header>
 
-      <div className="mt-6">
-        <StatCards tier={tier} opps={opps} />
-      </div>
+      <div className="mt-6">{isNew ? <SearchHero opps={opps} /> : <StatCards tier={tier} opps={opps} />}</div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex min-w-0 flex-col gap-5">
           {newReferral && <ReferralHero o={newReferral} />}
           {tier === 'partner' && <ReferralUpdates waiting={waiting} />}
@@ -57,30 +62,35 @@ export default function Home() {
             <ProjectPulse key={o.id} o={o} />
           ))}
 
-          <section aria-labelledby="who-to-call">
-            <div className="mb-3 flex items-end justify-between gap-3">
-              <div>
-                <h2 id="who-to-call" className="text-lg font-semibold text-ink">
-                  Who to call this week
-                </h2>
-                <p className="text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
+          {isNew ? (
+            <FoundOpportunities opps={opps} />
+          ) : (
+            <section aria-labelledby="who-to-call">
+              <div className="mb-3 flex items-end justify-between gap-3">
+                <div>
+                  <h2 id="who-to-call" className="text-lg font-semibold text-ink">
+                    Who to call this week
+                  </h2>
+                  <p className="text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
+                </div>
+                <Link to="/opportunities" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
+                  See all {actionableCount} <ArrowRight className="size-3.5" />
+                </Link>
               </div>
-              <Link to="/opportunities" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-                See all <ArrowRight className="size-3.5" />
-              </Link>
-            </div>
-            <div className="flex flex-col gap-3">
-              {feed.slice(0, FEED_SIZE).map((o) => (
-                <OpportunityCard key={o.id} o={o} />
-              ))}
-            </div>
-          </section>
+              <div className="flex flex-col gap-3">
+                {feed.slice(0, FEED_SIZE).map((o) => (
+                  <OpportunityCard key={o.id} o={o} />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         <aside className="flex flex-col gap-5" aria-label="At a glance">
+          <RevivePathCard tier={tier} opps={opps} />
+          {isNew && <SetupChecklist opps={opps} />}
           <NearbyMini opps={opps} />
-          {tier === 'new' && <SetupChecklist opps={opps} />}
-          {tier !== 'partner' ? <LockedReferrals tier={tier} /> : <ReferEarn />}
+          {tier === 'partner' && <ReferEarn />}
         </aside>
       </div>
     </div>

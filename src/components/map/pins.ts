@@ -2,27 +2,40 @@ import L from 'leaflet'
 import { gain } from '@/lib/format'
 import type { Opportunity } from '@/lib/opportunities'
 
-export function pinClass(o: Opportunity) {
+// Pins follow the Contacts page: this week's calls get the house itself (a photo is recognisable
+// at a glance), this month is a navy pill, the rest stay small. Revive referrals are amber,
+// projects are outlined.
+export function pinKind(o: Opportunity) {
   if (o.stage === 'project') return 'project'
-  if (o.property.source === 'revive') return 'revive'
-  if (o.urgency === 'now') return 'now'
-  if (o.urgency === 'soon') return 'soon'
-  return 'keep'
+  if (o.property.source === 'revive' && o.referral?.status === 'new') return 'revive'
+  return o.urgency
 }
 
-export function pinLabel(o: Opportunity) {
-  if (o.stage === 'project') return 'Project'
-  return o.gain > 0 ? gain(o.gain) : '•'
+function esc(s: string) {
+  return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
 }
 
-export function pinIcon(o: Opportunity, active = false) {
-  return L.divIcon({
-    className: `rv-pin ${pinClass(o)}${active ? ' active' : ''}`,
-    html: `<span>${pinLabel(o)}</span>`,
-    iconSize: [0, 0],
-  })
+/** `dot`: an unlabeled marker in the pin's colour, for small maps. */
+export function pinIcon(o: Opportunity, active = false, compact = false, dot = false) {
+  const kind = pinKind(o)
+  const label = o.stage === 'project' ? 'Project' : o.gain > 0 ? gain(o.gain) : ''
+  const on = active ? ' on' : ''
+  let html: string
+  if (dot) {
+    html = `<span class="rv-dot k-${kind}${on}" title="${esc(o.property.address)}"></span>`
+  } else if (kind === 'now' && o.photo && !compact) {
+    html =
+      `<span class="rv-fpin${on}"><span class="rv-fph" style="background-image:url('${o.photo}')"></span>` +
+      `<b>${esc(label)}</b></span><span class="rv-fdot"></span>`
+  } else if (kind === 'keep' || kind === 'hold' || kind === 'verify') {
+    html = `<span class="rv-dot k-${kind}${on}" title="${esc(o.property.address)}"></span>`
+  } else {
+    html = `<span class="rv-pill k-${kind}${on}">${esc(label)}</span>`
+  }
+  return L.divIcon({ className: 'rv-pinwrap', html, iconSize: undefined, iconAnchor: [0, 0] })
 }
 
-export const TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-export const TILE_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+export function pinZ(o: Opportunity) {
+  const k = pinKind(o)
+  return { revive: 600, now: 500, project: 400, soon: 300, keep: 200, verify: 100, hold: 0 }[k] ?? 0
+}

@@ -1,15 +1,15 @@
-import { Lock } from 'lucide-react'
+import { Clock, Lock } from 'lucide-react'
 import { Badge, type BadgeProps } from '@/components/ui/badge'
 import type { Source, Stage, Urgency } from '@/data/types'
 import { SOURCE_LABEL, STAGE_LABEL, type Tag } from '@/lib/opportunities'
 import { URGENCY_LABEL } from '@/lib/urgency'
 
 const URGENCY_VARIANT: Record<Urgency, BadgeProps['variant']> = {
-  now: 'navy',
-  soon: 'brand',
+  now: 'hot',
+  soon: 'navy',
   keep: 'default',
-  verify: 'warn',
-  hold: 'bad',
+  verify: 'outline',
+  hold: 'outline',
 }
 
 const STAGE_VARIANT: Record<Stage, BadgeProps['variant']> = {
@@ -20,7 +20,12 @@ const STAGE_VARIANT: Record<Stage, BadgeProps['variant']> = {
 }
 
 export function UrgencyTag({ urgency }: { urgency: Urgency }) {
-  return <Badge variant={URGENCY_VARIANT[urgency]}>{URGENCY_LABEL[urgency]}</Badge>
+  return (
+    <Badge variant={URGENCY_VARIANT[urgency]}>
+      {urgency === 'now' && <Clock />}
+      {URGENCY_LABEL[urgency]}
+    </Badge>
+  )
 }
 
 export function SourceTag({ source }: { source: Source }) {

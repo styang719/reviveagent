@@ -1,44 +1,14 @@
+import { contactProperties } from './contacts'
 import type { Property } from './types'
 
 // Sample data. Dollar figures are illustrative, not real valuations.
-export const properties: Property[] = [
-  {
-    id: 'birch',
-    address: '18 Birchwood Ln',
-    city: 'Pasadena',
-    lat: 34.1621,
-    lng: -118.1189,
-    homeType: 'Single family',
-    beds: 4, baths: 2.5, sqft: 2180, yearBuilt: 1962, lot: 9400,
-    ownerId: 'sarah',
-    ownerRole: 'Owner',
-    source: 'contacts',
-    minTier: 'new',
-    stage: 'spotted',
-    reportRun: false,
-    valueNow: 1420000,
-    valueAfter: 1560000,
-    valueSources: [
-      { name: 'Revive AI', value: 1420000 },
-      { name: 'Zillow', value: 1395000 },
-      { name: 'Redfin', value: 1438000 },
-    ],
-    signals: [
-      'Owned 18 yrs, no renovation on record',
-      'CRM note: “kids leaving for college next fall”',
-      'No permits pulled in 22 yrs',
-    ],
-    facts: { yearsOwned: 18 },
-    scenarios: [
-      { product: 'Renovate to Stay + ADU', note: 'Detached 1-bed ADU in the back yard, kitchen and primary bath update', gain: 140000 },
-      { product: 'Renovate to Sell', note: 'Kitchen, baths, floors, paint and landscaping before listing', gain: 96000 },
-      { product: 'Renovate to Stay', note: 'Kitchen and primary bath update, no ADU', gain: 72000 },
-      { product: 'Sell 360', note: 'Pre-listing prep and staging, Revive covers the cost until close', gain: 41000 },
-    ],
-    activity: ['Revive spotted this in your CRM · Oct 4'],
-  },
+// Photos are illustrative too: borrowed from the Contacts page's photo set, not of these addresses.
+// The agent's CRM contacts come from ./contacts (the Contacts page book); these are the
+// brief's listings, lead-form lead, Revive referrals and project.
+const briefProperties: Property[] = [
   {
     id: 'oak',
+    photo: 'comp-101-1',
     address: '412 Oak Ave',
     city: 'Pasadena',
     lat: 34.1392,
@@ -77,6 +47,7 @@ export const properties: Property[] = [
   },
   {
     id: 'main',
+    photo: 'comp-100-0',
     address: '123 Main St',
     city: 'South Pasadena',
     lat: 34.1159,
@@ -111,6 +82,7 @@ export const properties: Property[] = [
   },
   {
     id: 'elm',
+    photo: 'comp-105-2',
     address: '250 Elm St',
     city: 'Pasadena',
     lat: 34.1668,
@@ -141,6 +113,7 @@ export const properties: Property[] = [
   },
   {
     id: 'harbor',
+    photo: 'comp-109-2',
     address: '77 Harbor View Dr',
     city: 'San Marino',
     lat: 34.1258,
@@ -171,6 +144,7 @@ export const properties: Property[] = [
   },
   {
     id: 'cypress',
+    photo: 'comp-111-2',
     address: '9 Cypress Ct',
     city: 'Pasadena',
     lat: 34.1437,
@@ -215,122 +189,10 @@ export const properties: Property[] = [
     activity: ['Construction started · Sep 8', 'Week 4 photos uploaded · Oct 3'],
   },
 
-  // ---- The rest of the book: lower urgency, used for the map and filters ----
-  {
-    id: 'hill',
-    address: '1140 N Hill Ave',
-    city: 'Pasadena',
-    lat: 34.1694, lng: -118.1238,
-    homeType: 'Single family', beds: 3, baths: 2, sqft: 1890, yearBuilt: 1951, lot: 7100,
-    ownerId: 'hale', ownerRole: 'Owner', source: 'contacts', minTier: 'new', stage: 'spotted', reportRun: false,
-    valueNow: 1210000, valueAfter: 1282000,
-    valueSources: [{ name: 'Revive AI', value: 1210000 }, { name: 'Zillow', value: 1188000 }, { name: 'Redfin', value: 1236000 }],
-    signals: ['Past client, no contact in 7 months', 'Kitchen last updated 2004', 'Owned 9 yrs'],
-    facts: { yearsOwned: 9 },
-    scenarios: [
-      { product: 'Renovate to Stay', note: 'Kitchen and hall bath', gain: 72000 },
-      { product: 'Renovate to Sell', note: 'Cosmetic refresh', gain: 51000 },
-    ],
-    activity: ['Revive spotted this in your CRM · Oct 4'],
-  },
-  {
-    id: 'lomita',
-    address: '2210 Lomita Dr',
-    city: 'Altadena',
-    lat: 34.1902, lng: -118.1418,
-    homeType: 'Single family', beds: 3, baths: 1.5, sqft: 1520, yearBuilt: 1939, lot: 10200,
-    ownerId: 'priya', ownerRole: 'Owner', source: 'contacts', minTier: 'new', stage: 'spotted', reportRun: false,
-    valueNow: 1040000, valueAfter: 1150000,
-    valueSources: [{ name: 'Revive AI', value: 1040000 }, { name: 'Zillow', value: 1012000 }, { name: 'Redfin', value: 1066000 }],
-    signals: ['Owned 22 yrs', 'Big lot: room for a detached ADU', '+$110K potential'],
-    facts: { yearsOwned: 22 },
-    scenarios: [
-      { product: 'Renovate to Stay + ADU', note: 'Detached 2-bed ADU', gain: 110000 },
-      { product: 'Renovate to Stay', note: 'Kitchen, baths, electrical', gain: 64000 },
-    ],
-    activity: ['Revive spotted this in your CRM · Oct 4'],
-  },
-  {
-    id: 'marengo',
-    address: '655 S Marengo Ave #12',
-    city: 'Pasadena',
-    lat: 34.1361, lng: -118.1479,
-    homeType: 'Condo', beds: 2, baths: 2, sqft: 1180, yearBuilt: 1979,
-    ownerId: 'kevin', ownerRole: 'Owner', source: 'contacts', minTier: 'new', stage: 'spotted', reportRun: false,
-    valueNow: 760000, valueAfter: 801000,
-    valueSources: [{ name: 'Revive AI', value: 760000 }, { name: 'Zillow', value: 688000 }, { name: 'Redfin', value: 815000 }],
-    signals: ['Value sources disagree by $127K', 'Owned 6 yrs', 'HOA approved remodels in 2025'],
-    facts: { yearsOwned: 6 },
-    scenarios: [
-      { product: 'Renovate to Sell', note: 'Kitchen and floors', gain: 41000 },
-      { product: 'Renovate to Stay + ADU', note: 'Not eligible: condo', gain: null },
-    ],
-    activity: ['Revive spotted this in your CRM · Oct 4'],
-  },
-  {
-    id: 'orange',
-    address: '1520 Orange Grove Blvd',
-    city: 'Pasadena',
-    lat: 34.1582, lng: -118.1606,
-    homeType: 'Single family', beds: 5, baths: 4, sqft: 3400, yearBuilt: 1925, lot: 14000,
-    ownerId: 'helen', ownerRole: 'Owner', source: 'contacts', minTier: 'new', stage: 'spotted', reportRun: false,
-    valueNow: 2650000, valueAfter: 2830000,
-    valueSources: [{ name: 'Revive AI', value: 2650000 }, { name: 'Zillow', value: 2610000 }, { name: 'Redfin', value: 2702000 }],
-    signals: ['Listed with another brokerage since Sep 28', 'Expired with you in August', 'Owned 31 yrs'],
-    facts: { yearsOwned: 31, expiredDaysAgo: 45, otherBrokerage: true },
-    scenarios: [{ product: 'Renovate to Sell', note: 'Kitchen, baths, systems', gain: 180000 }],
-    activity: ['Listing expired · Aug 22', 'Relisted with another brokerage · Sep 28'],
-  },
-  {
-    id: 'sierra',
-    address: '48 Sierra Madre Villa Ave',
-    city: 'Pasadena',
-    lat: 34.1534, lng: -118.0841,
-    homeType: 'Single family', beds: 3, baths: 2, sqft: 1760, yearBuilt: 1961, lot: 7400,
-    ownerId: 'james', ownerRole: 'Owner', source: 'contacts', minTier: 'new', stage: 'spotted', reportRun: false,
-    valueNow: 1105000, valueAfter: 1158000,
-    valueSources: [{ name: 'Revive AI', value: 1105000 }, { name: 'Zillow', value: 1092000 }, { name: 'Redfin', value: 1121000 }],
-    signals: ['Withdrew a listing 4 months ago', 'Last talked 2 months ago', 'Owned 8 yrs'],
-    facts: { yearsOwned: 8, withdrawnDaysAgo: 120 },
-    scenarios: [
-      { product: 'Renovate to Sell', note: 'Kitchen and paint before relisting', gain: 53000 },
-      { product: 'Sell 360', note: 'Staging and prep', gain: 24000 },
-    ],
-    activity: ['Listing withdrawn · Jun 4'],
-  },
-  {
-    id: 'lake',
-    address: '2045 N Lake Ave',
-    city: 'Altadena',
-    lat: 34.1853, lng: -118.1316,
-    homeType: 'Single family', beds: 2, baths: 1, sqft: 1210, yearBuilt: 1946, lot: 8600,
-    ownerId: 'carlos', ownerRole: 'Owner', source: 'contacts', minTier: 'new', stage: 'spotted', reportRun: false,
-    valueNow: 905000, valueAfter: 987000,
-    valueSources: [{ name: 'Revive AI', value: 905000 }, { name: 'Zillow', value: 889000 }, { name: 'Redfin', value: 921000 }],
-    signals: ['Owned 12 yrs', 'No contact in 3 months', 'Room for an ADU'],
-    facts: { yearsOwned: 12 },
-    scenarios: [
-      { product: 'Renovate to Stay + ADU', note: 'Detached studio ADU', gain: 82000 },
-      { product: 'Renovate to Stay', note: 'Kitchen and bath', gain: 38000 },
-    ],
-    activity: ['Revive spotted this in your CRM · Oct 4'],
-  },
-  {
-    id: 'rose',
-    address: '940 Rose Villa St',
-    city: 'Pasadena',
-    lat: 34.1513, lng: -118.1287,
-    homeType: 'Single family', beds: 3, baths: 2, sqft: 1600, yearBuilt: 1952, lot: 6400,
-    ownerId: 'mei', ownerRole: 'Owner', source: 'contacts', minTier: 'new', stage: 'spotted', reportRun: false,
-    valueNow: 1180000, valueAfter: 1218000,
-    valueSources: [{ name: 'Revive AI', value: 1180000 }, { name: 'Zillow', value: 1166000 }, { name: 'Redfin', value: 1199000 }],
-    signals: ['Selling score 65, watching', 'Talked last month', 'Owned 7 yrs'],
-    facts: { yearsOwned: 7 },
-    scenarios: [{ product: 'Renovate to Sell', note: 'Paint and landscaping', gain: 38000 }],
-    activity: ['Revive spotted this in your CRM · Oct 4'],
-  },
+  // ---- Reports you ran on homes outside your book ----
   {
     id: 'mission',
+    photo: 'comp-110-2',
     address: '301 Mission St',
     city: 'South Pasadena',
     lat: 34.1162, lng: -118.1569,
@@ -348,6 +210,7 @@ export const properties: Property[] = [
   },
   {
     id: 'glen',
+    photo: 'comp-104-2',
     address: '87 Glen Summer Rd',
     city: 'Pasadena',
     lat: 34.1307, lng: -118.1352,
@@ -363,27 +226,11 @@ export const properties: Property[] = [
     ],
     activity: ['You ran a Revive AI report · Sep 18'],
   },
-  {
-    id: 'bellefontaine',
-    address: '520 Bellefontaine St',
-    city: 'Pasadena',
-    lat: 34.1328, lng: -118.1452,
-    homeType: 'Single family', beds: 3, baths: 2, sqft: 1830, yearBuilt: 1940, lot: 7600,
-    ownerId: 'nora', ownerRole: 'Owner', source: 'leadform', minTier: 'new', stage: 'spotted', reportRun: true,
-    valueNow: 1460000, valueAfter: 1519000,
-    valueSources: [{ name: 'Revive AI', value: 1460000 }, { name: 'Zillow', value: 1290000 }, { name: 'Redfin', value: 1512000 }],
-    signals: ['Value sources disagree by $222K', 'Ran a report on your lead form in August', 'Owned 14 yrs'],
-    facts: { yearsOwned: 14, leadFormDaysAgo: 41 },
-    scenarios: [
-      { product: 'Renovate to Sell', note: 'Kitchen and baths', gain: 59000 },
-      { product: 'Renovate to Stay', note: 'Kitchen only', gain: 33000 },
-    ],
-    activity: ['Nora ran a Revive AI report through your lead form · Aug 26'],
-  },
 
   // ---- Claimed Revive referrals (Partner) ----
   {
     id: 'laurel',
+    photo: 'comp-102-0',
     address: '16 Laurel Pl',
     city: 'Pasadena',
     lat: 34.1747, lng: -118.1033,
@@ -398,6 +245,7 @@ export const properties: Property[] = [
   },
   {
     id: 'arden',
+    photo: 'comp-106-2',
     address: '31 Arden Rd',
     city: 'Pasadena',
     lat: 34.1395, lng: -118.1241,
@@ -411,3 +259,5 @@ export const properties: Property[] = [
     activity: ['Referral claimed · Sep 12', 'Listing appointment · Oct 2'],
   },
 ]
+
+export const properties: Property[] = [...briefProperties, ...contactProperties]

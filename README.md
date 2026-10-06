@@ -30,6 +30,9 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
 | Path | What |
 |---|---|
 | `src/data/` | `properties.ts`, `people.ts`, `referrals.ts`, `tiers.ts` (per-tier copy and sample earnings) |
+| `src/data/contacts.ts` | Michelle's CRM: the 12 contacts from the Contacts page, with their CRM history |
+| `scripts/import-contacts.mjs` | Re-extracts contacts, photos, map tiles, logo and avatar from `reference/Your_Contacts.html` |
+| `src/components/map/BaseMap.tsx` | Map with bundled OpenStreetMap tiles (zoom 10–14); `VITE_MAP_TILES_URL` switches to a live tile API |
 | `src/lib/urgency.ts` | “Who to call” scoring: Contacts-page triggers + listings, lead form, referrals; hard stops first |
 | `src/lib/opportunities.ts` | Builds the opportunity list for the current tier: stage, urgency, tags, contextual CTA |
 | `src/store/demo.ts` | The only state: tier, stage overrides, claimed referrals, referral updates, activity |
@@ -39,6 +42,7 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
 ## Build phases
 
 - [x] **Phase 1: Shell + Home + tiers.** Sidebar, top-bar search, demo bar, Home for all three tiers, routing.
+  Home v2: search hero and “We found N opportunities” for new agents, Revive status card, real map.
 - [ ] Phase 2: Opportunities (list / pipeline, filters), Property page tabs, Person page, share / start project / claim dialogs.
 - [ ] Phase 3: Map + mobile (Nearby, geolocation, bottom sheet). Deploy.
 - [ ] Phase 4: Polish: simulated homeowner open, “Run Revive AI” loading state, transitions, demo script.
@@ -46,9 +50,20 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
 ## Notes for phase 1 review
 
 - Home numbers are derived, not hard-coded: “Opportunity value” = sum of top upside across opportunities marked
-  *Call this week* or *Reach out this month* ($338K · 4 for New/Active, $433K · 5 for Partner).
+  *Call this week* or *Reach out this month* (with the Contacts book: $1.09M · 10 for New/Active, $1.19M · 11 for Partner).
 - Claiming the Harbor View referral removes the hero, adds the card to the feed as *Interested*, and raises the
   “waiting on your update” count (Revive expects a status update on every claimed referral).
 - Share / Propose CTAs route to the Property page tab where the action will live; dialogs arrive in phase 2.
-- Map tiles: CARTO Voyager (OpenStreetMap data), fine for a demo; swap for a keyed provider before wide sharing.
-- Property photos are placeholders.
+## Data, map and photos
+
+- **Book:** the agent's CRM contacts are the 12 records from the Contacts page (`reference/Your_Contacts.html`),
+  ranked by the same rules. The brief's listings (123 Main, 250 Elm), lead-form lead (412 Oak),
+  Revive referrals (77 Harbor View, 16 Laurel, 31 Arden) and project (9 Cypress) are added on top.
+  The brief's contact story (18 Birchwood / Sarah Kim) is Maya Chen at 1847 Las Lunas St.
+- **Map:** OpenStreetMap tiles bundled with the app, the same tiles the Contacts page embeds. Hosted
+  previews block images from other sites, so a live tile API can't load there. For a deployed build, set
+  `VITE_MAP_TILES_URL` to any XYZ tile template (MapTiler, Stadia, Mapbox) to use live tiles.
+- **Photos are illustrative.** They come from the Contacts page's photo set (about 12 stock images reused),
+  not from the actual addresses. For real per-address photos: Google Street View Static API (any address,
+  needs an API key) or MLS listing photos through the agent's MLS (RESO Web API) for listings.
+  Check Google's terms before storing Street View images in a static build.

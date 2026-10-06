@@ -30,7 +30,7 @@ export function Estimate({ o, align = 'right' }: { o: Opportunity; align?: 'left
 }
 
 export function Reasons({ o, max = 3 }: { o: Opportunity; max?: number }) {
-  const [top, ...rest] = o.property.signals
+  const [top, ...rest] = o.reasons
   return (
     <p className="text-sm leading-5 text-ink-2">
       <span className="font-medium text-ink">{top}</span>
@@ -60,7 +60,7 @@ export function OpportunityCard({ o, size = 'feed', className }: { o: Opportunit
   return (
     <article className={cn('rounded-xl border border-line bg-white p-4 shadow-card transition-shadow hover:shadow-md', className)}>
       <div className="flex gap-4">
-        {!compact && <PropertyPhoto id={o.id} label={o.property.address} className="hidden size-20 sm:grid" />}
+        {!compact && <PropertyPhoto photo={o.property.photo} label={o.property.address} className="hidden size-20 sm:block" />}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <UrgencyTag urgency={o.urgency} />
@@ -90,7 +90,7 @@ export function OpportunityCard({ o, size = 'feed', className }: { o: Opportunit
           </div>
           <div className="mt-2">
             <Reasons o={o} max={compact ? 2 : 3} />
-            {o.score.note && <p className="mt-1 text-xs text-warn">{o.score.note}</p>}
+            {o.score.note && o.urgency !== 'hold' && o.urgency !== 'verify' && <p className="mt-1 text-xs text-warn">{o.score.note}</p>}
           </div>
           {compact && (
             <div className="mt-2">
