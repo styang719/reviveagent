@@ -75,7 +75,7 @@ export function GlobalSearch({ className, variant = 'bar' }: { className?: strin
           className={cn(
             'flex items-center gap-2 border bg-white focus-within:ring-2',
             hero
-              ? 'h-14 rounded-xl border-line pr-1.5 pl-4 shadow-sm focus-within:border-brand focus-within:ring-brand/20'
+              ? 'h-14 rounded-xl border-white/70 pr-1.5 pl-4 shadow-sm focus-within:border-brand focus-within:ring-brand/20'
               : 'h-10 rounded-lg border-line px-3 shadow-card focus-within:border-brand focus-within:ring-brand/20',
           )}
         >
