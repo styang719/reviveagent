@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { ChatMessage } from '@/lib/ai'
 
 // Transient UI state shared between the setup to-do (right) and the opportunities empty state (left).
 type Step = 'license' | 'crm'
@@ -8,8 +9,10 @@ interface UiState {
   openStep: (s: Step | null) => void
   openCrm: (pick: string | null) => void
   paletteOpen: boolean // the ⌘K search palette (the top search bar is gone)
-  paletteMode: 'search' | 'ai' // 'ai' when opened from the Revive AI nav item
-  setPalette: (open: boolean, mode?: 'search' | 'ai') => void
+  setPalette: (open: boolean) => void
+  chat: ChatMessage[] // the Revive AI conversation (kept while navigating)
+  addChat: (m: ChatMessage) => void
+  clearChat: () => void
 }
 
 export const useUi = create<UiState>((set) => ({
@@ -18,6 +21,8 @@ export const useUi = create<UiState>((set) => ({
   openStep: (setupOpen) => set({ setupOpen }),
   openCrm: (crmPick) => set({ crmPick }),
   paletteOpen: false,
-  paletteMode: 'search',
-  setPalette: (paletteOpen, paletteMode = 'search') => set({ paletteOpen, paletteMode }),
+  setPalette: (paletteOpen) => set({ paletteOpen }),
+  chat: [],
+  addChat: (m) => set((s) => ({ chat: [...s.chat, m] })),
+  clearChat: () => set({ chat: [] }),
 }))

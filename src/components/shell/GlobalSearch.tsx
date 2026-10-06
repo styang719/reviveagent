@@ -101,7 +101,7 @@ export function GlobalSearch({
               // with nothing highlighted, Enter falls through to submit
               if (e.key === 'Enter' && !showList) submit()
             }}
-            placeholder={hero ? 'Enter an address' : 'Ask Revive AI about any address or person'}
+            placeholder={hero ? 'Enter an address' : 'Search an address or person'}
             className={cn('h-full min-w-0 flex-1 truncate bg-transparent text-ink outline-none placeholder:text-faint', hero ? 'text-base' : 'text-sm')}
           />
           {hero ? (
@@ -115,7 +115,7 @@ export function GlobalSearch({
               <span className="sm:hidden">Go</span>
             </button>
           ) : (
-            <kbd className="hidden rounded border border-line px-1.5 text-[11px] text-muted sm:block">⌘K</kbd>
+            <kbd className="hidden rounded border border-line px-1.5 text-[11px] text-muted sm:block">esc</kbd>
           )}
         </div>
 

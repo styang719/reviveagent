@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react'
+import { Search, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useUi } from '@/store/ui'
 import { ReviveMark } from './Logo'
@@ -11,7 +11,10 @@ export function TopBar() {
       <Link to="/" className="grid size-9 shrink-0 place-items-center rounded-lg bg-sb" aria-label="Revive home">
         <ReviveMark className="h-5 w-auto" />
       </Link>
-      <button onClick={() => setPalette(true)} className="ml-auto grid size-10 place-items-center rounded-lg text-ink-2 hover:bg-line-soft" aria-label="Search">
+      <Link to="/ai" className="ml-auto grid size-10 place-items-center rounded-lg text-ink-2 hover:bg-line-soft" aria-label="Revive AI">
+        <Sparkles className="size-5" />
+      </Link>
+      <button onClick={() => setPalette(true)} className="grid size-10 place-items-center rounded-lg text-ink-2 hover:bg-line-soft" aria-label="Search">
         <Search className="size-5" />
       </button>
     </header>

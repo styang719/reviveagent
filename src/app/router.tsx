@@ -5,6 +5,7 @@ import Marketing from '@/pages/Marketing'
 import Opportunities from '@/pages/Opportunities'
 import Person from '@/pages/Person'
 import Projects from '@/pages/Projects'
+import ReviveAI from '@/pages/ReviveAI'
 import Property from '@/pages/Property'
 import { Placeholder } from '@/pages/Placeholder'
 import { AppLayout } from './AppLayout'
@@ -16,6 +17,7 @@ export const router = createRouter([
   {
     element: <AppLayout />,
     children: [
+      { path: '/ai', element: <ReviveAI /> },
       { path: '/', element: <Home /> },
       { path: '/opportunities', element: <Opportunities /> },
       { path: '/projects', element: <Projects /> },

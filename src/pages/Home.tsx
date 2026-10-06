@@ -6,7 +6,7 @@ import { ReferEarn } from '@/components/home/ReferralCards'
 import { ReferralHero } from '@/components/home/ReferralHero'
 import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
-import { CrmDialog, SetupTodo } from '@/components/home/ConnectBook'
+import { SetupTodo } from '@/components/home/ConnectBook'
 import { StatCards } from '@/components/home/StatCards'
 import { YourBook } from '@/components/home/YourBook'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
@@ -93,7 +93,6 @@ export default function Home() {
           {tier === 'partner' && <ReferEarn />}
         </aside>
       </div>
-      {isNew && <CrmDialog />}
     </div>
   )
 }

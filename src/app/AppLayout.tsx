@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { DEMO_BAR_HEIGHT, DemoBar } from '@/components/shell/DemoBar'
+import { CrmDialog } from '@/components/home/ConnectBook'
 import { SearchPalette } from '@/components/shell/SearchPalette'
 import { Sidebar } from '@/components/shell/Sidebar'
 import { TopBar } from '@/components/shell/TopBar'
@@ -57,6 +58,7 @@ export function AppLayout() {
         </div>
       </div>
       <SearchPalette />
+      <CrmDialog />
       <Toaster position="bottom-right" richColors closeButton />
     </div>
   )

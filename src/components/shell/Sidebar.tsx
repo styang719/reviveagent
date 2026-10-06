@@ -15,31 +15,34 @@ const NAV = [
   { to: '/inbox', label: 'Inbox', icon: Inbox, badge: 8 },
 ]
 
-// Revive AI isn't a page like the others: it's an assistant you can ask about any address or
-// person. So it gets its own treatment: a gradient edge, a glowing sparkle and an "Ask" hint.
-function ReviveAiItem({ collapsed, onOpen }: { collapsed: boolean; onOpen: () => void }) {
-  const open = useUi((s) => s.paletteOpen && s.paletteMode === 'ai')
+// Revive AI looks like the other tabs until it's open (like Slackbot in Slack): then its icon
+// turns into a gradient tile that pops in and slowly shimmers.
+function ReviveAiItem({ collapsed }: { collapsed: boolean }) {
   return (
-    <button
-      onClick={onOpen}
+    <NavLink
+      to="/ai"
       title={collapsed ? 'Revive AI' : undefined}
-      aria-label="Revive AI: ask about any address or person"
-      className={cn(
-        'rv-ai-item group relative mb-2 flex h-11 items-center gap-3 rounded-lg px-3 text-left text-base font-medium text-white',
-        open && 'is-open',
-        collapsed && 'justify-center px-0',
-      )}
+      className={({ isActive }) =>
+        cn(
+          'relative flex h-10 items-center gap-3 rounded-lg px-3 text-base transition-colors',
+          isActive ? 'bg-white/10 font-semibold text-white' : 'text-sb-ink hover:bg-white/8 hover:text-white',
+          collapsed && 'justify-center px-0',
+        )
+      }
     >
-      <span className="rv-ai-icon grid size-6 shrink-0 place-items-center rounded-md">
-        <Sparkles className="size-4" />
-      </span>
-      {!collapsed && (
+      {({ isActive }) => (
         <>
-          <span className="flex-1">Revive AI</span>
-          <kbd className="rounded border border-white/25 px-1.5 text-[11px] font-medium text-white/70">⌘K</kbd>
+          {isActive ? (
+            <span className="rv-ai-tile -mx-1 grid size-6 shrink-0 place-items-center rounded-md text-white">
+              <Sparkles className="size-3.5" />
+            </span>
+          ) : (
+            <Sparkles className="size-4 shrink-0" />
+          )}
+          {!collapsed && <span className={cn('flex-1', isActive && 'rv-ai-text')}>Revive AI</span>}
         </>
       )}
-    </button>
+    </NavLink>
   )
 }
 
@@ -81,7 +84,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
       </div>
 
       <nav className="mt-6 flex flex-col gap-1 px-3" aria-label="Main">
-        <ReviveAiItem collapsed={collapsed} onOpen={() => setPalette(true, 'ai')} />
+        <ReviveAiItem collapsed={collapsed} />
         {NAV.map(({ to, label, icon: Icon, end, badge }) => (
           <NavLink
             key={to}
