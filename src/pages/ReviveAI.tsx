@@ -1,6 +1,6 @@
 import { ArrowRight, ArrowUp, Copy, Hammer, Home as HomeIcon, MessageSquareText, RotateCcw, Sparkles, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Estimate, Reasons } from '@/components/opportunity/OpportunityCard'
 import { UrgencyTag } from '@/components/opportunity/Tags'
@@ -177,6 +177,18 @@ export default function ReviveAI() {
 
   useEffect(() => endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }), [chat.length, thinking])
   useEffect(() => inputRef.current?.focus(), [])
+
+  // arriving from a suggested question elsewhere (/ai?q=…): ask it once
+  const [params, setParams] = useSearchParams()
+  const asked = useRef(false)
+  useEffect(() => {
+    const q = params.get('q')
+    if (q && !asked.current) {
+      asked.current = true
+      setParams({}, { replace: true })
+      ask(q)
+    }
+  })
 
   const ask = (q: string) => {
     const text = q.trim()

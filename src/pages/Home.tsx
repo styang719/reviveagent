@@ -8,6 +8,7 @@ import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { SetupTodo } from '@/components/home/ConnectBook'
 import { StatCards } from '@/components/home/StatCards'
+import { CaseStudies, GetToKnowRevive, ReviveAiIntro } from '@/components/home/NewAgentIntro'
 import { YourBook } from '@/components/home/YourBook'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
 import { AGENT, TIERS } from '@/data/tiers'
@@ -64,6 +65,7 @@ export default function Home() {
             <ProjectPulse key={o.id} o={o} />
           ))}
           {isNew && <YourBook opps={opps} />}
+          {isNew && <ReviveAiIntro />}
           {feed.length > 0 && (
             <section aria-labelledby="who-to-call">
               <div className="mb-3 flex items-end justify-between gap-3">
@@ -83,6 +85,12 @@ export default function Home() {
                 ))}
               </div>
             </section>
+          )}
+          {isNew && (
+            <div className="mt-3 flex flex-col gap-8">
+              <CaseStudies />
+              <GetToKnowRevive />
+            </div>
           )}
         </div>
 
