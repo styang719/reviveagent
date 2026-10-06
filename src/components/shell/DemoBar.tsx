@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
-import { EMPTY_STYLES, useDemo } from '@/store/demo'
+import { useDemo } from '@/store/demo'
 
 export const DEMO_BAR_HEIGHT = 44
 
@@ -11,8 +11,6 @@ export function DemoBar() {
   const tier = useDemo((s) => s.tier)
   const setTier = useDemo((s) => s.setTier)
   const reset = useDemo((s) => s.reset)
-  const emptyStyle = useDemo((s) => s.emptyStyle)
-  const setEmptyStyle = useDemo((s) => s.setEmptyStyle)
 
   return (
     <div
@@ -39,24 +37,6 @@ export function DemoBar() {
           </button>
         ))}
       </div>
-      {tier === 'new' && (
-        <>
-          <span className="ml-2 shrink-0">Empty state</span>
-          <div className="flex shrink-0 rounded-lg bg-white/10 p-0.5" role="radiogroup" aria-label="Empty state design">
-            {EMPTY_STYLES.map((h) => (
-              <button
-                key={h.id}
-                role="radio"
-                aria-checked={emptyStyle === h.id}
-                onClick={() => setEmptyStyle(h.id)}
-                className={cn('rounded-md px-3 py-1 font-medium whitespace-nowrap', emptyStyle === h.id ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
-              >
-                {h.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
       <span className="ml-auto shrink-0 rounded-full border border-white/25 px-2 py-0.5 text-[11px]">Sample data</span>
       <button
         onClick={() => {

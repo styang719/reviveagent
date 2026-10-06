@@ -1,16 +1,14 @@
-import { Check, Contact, Home as HomeIcon, Loader2, Lock } from 'lucide-react'
+import { Check, Loader2, Lock } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { AGENT } from '@/data/tiers'
-import { photoUrl } from '@/lib/assets'
 import { plural } from '@/lib/format'
 import { useConnections, type Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
-import { useDemo, type EmptyStyle } from '@/store/demo'
+import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 
 // New agents connect two sources: the license number (listings and past sales on the MLS) and the
@@ -279,160 +277,4 @@ export function SetupTodo({ opps }: { opps: Opportunity[] }) {
       </ol>
     </section>
   )
-}
-
-function useConnectActions() {
-  const openStep = useUi((s) => s.openStep)
-  const openCrm = useUi((s) => s.openCrm)
-  return {
-    license: () => {
-      openStep('license')
-      document.getElementById('setup')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    },
-    crm: () => openCrm('Follow Up Boss'),
-  }
-}
-
-function SectionHead({ sub }: { sub: string }) {
-  return (
-    <>
-      <h2 id="opps-empty-title" className="text-lg font-semibold text-ink sm:text-xl">
-        Your opportunities
-      </h2>
-      <p className="mt-0.5 text-sm text-ink-2">{sub}</p>
-    </>
-  )
-}
-
-/** A · Sources: the two places opportunities come from, each with what it finds and how to connect it. */
-function SourcesEmpty() {
-  const act = useConnectActions()
-  const sources = [
-    {
-      icon: HomeIcon,
-      title: 'Your listings',
-      body: 'Spot listings that would sell faster, or for more, after a refresh.',
-      finds: ['Listings sitting on the market', 'Price cuts', 'Dated kitchens and baths'],
-      cta: 'Add your license number',
-      onClick: act.license,
-      primary: true,
-    },
-    {
-      icon: Contact,
-      title: 'Your contacts',
-      body: 'Find homeowners you know who are likely to sell or renovate.',
-      finds: ['Expired and withdrawn listings', 'Past clients gone quiet', 'Homes with ADU room'],
-      cta: 'Connect your CRM',
-      onClick: act.crm,
-      primary: false,
-    },
-  ]
-  return (
-    <section aria-labelledby="opps-empty-title">
-      <SectionHead sub="Revive checks the homes you already know and ranks who to call, and why. Connect either one to start." />
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {sources.map((x) => (
-          <div key={x.title} className="flex flex-col rounded-xl border border-line bg-white p-5 shadow-card">
-            <span className="grid size-10 place-items-center rounded-lg bg-brand-soft text-brand">
-              <x.icon className="size-5" />
-            </span>
-            <h3 className="mt-3 text-[15px] font-semibold text-ink">{x.title}</h3>
-            <p className="mt-1 text-sm leading-5 text-ink-2">{x.body}</p>
-            <ul className="mt-3 flex flex-col gap-1.5 text-[13px] text-muted">
-              {x.finds.map((f) => (
-                <li key={f} className="flex items-center gap-2">
-                  <Check className="size-3.5 shrink-0 text-ok" strokeWidth={3} /> {f}
-                </li>
-              ))}
-            </ul>
-            <Button variant={x.primary ? 'default' : 'outline'} className="mt-5 self-start" onClick={x.onClick}>
-              {x.cta}
-            </Button>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-/** B · Sample: one crisp, clearly labeled example of what Revive finds, then the way to get your own. */
-function SampleEmpty() {
-  const act = useConnectActions()
-  return (
-    <section aria-labelledby="opps-empty-title">
-      <SectionHead sub="Here’s the kind of thing Revive finds in an agent’s book." />
-      <div className="mt-4 overflow-hidden rounded-xl border border-line bg-white shadow-card">
-        <div className="flex gap-4 p-4">
-          <img src={photoUrl('contact-102')} alt="" className="hidden size-20 shrink-0 rounded-lg object-cover sm:block" />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Badge variant="hot">Call this week</Badge>
-              <Badge variant="outline">My contact</Badge>
-              <span className="ml-auto rounded-md bg-line-soft px-2 py-0.5 text-[11px] font-semibold tracking-wide text-muted uppercase">Example</span>
-            </div>
-            <div className="mt-2 flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <p className="text-base font-semibold text-ink">A homeowner in Montrose</p>
-                <p className="text-[13px] text-muted">In your CRM · last called 2 months ago</p>
-              </div>
-              <div className="text-right">
-                <p className="text-lg leading-6 font-semibold text-ok">+$148K</p>
-                <p className="text-xs text-muted">Est. upside · Renovate to Sell</p>
-              </div>
-            </div>
-            <p className="mt-2 text-sm text-ink-2">
-              <span className="font-medium text-ink">Listing expired 23 days ago</span>
-              <span className="text-muted"> · Leaning toward selling · Condition trails comps</span>
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-head px-4 py-3">
-          <p className="text-sm text-ink-2">Connect your listings or CRM to see your own.</p>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={act.license}>
-              Add your license number
-            </Button>
-            <Button size="sm" variant="outline" onClick={act.crm}>
-              Connect your CRM
-            </Button>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/** C · Minimal: a classic empty state. Says what goes here and gives two ways to fill it. */
-function MinimalEmpty() {
-  const act = useConnectActions()
-  return (
-    <section aria-labelledby="opps-empty-title">
-      <h2 id="opps-empty-title" className="text-lg font-semibold text-ink sm:text-xl">
-        Your opportunities
-      </h2>
-      <div className="mt-4 flex flex-col items-center rounded-xl border border-dashed border-[#c9d1e0] bg-white px-6 py-12 text-center">
-        <div className="relative h-16 w-24" aria-hidden="true">
-          <span className="absolute top-0 left-2 h-12 w-16 -rotate-6 rounded-lg border border-line bg-head" />
-          <span className="absolute top-1 left-6 grid h-12 w-16 rotate-3 place-items-center rounded-lg border border-line bg-white shadow-card">
-            <HomeIcon className="size-5 text-brand" />
-          </span>
-        </div>
-        <p className="mt-4 text-base font-semibold text-ink">No opportunities yet</p>
-        <p className="mt-1 max-w-sm text-sm text-ink-2">Connect your listings or your CRM, and Revive will rank who to call and why.</p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <Button onClick={act.license}>Add your license number</Button>
-          <Button variant="outline" onClick={act.crm}>
-            Connect your CRM
-          </Button>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/** Left column before anything is connected: what will appear here, and how to make it appear. */
-export function OpportunitiesEmpty({ style }: { style: EmptyStyle }) {
-  if (style === 'sample') return <SampleEmpty />
-  if (style === 'minimal') return <MinimalEmpty />
-  return <SourcesEmpty />
 }

@@ -97,7 +97,7 @@ export function GlobalSearch({ className, variant = 'bar' }: { className?: strin
               // with nothing highlighted, Enter falls through to submit
               if (e.key === 'Enter' && !showList) submit()
             }}
-            placeholder={hero ? 'Enter any address to see its value and renovation upside' : 'Ask Revive AI about any address or person'}
+            placeholder={hero ? 'Enter an address' : 'Ask Revive AI about any address or person'}
             className={cn('h-full min-w-0 flex-1 truncate bg-transparent text-ink outline-none placeholder:text-faint', hero ? 'text-base' : 'text-sm')}
           />
           {hero ? (

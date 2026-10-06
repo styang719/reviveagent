@@ -7,7 +7,8 @@ import { ReferEarn } from '@/components/home/ReferralCards'
 import { ReferralHero } from '@/components/home/ReferralHero'
 import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
-import { CrmDialog, OpportunitiesEmpty, SetupTodo } from '@/components/home/ConnectBook'
+import { CrmDialog, SetupTodo } from '@/components/home/ConnectBook'
+import { OpportunitiesPreview } from '@/components/home/OpportunitiesPreview'
 import { GlobalSearch } from '@/components/shell/GlobalSearch'
 import { StatCards } from '@/components/home/StatCards'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
@@ -24,7 +25,6 @@ function greetingWord(h: number) {
 
 export default function Home() {
   const tier = useDemo((s) => s.tier)
-  const emptyStyle = useDemo((s) => s.emptyStyle)
   const opps = useOpportunities()
   const now = useNow(30_000)
 
@@ -54,17 +54,18 @@ export default function Home() {
         <div className="grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-8 xl:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-10">
             <header>
-              <h1 className="text-[26px] leading-tight font-semibold tracking-[-0.01em] text-balance sm:text-[34px]">
-                <span className="text-muted">{hello}</span> <span className="text-ink">Have a property in mind?</span>
+              <h1 className="text-[26px] leading-tight tracking-[-0.01em] text-balance text-ink sm:text-[32px]">
+                <span className="font-normal">{hello}</span> <span className="font-semibold">Have a property in mind?</span>
               </h1>
               <GlobalSearch variant="hero" className="mt-5" />
+              <p className="mt-2 text-[13px] text-muted">See any home’s value, renovation upside and the Revive product that fits.</p>
             </header>
-            {opps.length > 0 ? <FoundOpportunities opps={opps} /> : <OpportunitiesEmpty style={emptyStyle} />}
+            <OpportunitiesPreview opps={opps} />
+            {opps.length > 0 && <FoundOpportunities opps={opps} />}
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">
             <SetupTodo opps={opps} />
             <RevivePathCard tier={tier} opps={opps} />
-            {opps.length > 0 && <NearbyMini opps={opps} />}
           </aside>
         </div>
         <CrmDialog />

@@ -203,3 +203,20 @@
   background: #fff; border: 4px solid var(--blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
 }
 .rv-pill.k-project-done { background: var(--green); }
+/* locked homes on the onboarding map: grey, with what they are (house = listing, person = contact) */
+.rv-lock {
+  position: relative; display: grid; place-items: center; width: 26px; height: 26px;
+  transform: translate(-50%, -50%); color: #fff; background: #8e96a5; border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(16, 24, 40, 0.25); cursor: pointer;
+}
+.rv-lock.k-contact { border-radius: 50%; }
+.rv-lock.k-listing { border-radius: 7px; }
+.rv-lock svg { width: 13px; height: 13px; }
+.rv-lock i {
+  position: absolute; right: -5px; bottom: -5px; display: grid; place-items: center; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--navy); border: 1.5px solid #fff;
+}
+.rv-lock i svg { width: 8px; height: 8px; }
+.rv-lock:hover { background: #5f6878; }
+.rv-lock.is-legend { transform: none; width: 18px; height: 18px; border-width: 0; box-shadow: none; cursor: default; }
+.rv-lock.is-legend svg { width: 11px; height: 11px; }

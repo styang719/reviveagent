@@ -2,13 +2,6 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Stage, Tier } from '@/data/types'
 
-export type EmptyStyle = 'sources' | 'sample' | 'minimal'
-export const EMPTY_STYLES: { id: EmptyStyle; label: string }[] = [
-  { id: 'sources', label: 'A · Sources' },
-  { id: 'sample', label: 'B · Sample' },
-  { id: 'minimal', label: 'C · Minimal' },
-]
-
 // Demo state. Tier and the overrides below are the only state; every screen derives from data + this store.
 interface DemoState {
   tier: Tier
@@ -20,14 +13,12 @@ interface DemoState {
   // A new agent starts with nothing connected; Active and Partner agents are always connected.
   crmConnected: boolean
   license: string | null // DRE license number; finds the agent's MLS listings and past sales
-  emptyStyle: EmptyStyle // empty-state Home: design directions to compare (demo bar)
   setTier: (tier: Tier) => void
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
   claimReferral: (propertyId: string) => void
   markReferralUpdated: (propertyId: string) => void
   connectCrm: () => void
   connectLicense: (license: string) => void
-  setEmptyStyle: (style: EmptyStyle) => void
   reset: () => void
 }
 
@@ -64,10 +55,8 @@ export const useDemo = create<DemoState>()(
         set((s) => ({ updated: { ...s.updated, [id]: Date.now() }, activity: withActivity(s, id, 'You sent Revive a status update') })),
       connectCrm: () => set({ crmConnected: true }),
       connectLicense: (license) => set({ license }),
-      emptyStyle: 'sources',
-      setEmptyStyle: (emptyStyle) => set({ emptyStyle }),
-      reset: () => set((s) => ({ ...initial(), tier: s.tier, emptyStyle: s.emptyStyle })),
+      reset: () => set((s) => ({ ...initial(), tier: s.tier })),
     }),
-    { name: 'revive-demo', version: 2, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ ...(s as object), emptyStyle: 'sources' }) as DemoState },
+    { name: 'revive-demo', version: 3, storage: createJSONStorage(() => localStorage), migrate: (s) => s as DemoState },
   ),
 )

@@ -80,8 +80,9 @@ export function BaseMap({
 }) {
   return (
     <MapContainer
-      {...(bounds && bounds.length > 1 ? { bounds, boundsOptions: { padding: [28, 28] as L.PointTuple } } : { center, zoom })}
+      {...(bounds && bounds.length > 1 ? { bounds, boundsOptions: { padding: [24, 24] as L.PointTuple } } : { center, zoom })}
       minZoom={TILE_Z.min}
+      zoomSnap={0.25}
       maxZoom={TILE_Z.max}
       zoomControl={interactive}
       scrollWheelZoom={interactive}
