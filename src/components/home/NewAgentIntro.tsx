@@ -17,57 +17,64 @@ export const askPath = (q: string) => `/ai?q=${encodeURIComponent(q)}`
 export function ReviveAiIntro() {
   const navigate = useNavigate()
   const [q, setQ] = useState('')
-  const prompts = [STARTERS[0], STARTERS[2], 'What is 55 Fair Oaks Ave, Pasadena worth?']
+  const prompts = [STARTERS[0], STARTERS[1], STARTERS[2]]
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     navigate(q.trim() ? askPath(q.trim()) : '/ai')
   }
   return (
-    <section aria-labelledby="ai-intro" className="rounded-2xl border border-[#d9d3fb] bg-gradient-to-br from-[#f3f5ff] via-[#f6f2ff] to-[#effcfb] p-5 shadow-card sm:p-6">
+    <section aria-labelledby="ai-intro" className="h-full rounded-2xl border border-[#d9d3fb] bg-gradient-to-br from-[#f3f5ff] via-[#f6f2ff] to-[#effcfb] p-5 shadow-card sm:p-6">
       <div className="flex items-start gap-4">
         <span className="rv-ai-tile grid size-11 shrink-0 place-items-center rounded-xl text-white" aria-hidden="true">
           <Sparkles className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
           <h2 id="ai-intro" className="text-lg font-semibold text-ink sm:text-xl">
-            Ask Revive AI about any home
+            Ask Revive about anything
           </h2>
           <p className="mt-0.5 max-w-2xl text-sm text-ink-2">
-            Value today, what a renovation could add, ADU room and the Revive product that fits, in seconds. Works before you connect anything.
+            A home’s value and renovation upside, ADU room, who to call, a note to a client. Works before you connect anything.
           </p>
         </div>
       </div>
-      <form onSubmit={submit} className="mt-4 flex h-14 items-center gap-2 rounded-xl border border-white bg-white pr-1.5 pl-4 shadow-sm focus-within:border-[#a78bfa] focus-within:ring-4 focus-within:ring-[#a78bfa]/15">
+
+      {/* one box: the question on top, examples and the button along the bottom */}
+      <form
+        onSubmit={submit}
+        className="mt-4 rounded-xl border border-white bg-white p-2 shadow-sm focus-within:border-[#a78bfa] focus-within:ring-4 focus-within:ring-[#a78bfa]/15"
+      >
         <label htmlFor="home-ask" className="sr-only">
           Ask Revive AI
         </label>
-        <Sparkles className="size-5 shrink-0 text-[#8b5cf6]" aria-hidden="true" />
-        <input
-          id="home-ask"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Ask about any address"
-          autoComplete="off"
-          className="h-full min-w-0 flex-1 truncate bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
-        />
-        <button type="submit" className="rv-ai-btn flex h-11 shrink-0 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-white">
-          <Sparkles className="size-4" />
-          <span className="hidden sm:inline">Get insights</span>
-          <span className="sm:hidden">Go</span>
-        </button>
+        <div className="flex items-center gap-2 px-2">
+          <Sparkles className="size-5 shrink-0 text-[#8b5cf6]" aria-hidden="true" />
+          <input
+            id="home-ask"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Ask anything"
+            autoComplete="off"
+            className="h-11 min-w-0 flex-1 truncate bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
+          />
+        </div>
+        <div className="mt-1 flex flex-col gap-2 border-t border-line-soft px-1 pt-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+            {prompts.map((x) => (
+              <Link
+                key={x}
+                to={askPath(x)}
+                className="rounded-full border border-line bg-head px-2.5 py-1 text-[12.5px] text-ink-2 hover:border-[#a78bfa] hover:bg-white hover:text-ink"
+              >
+                {x}
+              </Link>
+            ))}
+          </div>
+          <button type="submit" className="rv-ai-btn flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white">
+            <Sparkles className="size-4" />
+            Get insights
+          </button>
+        </div>
       </form>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="text-[13px] text-muted">Try</span>
-        {prompts.map((x) => (
-          <Link
-            key={x}
-            to={askPath(x)}
-            className="rounded-full border border-white bg-white/80 px-3 py-1.5 text-[13px] text-ink-2 shadow-sm hover:border-[#a78bfa] hover:text-ink"
-          >
-            {x}
-          </Link>
-        ))}
-      </div>
     </section>
   )
 }

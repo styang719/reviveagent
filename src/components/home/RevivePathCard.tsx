@@ -6,6 +6,7 @@ import { DEALS_TO_PARTNER, TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { plural } from '@/lib/format'
 import type { Opportunity } from '@/lib/opportunities'
+import { useUi } from '@/store/ui'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
@@ -17,6 +18,7 @@ const STEPS = [
 /** Where the agent is with Revive, and what the next deal unlocks. */
 export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[] }) {
   const deals = TIERS[tier].deals
+  const openStep = useUi((s) => s.openStep)
   const partner = deals >= DEALS_TO_PARTNER
   const pct = Math.min(1, deals / DEALS_TO_PARTNER)
   const listing = opps.find((o) => o.cta.kind === 'propose')
@@ -34,7 +36,13 @@ export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[]
     ? { label: 'See your seller leads', to: '/opportunities?filter=revive' }
     : listing
       ? { label: `Propose Revive on ${listing.property.address}`, to: `/property/${listing.id}?tab=project` }
-      : { label: 'Ask Revive AI about a home', to: '/ai' }
+      : {
+          label: 'Add your license number',
+          onClick: () => {
+            openStep('license')
+            document.getElementById('setup')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          },
+        }
 
   return (
     <section aria-labelledby="status-title" className="overflow-hidden rounded-xl border border-line bg-white shadow-card">

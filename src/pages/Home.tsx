@@ -44,16 +44,68 @@ export default function Home() {
 
   const isNew = tier === 'new'
 
+  const whoToCall = feed.length > 0 && (
+    <section aria-labelledby="who-to-call">
+      <div className="mb-3 flex items-end justify-between gap-3">
+        <div>
+          <h2 id="who-to-call" className="text-lg font-semibold text-ink">
+            Who to call this week
+          </h2>
+          <p className="text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
+        </div>
+        <Link to="/opportunities" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
+          See all {actionableCount} <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+      <div className="flex flex-col gap-3">
+        {feed.slice(0, FEED_SIZE).map((o) => (
+          <OpportunityCard key={o.id} o={o} />
+        ))}
+      </div>
+    </section>
+  )
+
+  const greeting = (
+    <header>
+      <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">
+        {greetingWord(new Date(now).getHours())}, {AGENT.firstName}
+      </h1>
+      <p className="mt-1 text-[15px] text-ink-2">{sentence}</p>
+    </header>
+  )
+
+  // New agent: Ask Revive with the Revive status beside it, then the book and the context below.
+  if (isNew) {
+    return (
+      <div className={PAGE}>
+        {greeting}
+        <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <ReviveAiIntro />
+          <RevivePathCard tier={tier} opps={opps} />
+          <div className="flex min-w-0 flex-col gap-5">
+            <YourBook opps={opps} />
+            {whoToCall}
+            <div className="mt-3 flex flex-col gap-8">
+              <CaseStudies />
+              <GetToKnowRevive />
+            </div>
+          </div>
+          <aside className="flex flex-col gap-5" aria-label="Getting started">
+            <SetupTodo opps={opps} />
+            {opps.length > 0 && <NearbyMini opps={opps} />}
+          </aside>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={PAGE}>
-      <header>
-        <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">
-          {greetingWord(new Date(now).getHours())}, {AGENT.firstName}
-        </h1>
-        <p className="mt-1 text-[15px] text-ink-2">{sentence}</p>
-      </header>
+      {greeting}
 
-      <div className="mt-6">{isNew ? <ReviveAiIntro /> : <StatCards tier={tier} opps={opps} />}</div>
+      <div className="mt-6">
+        <StatCards tier={tier} opps={opps} />
+      </div>
 
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex min-w-0 flex-col gap-5">
@@ -62,39 +114,12 @@ export default function Home() {
           {projects.map((o) => (
             <ProjectPulse key={o.id} o={o} />
           ))}
-          {isNew && <YourBook opps={opps} />}
-          {feed.length > 0 && (
-            <section aria-labelledby="who-to-call">
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div>
-                  <h2 id="who-to-call" className="text-lg font-semibold text-ink">
-                    Who to call this week
-                  </h2>
-                  <p className="text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
-                </div>
-                <Link to="/opportunities" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-                  See all {actionableCount} <ArrowRight className="size-3.5" />
-                </Link>
-              </div>
-              <div className="flex flex-col gap-3">
-                {feed.slice(0, FEED_SIZE).map((o) => (
-                  <OpportunityCard key={o.id} o={o} />
-                ))}
-              </div>
-            </section>
-          )}
-          {isNew && (
-            <div className="mt-3 flex flex-col gap-8">
-              <CaseStudies />
-              <GetToKnowRevive />
-            </div>
-          )}
+          {whoToCall}
         </div>
 
         <aside className="flex flex-col gap-5" aria-label="At a glance">
-          {isNew && <SetupTodo opps={opps} />}
           <RevivePathCard tier={tier} opps={opps} />
-          {opps.length > 0 && <NearbyMini opps={opps} />}
+          <NearbyMini opps={opps} />
           {tier === 'partner' && <ReferEarn />}
         </aside>
       </div>
