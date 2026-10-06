@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import type { Lookup } from '@/lib/lookup'
 
 // Transient UI state shared between the setup to-do (right) and the opportunities empty state (left).
 type Step = 'license' | 'crm'
@@ -9,9 +8,8 @@ interface UiState {
   openStep: (s: Step | null) => void
   openCrm: (pick: string | null) => void
   paletteOpen: boolean // the ⌘K search palette (the top search bar is gone)
-  setPalette: (open: boolean) => void
-  lookup: Lookup | null // the home being previewed on the Home map
-  setLookup: (l: Lookup | null) => void
+  paletteMode: 'search' | 'ai' // 'ai' when opened from the Revive AI nav item
+  setPalette: (open: boolean, mode?: 'search' | 'ai') => void
 }
 
 export const useUi = create<UiState>((set) => ({
@@ -20,7 +18,6 @@ export const useUi = create<UiState>((set) => ({
   openStep: (setupOpen) => set({ setupOpen }),
   openCrm: (crmPick) => set({ crmPick }),
   paletteOpen: false,
-  setPalette: (paletteOpen) => set({ paletteOpen }),
-  lookup: null,
-  setLookup: (lookup) => set({ lookup }),
+  paletteMode: 'search',
+  setPalette: (paletteOpen, paletteMode = 'search') => set({ paletteOpen, paletteMode }),
 }))

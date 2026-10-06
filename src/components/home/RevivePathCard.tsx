@@ -6,7 +6,7 @@ import { DEALS_TO_PARTNER, TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { plural } from '@/lib/format'
 import type { Opportunity } from '@/lib/opportunities'
-import { focusHeroSearch } from '@/lib/utils'
+import { useUi } from '@/store/ui'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
@@ -18,6 +18,7 @@ const STEPS = [
 /** Where the agent is with Revive, and what the next deal unlocks. */
 export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[] }) {
   const deals = TIERS[tier].deals
+  const setPalette = useUi((s) => s.setPalette)
   const partner = deals >= DEALS_TO_PARTNER
   const pct = Math.min(1, deals / DEALS_TO_PARTNER)
   const listing = opps.find((o) => o.cta.kind === 'propose')
@@ -35,7 +36,7 @@ export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[]
     ? { label: 'See your seller leads', to: '/opportunities?filter=revive' }
     : listing
       ? { label: `Propose Revive on ${listing.property.address}`, to: `/property/${listing.id}?tab=project` }
-      : { label: 'Look up a home to start', onClick: focusHeroSearch }
+      : { label: 'Ask Revive AI about a home', onClick: () => setPalette(true, 'ai') }
 
   return (
     <section aria-labelledby="status-title" className="overflow-hidden rounded-xl border border-line bg-white shadow-card">

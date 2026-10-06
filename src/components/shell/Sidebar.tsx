@@ -1,4 +1,4 @@
-import { ChevronRight, Home, Inbox, Megaphone, PanelLeft, Hammer, Search, Target } from 'lucide-react'
+import { ChevronRight, Hammer, Home, Inbox, Megaphone, PanelLeft, Search, Sparkles, Target } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import avatar from '@/assets/avatar-michelle.jpg'
 import { AGENT } from '@/data/tiers'
@@ -14,6 +14,34 @@ const NAV = [
   { to: '/marketing', label: 'Marketing', icon: Megaphone },
   { to: '/inbox', label: 'Inbox', icon: Inbox, badge: 8 },
 ]
+
+// Revive AI isn't a page like the others: it's an assistant you can ask about any address or
+// person. So it gets its own treatment: a gradient edge, a glowing sparkle and an "Ask" hint.
+function ReviveAiItem({ collapsed, onOpen }: { collapsed: boolean; onOpen: () => void }) {
+  const open = useUi((s) => s.paletteOpen && s.paletteMode === 'ai')
+  return (
+    <button
+      onClick={onOpen}
+      title={collapsed ? 'Revive AI' : undefined}
+      aria-label="Revive AI: ask about any address or person"
+      className={cn(
+        'rv-ai-item group relative mb-2 flex h-11 items-center gap-3 rounded-lg px-3 text-left text-base font-medium text-white',
+        open && 'is-open',
+        collapsed && 'justify-center px-0',
+      )}
+    >
+      <span className="rv-ai-icon grid size-6 shrink-0 place-items-center rounded-md">
+        <Sparkles className="size-4" />
+      </span>
+      {!collapsed && (
+        <>
+          <span className="flex-1">Revive AI</span>
+          <kbd className="rounded border border-white/25 px-1.5 text-[11px] font-medium text-white/70">⌘K</kbd>
+        </>
+      )}
+    </button>
+  )
+}
 
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const setPalette = useUi((s) => s.setPalette)
@@ -53,6 +81,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
       </div>
 
       <nav className="mt-6 flex flex-col gap-1 px-3" aria-label="Main">
+        <ReviveAiItem collapsed={collapsed} onOpen={() => setPalette(true, 'ai')} />
         {NAV.map(({ to, label, icon: Icon, end, badge }) => (
           <NavLink
             key={to}

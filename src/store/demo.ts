@@ -2,13 +2,6 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Stage, Tier } from '@/data/types'
 
-export type MapDesign = 'a' | 'b' | 'c'
-export const MAP_DESIGNS: { id: MapDesign; label: string }[] = [
-  { id: 'a', label: 'A · Map first' },
-  { id: 'b', label: 'B · Split view' },
-  { id: 'c', label: 'C · Docked' },
-]
-
 // Demo state. Tier and the overrides below are the only state; every screen derives from data + this store.
 interface DemoState {
   tier: Tier
@@ -20,8 +13,6 @@ interface DemoState {
   // A new agent starts with nothing connected; Active and Partner agents are always connected.
   crmConnected: boolean
   license: string | null // DRE license number; finds the agent's MLS listings and past sales
-  mapDesign: MapDesign // new-agent Home: search + map direction to compare (demo bar)
-  setMapDesign: (d: MapDesign) => void
   setTier: (tier: Tier) => void
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
   claimReferral: (propertyId: string) => void
@@ -64,10 +55,8 @@ export const useDemo = create<DemoState>()(
         set((s) => ({ updated: { ...s.updated, [id]: Date.now() }, activity: withActivity(s, id, 'You sent Revive a status update') })),
       connectCrm: () => set({ crmConnected: true }),
       connectLicense: (license) => set({ license }),
-      mapDesign: 'a',
-      setMapDesign: (mapDesign) => set({ mapDesign }),
-      reset: () => set((s) => ({ ...initial(), tier: s.tier, mapDesign: s.mapDesign })),
+      reset: () => set((s) => ({ ...initial(), tier: s.tier })),
     }),
-    { name: 'revive-demo', version: 4, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ ...(s as object), mapDesign: 'a' }) as DemoState },
+    { name: 'revive-demo', version: 5, storage: createJSONStorage(() => localStorage), migrate: (s) => s as DemoState },
   ),
 )

@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
+import { PAGE } from '@/lib/utils'
 import { Link, useParams } from 'react-router-dom'
 import { people } from '@/data/people'
 import { gain } from '@/lib/format'
@@ -13,7 +14,7 @@ export default function Person() {
     return <Placeholder title="Person not found" intro="They may not be visible at this tier." phase={2} />
   }
   return (
-    <div className="mx-auto max-w-[1240px] px-4 py-6 sm:px-8 sm:py-8">
+    <div className={PAGE}>
       <Link to="/" className="inline-flex items-center gap-1 text-[13px] text-muted hover:text-brand">
         <ArrowLeft className="size-3.5" /> Back
       </Link>

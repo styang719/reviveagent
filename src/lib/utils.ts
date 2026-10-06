@@ -6,8 +6,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 
-export function focusHeroSearch() {
-  const el = document.querySelector<HTMLInputElement>('[data-hero-search]')
-  el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  el?.focus({ preventScroll: true })
-}
+
+/** Page content container: wide, with the same padding on every side. */
+export const PAGE = 'mx-auto w-full max-w-[1600px] p-4 sm:p-10'

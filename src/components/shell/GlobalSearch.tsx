@@ -15,11 +15,13 @@ export function GlobalSearch({
   className,
   variant = 'bar',
   autoFocus = false,
+  inline = false,
   onNavigate,
 }: {
   className?: string
   variant?: 'bar' | 'hero'
   autoFocus?: boolean
+  inline?: boolean // results flow below the input (inside a panel) instead of floating
   onNavigate?: () => void
 }) {
   const hero = variant === 'hero'
@@ -120,8 +122,9 @@ export function GlobalSearch({
         {showList && (
           <Command.List
             className={cn(
-              'absolute right-0 left-0 z-30 max-h-[420px] overflow-y-auto rounded-xl border border-line bg-white p-2 text-left shadow-xl',
-              hero ? 'top-[72px]' : 'top-12',
+              'max-h-[420px] overflow-y-auto text-left',
+              inline ? 'mt-2' : 'absolute right-0 left-0 z-30 rounded-xl border border-line bg-white p-2 shadow-xl',
+              !inline && (hero ? 'top-[72px]' : 'top-12'),
             )}
           >
             <Command.Empty className="px-3 py-6 text-center text-sm text-muted">

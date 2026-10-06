@@ -33,7 +33,7 @@ export const TIERS: Record<Tier, TierConfig> = {
     earnedNote: 'Your first deal starts below',
     greeting: ({ listings, contacts }) =>
       listings + contacts === 0
-        ? 'Welcome to Revive. Look up any home, or connect your book to see who to call.'
+        ? 'Welcome to Revive. Connect your listings and CRM to see who to call, and why.'
         : `We checked ${[listings && `${listings} listings`, contacts && `${contacts} contacts`].filter(Boolean).join(' and ')}. Here’s where Revive can help.`,
   },
   active: {

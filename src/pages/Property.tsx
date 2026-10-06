@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
+import { PAGE } from '@/lib/utils'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Estimate, PersonLine, Reasons } from '@/components/opportunity/OpportunityCard'
 import { SourceTag, StageTag, UrgencyTag } from '@/components/opportunity/Tags'
@@ -24,7 +25,7 @@ export default function Property() {
   }
   const p = o.property
   return (
-    <div className="mx-auto max-w-[1240px] px-4 py-6 sm:px-8 sm:py-8">
+    <div className={PAGE}>
       <Link to="/" className="inline-flex items-center gap-1 text-[13px] text-muted hover:text-brand">
         <ArrowLeft className="size-3.5" /> Back
       </Link>
