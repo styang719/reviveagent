@@ -305,3 +305,19 @@
   transition: filter 0.15s, box-shadow 0.15s;
 }
 .rv-ai-btn:hover { filter: brightness(1.08); box-shadow: 0 4px 14px rgba(124, 77, 255, 0.45); }
+/* soft animated gradient behind the glass ask box */
+.rv-ai-aurora {
+  background:
+    radial-gradient(40% 70% at 20% 50%, rgba(122, 162, 255, 0.55), transparent 70%),
+    radial-gradient(35% 80% at 55% 40%, rgba(167, 139, 250, 0.5), transparent 70%),
+    radial-gradient(35% 70% at 85% 60%, rgba(94, 234, 212, 0.45), transparent 70%);
+  background-size: 200% 200%;
+  filter: blur(18px);
+  animation: rv-aurora 12s ease-in-out infinite alternate;
+}
+@keyframes rv-aurora {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 30%; }
+  100% { background-position: 50% 70%; }
+}
+@media (prefers-reduced-motion: reduce) { .rv-ai-aurora { animation: none; } }

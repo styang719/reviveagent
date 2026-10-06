@@ -38,43 +38,47 @@ export function ReviveAiIntro() {
         </div>
       </div>
 
-      {/* one box: the question on top, examples and the button along the bottom */}
-      <form
-        onSubmit={submit}
-        className="mt-4 rounded-xl border border-white bg-white p-2 shadow-sm focus-within:border-[#a78bfa] focus-within:ring-4 focus-within:ring-[#a78bfa]/15"
-      >
-        <label htmlFor="home-ask" className="sr-only">
-          Ask Revive AI
-        </label>
-        <div className="flex items-center gap-2 px-2">
-          <Sparkles className="size-5 shrink-0 text-[#8b5cf6]" aria-hidden="true" />
-          <input
-            id="home-ask"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Ask anything"
-            autoComplete="off"
-            className="h-11 min-w-0 flex-1 truncate bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
-          />
-        </div>
-        <div className="mt-1 flex flex-col gap-2 border-t border-line-soft px-1 pt-2 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-            {prompts.map((x) => (
-              <Link
-                key={x}
-                to={askPath(x)}
-                className="rounded-full border border-line bg-head px-2.5 py-1 text-[12.5px] text-ink-2 hover:border-[#a78bfa] hover:bg-white hover:text-ink"
-              >
-                {x}
-              </Link>
-            ))}
+      {/* frosted glass box over a slowly drifting AI gradient */}
+      <div className="relative mt-4">
+        <div className="rv-ai-aurora pointer-events-none absolute -inset-x-2 -inset-y-3 rounded-3xl" aria-hidden="true" />
+        {/* one box: the question on top, examples and the button along the bottom */}
+        <form
+          onSubmit={submit}
+          className="relative rounded-xl border border-white/80 bg-white/55 p-2 shadow-[0_4px_24px_rgba(27,37,89,0.08)] backdrop-blur-xl transition-shadow focus-within:bg-white/70 focus-within:shadow-[0_8px_32px_rgba(124,77,255,0.22)]"
+        >
+          <label htmlFor="home-ask" className="sr-only">
+            Ask Revive AI
+          </label>
+          <div className="flex items-center gap-2 px-2">
+            <Sparkles className="size-5 shrink-0 text-[#8b5cf6]" aria-hidden="true" />
+            <input
+              id="home-ask"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Ask anything"
+              autoComplete="off"
+              className="h-11 min-w-0 flex-1 truncate bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
+            />
           </div>
-          <button type="submit" className="rv-ai-btn flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white">
-            <Sparkles className="size-4" />
-            Get insights
-          </button>
-        </div>
-      </form>
+          <div className="mt-1 flex flex-col gap-2 border-t border-white/80 px-1 pt-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+              {prompts.map((x) => (
+                <Link
+                  key={x}
+                  to={askPath(x)}
+                  className="rounded-full border border-white/90 bg-white/60 px-2.5 py-1 text-[12.5px] text-ink-2 hover:bg-white hover:text-ink"
+                >
+                  {x}
+                </Link>
+              ))}
+            </div>
+            <button type="submit" className="rv-ai-btn flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white">
+              <Sparkles className="size-4" />
+              Get insights
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
   )
 }
