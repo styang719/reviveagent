@@ -8,7 +8,7 @@ import { ReferralHero } from '@/components/home/ReferralHero'
 import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { CrmDialog, OpportunitiesEmpty, SetupTodo } from '@/components/home/ConnectBook'
-import { EmptyHero } from '@/components/home/EmptyHero'
+import { GlobalSearch } from '@/components/shell/GlobalSearch'
 import { StatCards } from '@/components/home/StatCards'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
 import { AGENT, TIERS } from '@/data/tiers'
@@ -24,7 +24,7 @@ function greetingWord(h: number) {
 
 export default function Home() {
   const tier = useDemo((s) => s.tier)
-  const heroStyle = useDemo((s) => s.heroStyle)
+  const emptyStyle = useDemo((s) => s.emptyStyle)
   const opps = useOpportunities()
   const now = useNow(30_000)
 
@@ -44,57 +44,78 @@ export default function Home() {
 
   const isNew = tier === 'new'
 
+  const hello = `${greetingWord(new Date(now).getHours())}, ${AGENT.firstName}.`
+
+  // New agent: one title that is also the question, the search right under it, and the
+  // to-do list beside it. Opportunities sit under the search once something is connected.
+  if (isNew) {
+    return (
+      <div className="mx-auto max-w-[1240px] px-4 py-6 sm:px-8 sm:py-10">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-8 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="flex min-w-0 flex-col gap-10">
+            <header>
+              <h1 className="text-[26px] leading-tight font-semibold tracking-[-0.01em] text-balance sm:text-[34px]">
+                <span className="text-muted">{hello}</span> <span className="text-ink">Have a property in mind?</span>
+              </h1>
+              <GlobalSearch variant="hero" className="mt-5" />
+            </header>
+            {opps.length > 0 ? <FoundOpportunities opps={opps} /> : <OpportunitiesEmpty style={emptyStyle} />}
+          </div>
+          <aside className="flex flex-col gap-5" aria-label="Getting started">
+            <SetupTodo opps={opps} />
+            <RevivePathCard tier={tier} opps={opps} />
+            {opps.length > 0 && <NearbyMini opps={opps} />}
+          </aside>
+        </div>
+        <CrmDialog />
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-[1240px] px-4 py-6 sm:px-8 sm:py-8">
       <header>
-        <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">
-          {greetingWord(new Date(now).getHours())}, {AGENT.firstName}
-        </h1>
+        <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">{hello.slice(0, -1)}</h1>
         <p className="mt-1 text-[15px] text-ink-2">{sentence}</p>
       </header>
 
-      <div className="mt-6">{isNew ? <EmptyHero style={heroStyle} /> : <StatCards tier={tier} opps={opps} />}</div>
+      <div className="mt-6">
+        <StatCards tier={tier} opps={opps} />
+      </div>
 
-      <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex min-w-0 flex-col gap-5">
           {newReferral && <ReferralHero o={newReferral} />}
           {tier === 'partner' && <ReferralUpdates waiting={waiting} />}
           {projects.map((o) => (
             <ProjectPulse key={o.id} o={o} />
           ))}
-
-          {isNew ? (
-            opps.length > 0 ? <FoundOpportunities opps={opps} /> : <OpportunitiesEmpty />
-          ) : (
-            <section aria-labelledby="who-to-call">
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div>
-                  <h2 id="who-to-call" className="text-lg font-semibold text-ink">
-                    Who to call this week
-                  </h2>
-                  <p className="text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
-                </div>
-                <Link to="/opportunities" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-                  See all {actionableCount} <ArrowRight className="size-3.5" />
-                </Link>
+          <section aria-labelledby="who-to-call">
+            <div className="mb-3 flex items-end justify-between gap-3">
+              <div>
+                <h2 id="who-to-call" className="text-lg font-semibold text-ink">
+                  Who to call this week
+                </h2>
+                <p className="text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
               </div>
-              <div className="flex flex-col gap-3">
-                {feed.slice(0, FEED_SIZE).map((o) => (
-                  <OpportunityCard key={o.id} o={o} />
-                ))}
-              </div>
-            </section>
-          )}
+              <Link to="/opportunities" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
+                See all {actionableCount} <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+            <div className="flex flex-col gap-3">
+              {feed.slice(0, FEED_SIZE).map((o) => (
+                <OpportunityCard key={o.id} o={o} />
+              ))}
+            </div>
+          </section>
         </div>
 
         <aside className="flex flex-col gap-5" aria-label="At a glance">
-          {isNew && <SetupTodo opps={opps} />}
           <RevivePathCard tier={tier} opps={opps} />
-          {opps.length > 0 && <NearbyMini opps={opps} />}
+          <NearbyMini opps={opps} />
           {tier === 'partner' && <ReferEarn />}
         </aside>
       </div>
-      {isNew && <CrmDialog />}
     </div>
   )
 }

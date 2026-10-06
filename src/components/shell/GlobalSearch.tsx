@@ -69,13 +69,13 @@ export function GlobalSearch({ className, variant = 'bar' }: { className?: strin
   }
 
   return (
-    <div ref={wrapRef} className={cn('relative w-full', hero ? 'max-w-2xl' : 'max-w-xl', className)}>
+    <div ref={wrapRef} className={cn('relative w-full', hero ? 'max-w-none' : 'max-w-xl', className)}>
       <Command shouldFilter={false} label="Search" className="relative">
         <div
           className={cn(
             'flex items-center gap-2 border bg-white focus-within:ring-2',
             hero
-              ? 'h-14 rounded-xl border-white/70 pr-1.5 pl-4 shadow-sm focus-within:border-brand focus-within:ring-brand/20'
+              ? 'h-16 rounded-2xl border-line pr-2 pl-5 shadow-card focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10'
               : 'h-10 rounded-lg border-line px-3 shadow-card focus-within:border-brand focus-within:ring-brand/20',
           )}
         >
@@ -97,14 +97,14 @@ export function GlobalSearch({ className, variant = 'bar' }: { className?: strin
               // with nothing highlighted, Enter falls through to submit
               if (e.key === 'Enter' && !showList) submit()
             }}
-            placeholder={hero ? 'Enter an address, like 1847 Las Lunas St' : 'Ask Revive AI about any address or person'}
+            placeholder={hero ? 'Enter any address to see its value and renovation upside' : 'Ask Revive AI about any address or person'}
             className={cn('h-full min-w-0 flex-1 truncate bg-transparent text-ink outline-none placeholder:text-faint', hero ? 'text-base' : 'text-sm')}
           />
           {hero ? (
             <button
               type="button"
               onClick={submit}
-              className="flex h-11 shrink-0 items-center gap-2 rounded-lg bg-brand px-3 text-sm font-semibold text-white hover:bg-primary-hover sm:px-4"
+              className="flex h-12 shrink-0 items-center gap-2 rounded-xl bg-brand px-3 text-sm font-semibold text-white hover:bg-primary-hover sm:px-5"
             >
               <Sparkles className="size-4" />
               <span className="hidden sm:inline">Generate insights</span>
@@ -119,7 +119,7 @@ export function GlobalSearch({ className, variant = 'bar' }: { className?: strin
           <Command.List
             className={cn(
               'absolute right-0 left-0 z-30 max-h-[420px] overflow-y-auto rounded-xl border border-line bg-white p-2 text-left shadow-xl',
-              hero ? 'top-16' : 'top-12',
+              hero ? 'top-[72px]' : 'top-12',
             )}
           >
             <Command.Empty className="px-3 py-6 text-center text-sm text-muted">

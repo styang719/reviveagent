@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
-import { useDemo } from '@/store/demo'
+import { EMPTY_STYLES, useDemo } from '@/store/demo'
 
 export const DEMO_BAR_HEIGHT = 44
 
@@ -11,8 +11,8 @@ export function DemoBar() {
   const tier = useDemo((s) => s.tier)
   const setTier = useDemo((s) => s.setTier)
   const reset = useDemo((s) => s.reset)
-  const heroStyle = useDemo((s) => s.heroStyle)
-  const setHeroStyle = useDemo((s) => s.setHeroStyle)
+  const emptyStyle = useDemo((s) => s.emptyStyle)
+  const setEmptyStyle = useDemo((s) => s.setEmptyStyle)
 
   return (
     <div
@@ -41,17 +41,17 @@ export function DemoBar() {
       </div>
       {tier === 'new' && (
         <>
-          <span className="ml-2 shrink-0">Hero</span>
-          <div className="flex shrink-0 rounded-lg bg-white/10 p-0.5" role="radiogroup" aria-label="Home hero design">
-            {(['map', 'photos'] as const).map((h) => (
+          <span className="ml-2 shrink-0">Empty state</span>
+          <div className="flex shrink-0 rounded-lg bg-white/10 p-0.5" role="radiogroup" aria-label="Empty state design">
+            {EMPTY_STYLES.map((h) => (
               <button
-                key={h}
+                key={h.id}
                 role="radio"
-                aria-checked={heroStyle === h}
-                onClick={() => setHeroStyle(h)}
-                className={cn('rounded-md px-3 py-1 font-medium capitalize', heroStyle === h ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
+                aria-checked={emptyStyle === h.id}
+                onClick={() => setEmptyStyle(h.id)}
+                className={cn('rounded-md px-3 py-1 font-medium whitespace-nowrap', emptyStyle === h.id ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
               >
-                {h === 'map' ? 'A · Map' : 'B · Photos'}
+                {h.label}
               </button>
             ))}
           </div>
