@@ -11,7 +11,17 @@ const looksLikeAddress = (q: string) => /^\d+\s+[a-z]/i.test(q.trim())
 export const runAiPath = (address: string) => `/property/new?address=${encodeURIComponent(address)}&tab=report`
 
 /** "Ask Revive AI about any address or person". `bar` lives in the top bar; `hero` is the big Home search. */
-export function GlobalSearch({ className, variant = 'bar' }: { className?: string; variant?: 'bar' | 'hero' }) {
+export function GlobalSearch({
+  className,
+  variant = 'bar',
+  autoFocus = false,
+  onNavigate,
+}: {
+  className?: string
+  variant?: 'bar' | 'hero'
+  autoFocus?: boolean
+  onNavigate?: () => void
+}) {
   const hero = variant === 'hero'
   const navigate = useNavigate()
   const opps = useOpportunities() // already filtered to what this tier can see
@@ -21,24 +31,15 @@ export function GlobalSearch({ className, variant = 'bar' }: { className?: strin
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (hero) return
-      const typing = e.target instanceof HTMLElement && /INPUT|TEXTAREA/.test(e.target.tagName)
-      if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typing)) {
-        e.preventDefault()
-        inputRef.current?.focus()
-      }
-    }
     const onClick = (e: MouseEvent) => {
       if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
     }
-    window.addEventListener('keydown', onKey)
     window.addEventListener('mousedown', onClick)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      window.removeEventListener('mousedown', onClick)
-    }
-  }, [hero])
+    return () => window.removeEventListener('mousedown', onClick)
+  }, [])
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus()
+  }, [autoFocus])
 
   const term = q.trim().toLowerCase()
   const visiblePeople = useMemo(() => {
@@ -51,12 +52,13 @@ export function GlobalSearch({ className, variant = 'bar' }: { className?: strin
     : opps.slice(0, 3)
   const peopleResults = term ? visiblePeople.filter((p) => p.name.toLowerCase().includes(term)).slice(0, 5) : []
   const showRun = term.length > 0 && propResults.length === 0 && looksLikeAddress(q)
-  const showList = open && (!hero || term.length > 0)
+  const showList = (open || autoFocus) && (!hero || term.length > 0)
 
   const go = (path: string) => {
     setOpen(false)
     setQ('')
     inputRef.current?.blur()
+    onNavigate?.()
     navigate(path)
   }
 
@@ -69,7 +71,7 @@ export function GlobalSearch({ className, variant = 'bar' }: { className?: strin
   }
 
   return (
-    <div ref={wrapRef} className={cn('relative w-full', hero ? 'max-w-none' : 'max-w-xl', className)}>
+    <div ref={wrapRef} className={cn('relative w-full', hero ? 'max-w-none' : 'max-w-none', className)}>
       <Command shouldFilter={false} label="Search" className="relative">
         <div
           className={cn(

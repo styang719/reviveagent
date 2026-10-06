@@ -1,6 +1,6 @@
 import L from 'leaflet'
 import { useEffect } from 'react'
-import { MapContainer, TileLayer, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, useMap, ZoomControl } from 'react-leaflet'
 import { tileUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
 
@@ -69,6 +69,8 @@ export function BaseMap({
   bounds,
   interactive = true,
   wheelZoom = interactive,
+  zoomPosition = 'topleft',
+  padTop = 24,
   className,
   children,
 }: {
@@ -77,16 +79,18 @@ export function BaseMap({
   bounds?: L.LatLngTuple[] // when given, the view fits these instead of center/zoom
   interactive?: boolean
   wheelZoom?: boolean // off on scrolling pages so the wheel scrolls the page
+  zoomPosition?: L.ControlPosition
+  padTop?: number // extra room at the top when something floats over the map
   className?: string
   children?: React.ReactNode
 }) {
   return (
     <MapContainer
-      {...(bounds && bounds.length > 1 ? { bounds, boundsOptions: { padding: [24, 24] as L.PointTuple } } : { center, zoom })}
+      {...(bounds && bounds.length > 1 ? { bounds, boundsOptions: { paddingTopLeft: [24, padTop] as L.PointTuple, paddingBottomRight: [24, 24] as L.PointTuple } } : { center, zoom })}
       minZoom={TILE_Z.min}
       zoomSnap={0.25}
       maxZoom={TILE_Z.max}
-      zoomControl={interactive}
+      zoomControl={false}
       scrollWheelZoom={wheelZoom}
       dragging={interactive}
       doubleClickZoom={interactive}
@@ -95,6 +99,7 @@ export function BaseMap({
       attributionControl
       className={cn('h-full w-full bg-[#eef0f3]', className)}
     >
+      {interactive && <ZoomControl position={zoomPosition} />}
       {LIVE_TILES ? <TileLayer url={LIVE_TILES} attribution={ATTRIBUTION} /> : <EmbeddedTiles />}
       {children}
     </MapContainer>

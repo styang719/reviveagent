@@ -8,8 +8,9 @@ import { ReferralHero } from '@/components/home/ReferralHero'
 import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { CrmDialog, SetupTodo } from '@/components/home/ConnectBook'
-import { OpportunitiesPreview } from '@/components/home/OpportunitiesPreview'
-import { HeroSearch } from '@/components/home/HeroSearch'
+import { DirectionA } from '@/components/home/searchmap/DirectionA'
+import { DirectionB } from '@/components/home/searchmap/DirectionB'
+import { DirectionC } from '@/components/home/searchmap/DirectionC'
 import { StatCards } from '@/components/home/StatCards'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
 import { AGENT, TIERS } from '@/data/tiers'
@@ -25,6 +26,7 @@ function greetingWord(h: number) {
 
 export default function Home() {
   const tier = useDemo((s) => s.tier)
+  const mapDesign = useDemo((s) => s.mapDesign)
   const opps = useOpportunities()
   const now = useNow(30_000)
 
@@ -57,12 +59,11 @@ export default function Home() {
               <h1 className="text-[26px] leading-tight tracking-[-0.01em] text-balance text-ink sm:text-[32px]">
                 <span className="font-normal">{hello}</span> <span className="font-semibold">Have a property in mind?</span>
               </h1>
-              <div className="mt-5">
-                <HeroSearch />
-              </div>
-              <p className="mt-2 text-[13px] text-muted">See any home’s value, renovation upside and the Revive product that fits.</p>
+              <p className="mt-2 text-[15px] text-ink-2">Look up any home for its value, renovation upside and the Revive product that fits.</p>
             </header>
-            <OpportunitiesPreview opps={opps} />
+            <section aria-label="Look up a home and see your book" className="-mt-4">
+              {mapDesign === 'b' ? <DirectionB opps={opps} /> : mapDesign === 'c' ? <DirectionC opps={opps} /> : <DirectionA opps={opps} />}
+            </section>
             {opps.length > 0 && <FoundOpportunities opps={opps} />}
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">

@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
-import { useDemo } from '@/store/demo'
+import { MAP_DESIGNS, useDemo } from '@/store/demo'
 
 export const DEMO_BAR_HEIGHT = 44
 
@@ -11,6 +11,8 @@ export function DemoBar() {
   const tier = useDemo((s) => s.tier)
   const setTier = useDemo((s) => s.setTier)
   const reset = useDemo((s) => s.reset)
+  const mapDesign = useDemo((s) => s.mapDesign)
+  const setMapDesign = useDemo((s) => s.setMapDesign)
 
   return (
     <div
@@ -37,6 +39,24 @@ export function DemoBar() {
           </button>
         ))}
       </div>
+      {tier === 'new' && (
+        <>
+          <span className="ml-2 shrink-0">Design</span>
+          <div className="flex shrink-0 rounded-lg bg-white/10 p-0.5" role="radiogroup" aria-label="Search and map design">
+            {MAP_DESIGNS.map((d) => (
+              <button
+                key={d.id}
+                role="radio"
+                aria-checked={mapDesign === d.id}
+                onClick={() => setMapDesign(d.id)}
+                className={cn('rounded-md px-3 py-1 font-medium whitespace-nowrap', mapDesign === d.id ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <span className="ml-auto shrink-0 rounded-full border border-white/25 px-2 py-0.5 text-[11px]">Sample data</span>
       <button
         onClick={() => {

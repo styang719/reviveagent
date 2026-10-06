@@ -2,7 +2,8 @@ import { ChevronRight, Home, Inbox, Megaphone, PanelLeft, Hammer, Search, Target
 import { NavLink } from 'react-router-dom'
 import avatar from '@/assets/avatar-michelle.jpg'
 import { AGENT } from '@/data/tiers'
-import { cn, focusGlobalSearch } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { useUi } from '@/store/ui'
 import { ReviveLogo } from './Logo'
 import { QrCode } from './QrCode'
 
@@ -15,13 +16,14 @@ const NAV = [
 ]
 
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+  const setPalette = useUi((s) => s.setPalette)
   return (
     <aside
       className={cn(
         'sticky top-0 hidden h-[calc(100vh-var(--demo-h,0px))] shrink-0 flex-col rounded-r-2xl bg-sb text-sb-ink transition-[width] duration-200 lg:flex',
         collapsed ? 'w-[84px]' : 'w-[280px]',
       )}
-      style={{ top: 'var(--demo-h, 0px)' }}
+      style={{ top: 'var(--demo-h, 0px)', height: 'calc(100vh - var(--demo-h, 0px))' }}
     >
       <div className={cn('flex items-center px-5 pt-6 pb-5', collapsed ? 'flex-col gap-4' : 'justify-between')}>
         <NavLink to="/" aria-label="Revive home">
@@ -38,7 +40,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
       <div className="px-3">
         <button
-          onClick={focusGlobalSearch}
+          onClick={() => setPalette(true)}
           className={cn(
             'flex h-10 w-full items-center gap-2 rounded-lg border border-sb-line/60 bg-sb-input px-3 text-left text-base text-sb-dim hover:border-white/80',
             collapsed && 'justify-center px-0',

@@ -231,3 +231,41 @@
 }
 @keyframes rv-ping { from { transform: scale(0.5); opacity: 0.9; } to { transform: scale(1.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .rv-searched::after { animation: none; opacity: 0.5; } }
+/* A · example photo pins with a callout */
+.rv-expin {
+  position: absolute; left: 0; top: 0; transform: translate(-50%, calc(-100% - 7px)); display: flex; flex-direction: column;
+  width: 64px; filter: drop-shadow(0 2px 4px rgba(16, 24, 40, 0.3)); cursor: pointer;
+}
+.rv-expin-ph {
+  display: block; height: 40px; border: 2px dashed var(--hot); border-bottom: 0; border-radius: 8px 8px 0 0;
+  background-size: cover; background-position: center; background-color: #fff;
+}
+.rv-expin b {
+  display: block; text-align: center; background: var(--hot); color: #fff; font: 700 11px/1 var(--font-sans);
+  padding: 4px 0 5px; border-radius: 0 0 8px 8px;
+}
+.rv-callout {
+  position: absolute; left: 44px; top: -118px; display: flex; flex-direction: column; gap: 2px; width: 200px;
+  padding: 10px 12px; background: #fff; border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(27, 37, 89, 0.18); font: 400 12px/1.35 var(--font-sans); color: var(--ink-2);
+}
+.rv-callout em { font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.rv-callout strong { font-weight: 700; color: var(--navy); }
+.rv-callout strong.hot { color: var(--hot); }
+.rv-callout span { font-weight: 600; color: var(--ink); }
+.rv-callout span.muted { font-weight: 400; color: var(--muted); }
+.rv-callout span.up { font-weight: 700; color: #08795a; }
+/* B · numbered example pins */
+.rv-num {
+  display: grid; place-items: center; width: 28px; height: 28px; transform: translate(-50%, -50%);
+  border-radius: 50%; background: var(--navy); color: #fff; font: 700 13px/1 var(--font-sans);
+  border: 2px dashed #fff; box-shadow: 0 1px 4px rgba(16, 24, 40, 0.35); cursor: pointer; transition: transform 0.15s;
+}
+.rv-num.on { background: var(--blue); transform: translate(-50%, -50%) scale(1.25); }
+/* C · neighbourhood bubble labels */
+.rv-bubble {
+  display: inline-flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%); white-space: nowrap;
+  padding: 4px 9px; border-radius: 10px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 4px rgba(16, 24, 40, 0.2);
+  font: 400 11px/1.3 var(--font-sans); color: var(--ink-2);
+}
+.rv-bubble b { font-size: 12px; font-weight: 700; color: var(--navy); }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { DEMO_BAR_HEIGHT, DemoBar } from '@/components/shell/DemoBar'
+import { SearchPalette } from '@/components/shell/SearchPalette'
 import { Sidebar } from '@/components/shell/Sidebar'
 import { TopBar } from '@/components/shell/TopBar'
 import type { Tier } from '@/data/types'
@@ -44,7 +45,7 @@ export function AppLayout() {
   useEffect(() => window.scrollTo(0, 0), [pathname])
 
   return (
-    <div className="min-h-screen bg-head" style={{ ['--demo-h' as string]: showDemo ? `${DEMO_BAR_HEIGHT}px` : '0px' }}>
+    <div className="min-h-screen bg-white" style={{ ['--demo-h' as string]: showDemo ? `${DEMO_BAR_HEIGHT}px` : '0px' }}>
       {showDemo && <DemoBar />}
       <div className="flex">
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
@@ -55,6 +56,7 @@ export function AppLayout() {
           </main>
         </div>
       </div>
+      <SearchPalette />
       <Toaster position="bottom-right" richColors closeButton />
     </div>
   )
