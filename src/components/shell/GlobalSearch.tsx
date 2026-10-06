@@ -76,7 +76,7 @@ export function GlobalSearch({ className }: { className?: string }) {
               }
             }}
             placeholder="Ask Revive AI about any address or person"
-            className="h-full flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-faint"
+            className="h-full min-w-0 flex-1 truncate bg-transparent text-sm text-ink outline-none placeholder:text-faint"
           />
           <kbd className="hidden rounded border border-line px-1.5 text-[11px] text-muted sm:block">⌘K</kbd>
         </div>
