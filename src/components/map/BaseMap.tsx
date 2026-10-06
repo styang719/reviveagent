@@ -68,6 +68,7 @@ export function BaseMap({
   zoom,
   bounds,
   interactive = true,
+  wheelZoom = interactive,
   className,
   children,
 }: {
@@ -75,6 +76,7 @@ export function BaseMap({
   zoom: number
   bounds?: L.LatLngTuple[] // when given, the view fits these instead of center/zoom
   interactive?: boolean
+  wheelZoom?: boolean // off on scrolling pages so the wheel scrolls the page
   className?: string
   children?: React.ReactNode
 }) {
@@ -85,7 +87,7 @@ export function BaseMap({
       zoomSnap={0.25}
       maxZoom={TILE_Z.max}
       zoomControl={interactive}
-      scrollWheelZoom={interactive}
+      scrollWheelZoom={wheelZoom}
       dragging={interactive}
       doubleClickZoom={interactive}
       touchZoom={interactive}

@@ -220,3 +220,14 @@
 .rv-lock:hover { background: #5f6878; }
 .rv-lock.is-legend { transform: none; width: 18px; height: 18px; border-width: 0; box-shadow: none; cursor: default; }
 .rv-lock.is-legend svg { width: 11px; height: 11px; }
+/* the address searched on Home */
+.rv-searched {
+  position: relative; display: block; width: 18px; height: 18px; transform: translate(-50%, -50%);
+  border-radius: 50%; background: var(--blue); border: 3px solid #fff; box-shadow: 0 1px 4px rgba(16, 24, 40, 0.35);
+}
+.rv-searched::after {
+  content: ''; position: absolute; inset: -9px; border-radius: 50%; border: 2px solid var(--blue);
+  animation: rv-ping 1.6s ease-out infinite;
+}
+@keyframes rv-ping { from { transform: scale(0.5); opacity: 0.9; } to { transform: scale(1.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .rv-searched::after { animation: none; opacity: 0.5; } }

@@ -9,7 +9,7 @@ import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { CrmDialog, SetupTodo } from '@/components/home/ConnectBook'
 import { OpportunitiesPreview } from '@/components/home/OpportunitiesPreview'
-import { GlobalSearch } from '@/components/shell/GlobalSearch'
+import { HeroSearch } from '@/components/home/HeroSearch'
 import { StatCards } from '@/components/home/StatCards'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
 import { AGENT, TIERS } from '@/data/tiers'
@@ -57,7 +57,9 @@ export default function Home() {
               <h1 className="text-[26px] leading-tight tracking-[-0.01em] text-balance text-ink sm:text-[32px]">
                 <span className="font-normal">{hello}</span> <span className="font-semibold">Have a property in mind?</span>
               </h1>
-              <GlobalSearch variant="hero" className="mt-5" />
+              <div className="mt-5">
+                <HeroSearch />
+              </div>
               <p className="mt-2 text-[13px] text-muted">See any home’s value, renovation upside and the Revive product that fits.</p>
             </header>
             <OpportunitiesPreview opps={opps} />
