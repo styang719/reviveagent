@@ -1,0 +1,162 @@
+@import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
+
+/* Revive tokens (from Your_Contacts.html + Figma "Revive Design System x ShadCN") */
+:root {
+  /* sidebar */
+  --sb-bg: #1b1f4f;
+  --sb-active: #5274c0;
+  --sb-ink: #b6b9c3;
+  --sb-dim: rgba(255, 255, 255, 0.5);
+  --sb-line: rgba(255, 255, 255, 0.5);
+  --sb-input: rgba(255, 255, 255, 0.04);
+  /* navy */
+  --navy: #1b2559;
+  --navy-2: #2a3568;
+  --navy-3: #141c46;
+  /* brand + status */
+  --blue: #2563eb;
+  --blue-hover: #1d4fd8;
+  --blue-soft: #eff4ff;
+  --green: #0fa678;
+  --green-soft: #e7f7f1;
+  --amber: #b45309;
+  --amber-soft: #fef3c7;
+  --red: #dc2626;
+  --red-soft: #fef2f2;
+  /* text + lines */
+  --ink: #111827;
+  --ink-2: #374151;
+  --muted: #626a78;
+  --faint: #9ca3af;
+  --line: #e5e7eb;
+  --line-soft: #f3f4f6;
+  /* surfaces */
+  --page: #ffffff;
+  --surface: #ffffff;
+  --head: #f9fafb;
+  --insight: #fafbff;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+
+  /* shadcn semantic variables, mapped onto Revive tokens */
+  --background: var(--page);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--blue);
+  --primary-foreground: #ffffff;
+  --secondary: var(--line-soft);
+  --secondary-foreground: var(--ink);
+  --muted-foreground: var(--muted);
+  --accent: var(--blue-soft);
+  --accent-foreground: var(--navy);
+  --destructive: var(--red);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--blue);
+}
+
+@theme inline {
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--blue-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sb: var(--sb-bg);
+  --color-sb-active: var(--sb-active);
+  --color-sb-ink: var(--sb-ink);
+  --color-sb-dim: var(--sb-dim);
+  --color-sb-line: var(--sb-line);
+  --color-sb-input: var(--sb-input);
+  --color-navy: var(--navy);
+  --color-navy-2: var(--navy-2);
+  --color-navy-3: var(--navy-3);
+  --color-brand: var(--blue);
+  --color-brand-soft: var(--blue-soft);
+  --color-ok: var(--green);
+  --color-ok-soft: var(--green-soft);
+  --color-warn: var(--amber);
+  --color-warn-soft: var(--amber-soft);
+  --color-bad: var(--red);
+  --color-bad-soft: var(--red-soft);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-head: var(--head);
+  --color-insight: var(--insight);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius-lg);
+  --radius-2xl: 24px;
+  --shadow-card: var(--shadow);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+  }
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* Map pins (Leaflet divIcons) */
+.rv-pin {
+  background: transparent;
+  border: 0;
+}
+.rv-pin span {
+  display: inline-block;
+  transform: translate(-50%, -100%);
+  white-space: nowrap;
+  font: 600 11px/1 var(--font-sans);
+  padding: 5px 8px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--navy);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.25);
+}
+.rv-pin.now span { background: var(--blue); }
+.rv-pin.revive span { background: var(--amber); }
+.rv-pin.project span { background: #fff; color: var(--navy); border: 1.5px solid var(--navy); }
+.rv-pin.keep span { background: #fff; color: var(--ink-2); border: 1px solid var(--line); }
+.leaflet-container { font-family: var(--font-sans); }
+.rv-pin.soon span { background: var(--blue-soft); color: var(--blue); border: 1px solid #c7d7fe; }
+.rv-pin.active span { outline: 3px solid rgba(37, 99, 235, 0.35); transform: translate(-50%, -100%) scale(1.12); z-index: 1000; }
