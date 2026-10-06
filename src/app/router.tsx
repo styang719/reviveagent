@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, createHashRouter } from 'react-router-dom'
 import Home from '@/pages/Home'
 import Inbox from '@/pages/Inbox'
 import Marketing from '@/pages/Marketing'
@@ -9,7 +9,10 @@ import Property from '@/pages/Property'
 import { Placeholder } from '@/pages/Placeholder'
 import { AppLayout } from './AppLayout'
 
-export const router = createBrowserRouter([
+// The hosted preview build uses hash routing (no server rewrites there).
+const createRouter = import.meta.env.VITE_ROUTER === 'hash' ? createHashRouter : createBrowserRouter
+
+export const router = createRouter([
   {
     element: <AppLayout />,
     children: [

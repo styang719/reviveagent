@@ -13,11 +13,19 @@ function useDemoVisible() {
   const [params] = useSearchParams()
   const flag = params.get('demo')
   useEffect(() => {
-    if (flag === '0' || flag === '1') sessionStorage.setItem('revive-demo-bar', flag)
+    try {
+      if (flag === '0' || flag === '1') sessionStorage.setItem('revive-demo-bar', flag)
+    } catch {
+      // storage can be blocked; the flag then only lasts for this URL
+    }
   }, [flag])
   if (flag === '0') return false
   if (flag === '1') return true
-  return sessionStorage.getItem('revive-demo-bar') !== '0'
+  try {
+    return sessionStorage.getItem('revive-demo-bar') !== '0'
+  } catch {
+    return true
+  }
 }
 
 export function AppLayout() {

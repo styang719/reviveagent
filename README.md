@@ -15,6 +15,9 @@ npm run build      # type-check + production build into dist/
 
 Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
 
+`node scripts/build-preview.mjs` builds a single self-contained HTML file with hash routing
+(`preview/revive-prototype.html`) for hosted previews where the page can't load its own script files or rewrite URLs.
+
 ## Demo controls
 
 - **Demo bar** (top): switch *New agent · 0 deals / Active · 1 deal / Partner · 2+ deals*. Everything re-renders instantly.
