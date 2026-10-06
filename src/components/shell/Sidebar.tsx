@@ -1,9 +1,8 @@
-import { ChevronRight, Hammer, Home, Inbox, Megaphone, PanelLeft, Search, Sparkles, Target } from 'lucide-react'
+import { ChevronRight, Hammer, Home, Inbox, Megaphone, PanelLeft, Sparkles, Target } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import avatar from '@/assets/avatar-michelle.jpg'
 import { AGENT } from '@/data/tiers'
 import { cn } from '@/lib/utils'
-import { useUi } from '@/store/ui'
 import { ReviveLogo } from './Logo'
 import { QrCode } from './QrCode'
 
@@ -15,8 +14,8 @@ const NAV = [
   { to: '/inbox', label: 'Inbox', icon: Inbox, badge: 8 },
 ]
 
-// Revive AI looks like the other tabs until it's open (like Slackbot in Slack): then its icon
-// turns into a gradient tile that pops in and slowly shimmers.
+// Revive AI sits with the other tabs, its icon drawn in the AI gradient. When it's open (like
+// Slackbot in Slack) the icon becomes a gradient tile that pops in and slowly shimmers.
 function ReviveAiItem({ collapsed }: { collapsed: boolean }) {
   return (
     <NavLink
@@ -32,12 +31,22 @@ function ReviveAiItem({ collapsed }: { collapsed: boolean }) {
     >
       {({ isActive }) => (
         <>
+          {/* the gradient the resting icon is drawn with */}
+          <svg width="0" height="0" className="absolute" aria-hidden="true">
+            <defs>
+              <linearGradient id="rv-ai-stroke" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#7aa2ff" />
+                <stop offset="55%" stopColor="#a78bfa" />
+                <stop offset="100%" stopColor="#5eead4" />
+              </linearGradient>
+            </defs>
+          </svg>
           {isActive ? (
             <span className="rv-ai-tile -mx-1 grid size-6 shrink-0 place-items-center rounded-md text-white">
               <Sparkles className="size-3.5" />
             </span>
           ) : (
-            <Sparkles className="size-4 shrink-0" />
+            <Sparkles className="size-4 shrink-0" stroke="url(#rv-ai-stroke)" />
           )}
           {!collapsed && <span className={cn('flex-1', isActive && 'rv-ai-text')}>Revive AI</span>}
         </>
@@ -47,7 +56,6 @@ function ReviveAiItem({ collapsed }: { collapsed: boolean }) {
 }
 
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
-  const setPalette = useUi((s) => s.setPalette)
   return (
     <aside
       className={cn(
@@ -69,21 +77,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
         </button>
       </div>
 
-      <div className="px-3">
-        <button
-          onClick={() => setPalette(true)}
-          className={cn(
-            'flex h-10 w-full items-center gap-2 rounded-lg border border-sb-line/60 bg-sb-input px-3 text-left text-base text-sb-dim hover:border-white/80',
-            collapsed && 'justify-center px-0',
-          )}
-          aria-label="Search"
-        >
-          <Search className="size-5 shrink-0" />
-          {!collapsed && <span>Search</span>}
-        </button>
-      </div>
-
-      <nav className="mt-6 flex flex-col gap-1 px-3" aria-label="Main">
+      <nav className="mt-2 flex flex-col gap-1 px-3" aria-label="Main">
         <ReviveAiItem collapsed={collapsed} />
         {NAV.map(({ to, label, icon: Icon, end, badge }) => (
           <NavLink

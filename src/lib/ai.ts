@@ -183,3 +183,6 @@ export function answer(q: string, ctx: Ctx): Block[] {
 }
 
 export const describeGain = (b: { valueNow: number; gain: number }) => `${money(b.valueNow)} today, ${gain(b.gain)} with the right project`
+
+/** Report page for an address that isn't in the agent's book yet. */
+export const runAiPath = (address: string) => `/property/new?address=${encodeURIComponent(address)}&tab=report`

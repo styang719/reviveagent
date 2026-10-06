@@ -24,11 +24,10 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
 - **Reset demo** clears connections, stage changes, claims and activity (keeps the current tier).
 - **Revive AI** (top of the sidebar, `/ai`): a chat about any home or anyone in the book. Answers are built
   from the sample data (`src/lib/ai.ts`): home value and upside, ADU fit, who to call, drafted notes.
-  Sidebar **Search** (or `/`) opens a quick search palette. There is no top bar.
+  There is no separate search or top bar: Revive AI is the way to look anything up.
 - New agents start with nothing connected. Try a license number like `02134589` (finds 2 listings) and
   “Connect Follow Up Boss” (adds 12 contacts).
 - Deep links: `/?tier=partner` pins a tier; `?demo=0` hides the demo bar for screenshots (`?demo=1` brings it back).
-- Search: `/` or `⌘K`. Try “Oak”, “Sarah”, or an unknown address like “55 Fair Oaks Ave”.
 
 ## Where things live
 
