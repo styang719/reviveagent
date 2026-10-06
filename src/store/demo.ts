@@ -10,10 +10,17 @@ interface DemoState {
   updated: Record<string, number> // propertyId -> referral update sent at (ms)
   activity: Record<string, string[]> // extra activity lines per property, newest first
   referralClockStart: number // exclusivity countdowns run from here
+  // A new agent starts with nothing connected; Active and Partner agents are always connected.
+  crmConnected: boolean
+  license: string | null // DRE license number; finds the agent's MLS listings and past sales
+  heroStyle: 'map' | 'photos' // empty-state Home: two design options to compare
   setTier: (tier: Tier) => void
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
   claimReferral: (propertyId: string) => void
   markReferralUpdated: (propertyId: string) => void
+  connectCrm: () => void
+  connectLicense: (license: string) => void
+  setHeroStyle: (style: 'map' | 'photos') => void
   reset: () => void
 }
 
@@ -24,6 +31,8 @@ const initial = () => ({
   updated: {},
   activity: {},
   referralClockStart: Date.now(),
+  crmConnected: false,
+  license: null as string | null,
 })
 
 const today = () => new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -46,7 +55,11 @@ export const useDemo = create<DemoState>()(
         })),
       markReferralUpdated: (id) =>
         set((s) => ({ updated: { ...s.updated, [id]: Date.now() }, activity: withActivity(s, id, 'You sent Revive a status update') })),
-      reset: () => set((s) => ({ ...initial(), tier: s.tier })),
+      connectCrm: () => set({ crmConnected: true }),
+      connectLicense: (license) => set({ license }),
+      heroStyle: 'map',
+      setHeroStyle: (heroStyle) => set({ heroStyle }),
+      reset: () => set((s) => ({ ...initial(), tier: s.tier, heroStyle: s.heroStyle })),
     }),
     { name: 'revive-demo', storage: createJSONStorage(() => localStorage) },
   ),

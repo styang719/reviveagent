@@ -21,7 +21,11 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
 ## Demo controls
 
 - **Demo bar** (top): switch *New agent · 0 deals / Active · 1 deal / Partner · 2+ deals*. Everything re-renders instantly.
-- **Reset demo** clears stage changes, claims and activity (keeps the current tier).
+- **Reset demo** clears connections, stage changes, claims and activity (keeps the current tier).
+- **Hero** (New agent only): switch the empty-state Home between option A (map with recent Revive projects)
+  and option B (photo wall).
+- New agents start with nothing connected. Try a license number like `02134589` (finds 2 listings) and
+  “Connect Follow Up Boss” (adds 12 contacts).
 - Deep links: `/?tier=partner` pins a tier; `?demo=0` hides the demo bar for screenshots (`?demo=1` brings it back).
 - Search: `/` or `⌘K`. Try “Oak”, “Sarah”, or an unknown address like “55 Fair Oaks Ave”.
 

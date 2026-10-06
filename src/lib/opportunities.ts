@@ -105,11 +105,20 @@ interface BuildState {
   updated: Record<string, number>
   activity: Record<string, string[]>
   referralClockStart: number
+  crm: boolean
+  mls: boolean
+}
+
+/** Which connection a source needs before Revive can see it. */
+export function sourceConnected(source: Source, c: { crm: boolean; mls: boolean }) {
+  if (source === 'listings') return c.mls
+  if (source === 'contacts' || source === 'leadform') return c.crm
+  return true
 }
 
 export function buildOpportunities(s: BuildState): Opportunity[] {
   return properties
-    .filter((p) => tierAllows(s.tier, p.minTier))
+    .filter((p) => tierAllows(s.tier, p.minTier) && sourceConnected(p.source, s))
     .map((p) => {
       const person = personById(p.ownerId)
       const ref = referrals.find((r) => r.propertyId === p.id)
@@ -151,10 +160,19 @@ export function useOpportunities() {
   const updated = useDemo((s) => s.updated)
   const activity = useDemo((s) => s.activity)
   const referralClockStart = useDemo((s) => s.referralClockStart)
+  const { crm, mls } = useConnections()
   return useMemo(
-    () => buildOpportunities({ tier, stageOverrides, claimed, updated, activity, referralClockStart }),
-    [tier, stageOverrides, claimed, updated, activity, referralClockStart],
+    () => buildOpportunities({ tier, stageOverrides, claimed, updated, activity, referralClockStart, crm, mls }),
+    [tier, stageOverrides, claimed, updated, activity, referralClockStart, crm, mls],
   )
+}
+
+/** What the agent has connected. Active and Partner agents are past onboarding. */
+export function useConnections() {
+  const tier = useDemo((s) => s.tier)
+  const crmConnected = useDemo((s) => s.crmConnected)
+  const license = useDemo((s) => s.license)
+  return { crm: tier !== 'new' || crmConnected, mls: tier !== 'new' || !!license, license }
 }
 
 /** Opportunities worth acting on: "Call this week" and "Reach out this month". */

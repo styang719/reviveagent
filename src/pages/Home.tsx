@@ -7,8 +7,8 @@ import { ReferEarn } from '@/components/home/ReferralCards'
 import { ReferralHero } from '@/components/home/ReferralHero'
 import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
-import { SearchHero } from '@/components/home/SearchHero'
-import { SetupChecklist } from '@/components/home/SetupChecklist'
+import { ConnectBook } from '@/components/home/ConnectBook'
+import { EmptyHero } from '@/components/home/EmptyHero'
 import { StatCards } from '@/components/home/StatCards'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
 import { AGENT, TIERS } from '@/data/tiers'
@@ -24,6 +24,7 @@ function greetingWord(h: number) {
 
 export default function Home() {
   const tier = useDemo((s) => s.tier)
+  const heroStyle = useDemo((s) => s.heroStyle)
   const opps = useOpportunities()
   const now = useNow(30_000)
 
@@ -52,7 +53,7 @@ export default function Home() {
         <p className="mt-1 text-[15px] text-ink-2">{sentence}</p>
       </header>
 
-      <div className="mt-6">{isNew ? <SearchHero opps={opps} /> : <StatCards tier={tier} opps={opps} />}</div>
+      <div className="mt-6">{isNew ? <EmptyHero style={heroStyle} /> : <StatCards tier={tier} opps={opps} />}</div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex min-w-0 flex-col gap-5">
@@ -63,7 +64,10 @@ export default function Home() {
           ))}
 
           {isNew ? (
-            <FoundOpportunities opps={opps} />
+            <>
+              <ConnectBook opps={opps} />
+              {opps.length > 0 && <FoundOpportunities opps={opps} />}
+            </>
           ) : (
             <section aria-labelledby="who-to-call">
               <div className="mb-3 flex items-end justify-between gap-3">
@@ -88,8 +92,7 @@ export default function Home() {
 
         <aside className="flex flex-col gap-5" aria-label="At a glance">
           <RevivePathCard tier={tier} opps={opps} />
-          {isNew && <SetupChecklist opps={opps} />}
-          <NearbyMini opps={opps} />
+          {opps.length > 0 && <NearbyMini opps={opps} />}
           {tier === 'partner' && <ReferEarn />}
         </aside>
       </div>

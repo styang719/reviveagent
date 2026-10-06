@@ -9,13 +9,13 @@ const briefPeople: Person[] = [
     activity: ['Ran a Revive AI report on 412 Oak Ave through your lead form · Oct 4', 'Viewed the ADU section 3× · Oct 4–5'],
   },
   {
-    id: 'david', name: 'David Park', relationship: 'Seller client', source: 'Your CRM', since: 'Seller client since Aug 2026',
+    id: 'david', name: 'David Park', relationship: 'Seller client', source: 'Your listing · MLS', since: 'Seller client since Aug 2026',
     lastTouchDays: 3, reviveScore: 64,
     notes: [{ text: 'Open to price reductions but wants to net at least $1.1M.', date: 'Sep 19' }],
     activity: [],
   },
   {
-    id: 'ana', name: 'Ana Lopez', relationship: 'Seller client', source: 'Your CRM', since: 'Seller client since Sep 2026',
+    id: 'ana', name: 'Ana Lopez', relationship: 'Seller client', source: 'Your listing · MLS', since: 'Seller client since Sep 2026',
     lastTouchDays: 6, reviveScore: 58,
     notes: [{ text: 'Relocating to Denver in January. Flexible on timing.', date: 'Sep 10' }],
     activity: [],
@@ -27,7 +27,7 @@ const briefPeople: Person[] = [
     activity: ['Ran a Revive AI report on revive.com · Oct 6', 'Asked Revive to connect her with a local agent · Oct 6'],
   },
   {
-    id: 'olivia', name: 'Olivia Chen', relationship: 'Seller client', source: 'Your CRM', since: 'Seller client since Jul 2026',
+    id: 'olivia', name: 'Olivia Chen', relationship: 'Seller client', source: 'Your listing · MLS', since: 'Seller client since Jul 2026',
     lastTouchDays: 1, reviveScore: 90,
     notes: [{ text: 'Prefers texts. Wants the house listed before the holidays.', date: 'Aug 30' }],
     activity: ['Started a Renovate to Sell project with Revive · Aug 28'],

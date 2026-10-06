@@ -11,6 +11,8 @@ export function DemoBar() {
   const tier = useDemo((s) => s.tier)
   const setTier = useDemo((s) => s.setTier)
   const reset = useDemo((s) => s.reset)
+  const heroStyle = useDemo((s) => s.heroStyle)
+  const setHeroStyle = useDemo((s) => s.setHeroStyle)
 
   return (
     <div
@@ -37,11 +39,29 @@ export function DemoBar() {
           </button>
         ))}
       </div>
+      {tier === 'new' && (
+        <>
+          <span className="ml-2 shrink-0">Hero</span>
+          <div className="flex shrink-0 rounded-lg bg-white/10 p-0.5" role="radiogroup" aria-label="Home hero design">
+            {(['map', 'photos'] as const).map((h) => (
+              <button
+                key={h}
+                role="radio"
+                aria-checked={heroStyle === h}
+                onClick={() => setHeroStyle(h)}
+                className={cn('rounded-md px-3 py-1 font-medium capitalize', heroStyle === h ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
+              >
+                {h === 'map' ? 'A · Map' : 'B · Photos'}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <span className="ml-auto shrink-0 rounded-full border border-white/25 px-2 py-0.5 text-[11px]">Sample data</span>
       <button
         onClick={() => {
           reset()
-          toast('Demo reset', { description: 'Stages, claims and activity are back to the start.' })
+          toast('Demo reset', { description: 'Connections, stages, claims and activity are back to the start.' })
         }}
         className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 hover:bg-white/10 hover:text-white"
       >

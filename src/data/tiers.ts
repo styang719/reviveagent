@@ -32,7 +32,9 @@ export const TIERS: Record<Tier, TierConfig> = {
     earned: 0,
     earnedNote: 'Your first deal starts below',
     greeting: ({ listings, contacts }) =>
-      `We scanned your ${listings} listings and ${contacts} contacts in ${AGENT.crm}. Here’s where Revive can help.`,
+      listings + contacts === 0
+        ? 'Welcome to Revive. Look up any home, or connect your book to see who to call.'
+        : `We checked ${[listings && `${listings} listings`, contacts && `${contacts} contacts`].filter(Boolean).join(' and ')}. Here’s where Revive can help.`,
   },
   active: {
     id: 'active',

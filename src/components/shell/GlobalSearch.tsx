@@ -75,14 +75,14 @@ export function GlobalSearch({ className, variant = 'bar' }: { className?: strin
           className={cn(
             'flex items-center gap-2 border bg-white focus-within:ring-2',
             hero
-              ? 'h-14 rounded-xl border-transparent pr-1.5 pl-4 shadow-lg focus-within:ring-white/50'
+              ? 'h-14 rounded-xl border-line pr-1.5 pl-4 shadow-sm focus-within:border-brand focus-within:ring-brand/20'
               : 'h-10 rounded-lg border-line px-3 shadow-card focus-within:border-brand focus-within:ring-brand/20',
           )}
         >
           <Sparkles className={cn('shrink-0 text-brand', hero ? 'size-5' : 'size-4')} aria-hidden="true" />
           <Command.Input
             ref={inputRef}
-            {...(hero ? { 'aria-label': 'Search any address or person' } : { 'data-global-search': '' })}
+            {...(hero ? { 'data-hero-search': '' } : { 'data-global-search': '' })}
             value={q}
             onValueChange={(v) => {
               setQ(v)

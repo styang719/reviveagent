@@ -1,4 +1,4 @@
-import { BarChart3, Check, Hammer, Lock, Sparkles, UserRoundPlus } from 'lucide-react'
+import { Check, Hammer, Sparkles, UserRoundPlus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import mark from '@/assets/revive-mark.svg'
 import { Button } from '@/components/ui/button'
@@ -6,28 +6,13 @@ import { DEALS_TO_PARTNER, TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { plural } from '@/lib/format'
 import type { Opportunity } from '@/lib/opportunities'
+import { focusHeroSearch } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
   { deals: 0, label: 'Start', icon: Sparkles },
   { deals: 1, label: 'First deal', icon: Hammer },
   { deals: DEALS_TO_PARTNER, label: 'Partner', icon: UserRoundPlus },
-]
-
-const PERKS = [
-  {
-    deals: 0,
-    icon: Sparkles,
-    title: 'Revive AI on any address',
-    body: 'Value today, renovation upside and shareable reports, plus opportunities found in your book.',
-  },
-  { deals: 1, icon: BarChart3, title: 'Project tracking and earnings', body: 'Follow every Revive project and what it earned you.' },
-  {
-    deals: DEALS_TO_PARTNER,
-    icon: UserRoundPlus,
-    title: 'Seller leads from Revive',
-    body: 'Homeowners in your area who ask Revive for an agent are sent to Partners first, exclusive to you for 24 hrs.',
-  },
 ]
 
 /** Where the agent is with Revive, and what the next deal unlocks. */
@@ -38,6 +23,19 @@ export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[]
   const listing = opps.find((o) => o.cta.kind === 'propose')
   const newLeads = opps.filter((o) => o.referral?.status === 'new' && !o.referral.claimedAt).length
   const left = DEALS_TO_PARTNER - deals
+
+  const context = partner
+    ? newLeads > 0
+      ? `You get seller leads from Revive. ${plural(newLeads, 'new lead')} today, exclusive to you for 24 hrs.`
+      : 'You get seller leads from Revive. Keep their status current to keep them coming.'
+    : `Partners get seller leads from Revive: homeowners nearby who are ready to sell, sent to them first. ${
+        left === 1 ? 'One more deal to go.' : `${plural(left, 'deal')} to go.`
+      }`
+  const cta: { label: string; to?: string; onClick?: () => void } | null = partner
+    ? { label: 'See your seller leads', to: '/opportunities?filter=revive' }
+    : listing
+      ? { label: `Propose Revive on ${listing.property.address}`, to: `/property/${listing.id}?tab=project` }
+      : { label: 'Look up a home to start', onClick: focusHeroSearch }
 
   return (
     <section aria-labelledby="status-title" className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
@@ -82,57 +80,12 @@ export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[]
         </ol>
       </div>
 
-      <ul className="divide-y divide-line-soft px-5">
-        {PERKS.map((p) => {
-          const unlocked = deals >= p.deals
-          const Icon = p.icon
-          return (
-            <li key={p.title} className="flex gap-3 py-3">
-              <span className={cn('mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg', unlocked ? 'bg-ok-soft text-ok' : 'bg-line-soft text-faint')}>
-                <Icon className="size-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="flex flex-wrap items-center gap-x-2 text-sm font-semibold text-ink">
-                  {p.title}
-                  {unlocked ? (
-                    <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-ok">
-                      <Check className="size-3" strokeWidth={3} /> Unlocked
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-muted">
-                      <Lock className="size-3" /> {plural(p.deals, 'deal')}
-                    </span>
-                  )}
-                </p>
-                <p className="mt-0.5 text-[13px] leading-5 text-muted">{p.body}</p>
-              </div>
-            </li>
-          )
-        })}
-      </ul>
-
-      <div className="border-t border-line bg-head px-5 py-3.5">
-        {partner ? (
-          <p className="text-[13px] text-ink-2">
-            {newLeads > 0 ? (
-              <>
-                <span className="font-semibold text-warn">{plural(newLeads, 'new seller lead')}</span> waiting for you today.
-              </>
-            ) : (
-              'Keep referral statuses current to keep seller leads coming.'
-            )}
-          </p>
-        ) : (
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[13px] text-ink-2">
-              {left === 1 ? 'One more Revive deal unlocks seller leads.' : `${plural(left, 'Revive deal')} unlock seller leads.`}
-            </p>
-            {listing && (
-              <Button size="sm" variant="outline" asChild>
-                <Link to={`/property/${listing.id}?tab=project`}>{deals === 0 ? 'Start your first project' : 'Start a project'}</Link>
-              </Button>
-            )}
-          </div>
+      <div className="flex flex-col gap-3 px-5 py-4">
+        <p className="text-sm leading-5 text-ink-2">{context}</p>
+        {cta && (
+          <Button variant={partner ? 'warn' : 'default'} className="self-start" asChild={!!cta.to} onClick={cta.onClick}>
+            {cta.to ? <Link to={cta.to}>{cta.label}</Link> : <span>{cta.label}</span>}
+          </Button>
         )}
       </div>
     </section>
