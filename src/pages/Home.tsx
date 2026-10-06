@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { DiscussProperty } from '@/components/home/DiscussProperty'
 import { NearbyMini } from '@/components/home/NearbyMini'
 import { ProjectPulse } from '@/components/home/ProjectPulse'
 import { ReferEarn } from '@/components/home/ReferralCards'
@@ -66,11 +67,14 @@ export default function Home() {
   )
 
   const greeting = (
-    <header>
-      <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">
-        {greetingWord(new Date(now).getHours())}, {AGENT.firstName}
-      </h1>
-      <p className="mt-1 text-[15px] text-ink-2">{sentence}</p>
+    <header className="flex flex-wrap items-start justify-between gap-4">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">
+          {greetingWord(new Date(now).getHours())}, {AGENT.firstName}
+        </h1>
+        <p className="mt-1 text-[15px] text-ink-2">{sentence}</p>
+      </div>
+      <DiscussProperty />
     </header>
   )
 

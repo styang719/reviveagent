@@ -317,13 +317,13 @@
 /* soft animated gradient behind the glass ask box: light shades of brand blue and agent purple */
 .rv-ai-aurora {
   background:
-    radial-gradient(42% 75% at 18% 50%, var(--brand-primary-border), transparent 70%),
-    radial-gradient(38% 80% at 52% 40%, var(--brand-agent-border-subtle), transparent 70%),
-    radial-gradient(38% 75% at 86% 60%, var(--brand-agent-border), transparent 70%),
-    radial-gradient(30% 60% at 70% 20%, var(--brand-primary-border-subtle), transparent 70%);
+    radial-gradient(42% 75% at 18% 50%, var(--brand-primary-border-subtle), transparent 70%),
+    radial-gradient(38% 80% at 52% 40%, var(--brand-agent-subtle), transparent 70%),
+    radial-gradient(38% 75% at 86% 60%, var(--brand-agent-border-subtle), transparent 70%),
+    radial-gradient(30% 60% at 70% 20%, var(--brand-primary-subtle), transparent 70%);
   background-size: 200% 200%;
   filter: blur(18px);
-  opacity: 0.9;
+  opacity: 0.85;
   animation: rv-aurora 12s ease-in-out infinite alternate;
 }
 @keyframes rv-aurora {
@@ -333,7 +333,7 @@
 }
 /* the Ask card itself: brand primary-subtle into agent-subtle */
 .rv-ai-card {
-  background: linear-gradient(120deg, var(--brand-primary-subtle), #f6f2fb 50%, var(--brand-agent-subtle));
-  border: 1px solid var(--brand-agent-border-subtle);
+  background: linear-gradient(120deg, #f6f8fc, #fbf9fd 50%, #f8f3fb);
+  border: 1px solid #ece2f6;
 }
 @media (prefers-reduced-motion: reduce) { .rv-ai-aurora { animation: none; } }
