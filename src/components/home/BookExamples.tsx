@@ -274,18 +274,21 @@ export function ContactExample() {
   const [paused, setPaused] = useState(false)
   useEffect(() => {
     if (paused || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    // on the repeated first slide, jump back to the real one; don't rely on transitionend, which a
+    // background tab can skip (the slide would otherwise run past the end and show nothing)
+    if (i >= CONTACTS.length) {
+      const t = setTimeout(() => {
+        setAnimate(false)
+        setI(0)
+      }, SLIDE_MS + 50)
+      return () => clearTimeout(t)
+    }
     const t = setTimeout(() => {
       setAnimate(true)
-      setI((x) => x + 1)
+      setI((x) => Math.min(x + 1, CONTACTS.length))
     }, HOLD_MS)
     return () => clearTimeout(t)
   }, [i, paused])
-  const onEnd = () => {
-    if (i === CONTACTS.length) {
-      setAnimate(false)
-      setI(0)
-    }
-  }
   const dot = i % CONTACTS.length
   return (
     <Sample
@@ -295,7 +298,6 @@ export function ContactExample() {
       <div className="rv-fade-x -mx-1 flex-1 overflow-hidden px-1 pb-2" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
         <div
           className="flex h-full"
-          onTransitionEnd={onEnd}
           style={{ transform: `translateX(-${i * 100}%)`, transition: animate ? `transform ${SLIDE_MS}ms cubic-bezier(0.45, 0, 0.2, 1)` : 'none' }}
         >
           {slides.map((c, k) => (

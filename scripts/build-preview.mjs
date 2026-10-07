@@ -18,7 +18,8 @@ const files = readdirSync(dir)
 const js = files.filter((f) => f.endsWith('.js')).map((f) => readFileSync(`${dir}/${f}`, 'utf8')).join('\n')
 const css = files.filter((f) => f.endsWith('.css')).map((f) => readFileSync(`${dir}/${f}`, 'utf8')).join('\n')
 const safeJs = js.replace(/<\/script/gi, '<\\/script')
-const html = `<title>Revive Agent Prototype</title>
+const html = `<meta charset="utf-8">
+<title>Revive Agent Prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">

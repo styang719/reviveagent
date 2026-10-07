@@ -96,7 +96,7 @@ export function CaseStudy({ p }: { p: ReviveProject }) {
       to="/case-studies"
       className="group relative block aspect-[9/16] overflow-hidden rounded-2xl bg-navy shadow-card focus-visible:ring-4 focus-visible:ring-[var(--brand-primary-border)]"
     >
-      <img src={photoUrl(p.photo)} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105" />
+      <img src={p.cover ?? photoUrl(p.photo)} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105" />
       <div className="absolute inset-x-3 bottom-3 rounded-xl bg-[#0b1430]/55 p-4 text-white backdrop-blur-md">
         <p className="text-[12.5px] font-medium text-[#7ff0d6]">{label}</p>
         <p className="mt-0.5 text-[26px] leading-8 font-semibold tracking-tight tabular-nums">${projectGain(p).toLocaleString('en-US')}</p>
