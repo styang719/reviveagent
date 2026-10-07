@@ -39,13 +39,13 @@ export function ListingExample() {
     <Frame label="Example: one of your listings, 47 days on market, valued at $1.18M now and $1.39M after a Revive project, a $210K upside with Renovate to Sell.">
       <div className="overflow-hidden rounded-lg border border-line bg-white shadow-card">
         <div className="flex h-full flex-col gap-2 p-3">
-          <div className="flex items-center gap-3">
-            <img src={photoUrl('comp-100-0')} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
-            <div className="min-w-0">
-              <p className="truncate text-[14px] font-semibold text-ink">123 Main St</p>
-              <p className="truncate text-[11.5px] text-muted">South Pasadena · 3 bd · 2 ba</p>
-              <span className="mt-1 inline-block rounded bg-line-soft px-1.5 py-0.5 text-[10.5px] font-medium text-ink-2">Your listing · MLS</span>
-            </div>
+          <div className="flex items-start justify-between gap-2">
+            <img src={photoUrl('comp-100-0')} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
+            <span className="shrink-0 rounded-full bg-line-soft px-2 py-0.5 text-[11px] font-medium text-ink-2">Your listing · MLS</span>
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-semibold text-ink">123 Main St</p>
+            <p className="truncate text-[11.5px] text-muted">South Pasadena · 3 bd · 2 ba</p>
           </div>
           <dl className="divide-y divide-line rounded-lg bg-head px-2.5">
             <Metric label="On market" value="47 days" className="text-hot" icon={Clock} />
@@ -59,8 +59,8 @@ export function ListingExample() {
             <span className="mt-0.5 block">with Renovate to Sell, and could sell ~3 weeks faster</span>
           </p>
           <div className="mt-auto flex items-center justify-between border-t border-line pt-2">
-            <span className="text-[11.5px] text-muted">1 price cut · Sep 28</span>
-            <span className="inline-flex items-center gap-1 rounded-md border border-[var(--brand-agent-border)] bg-[var(--brand-agent-subtle)] px-2 py-1 text-[12px] font-semibold text-[var(--brand-agent)]">
+            <span className="truncate text-[11.5px] text-muted">1 price cut</span>
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[var(--brand-agent-border)] bg-[var(--brand-agent-subtle)] px-2 py-1 text-[12px] font-semibold whitespace-nowrap text-[var(--brand-agent)]">
               <Sparkles className="size-3" /> Propose Revive
             </span>
           </div>
@@ -89,17 +89,15 @@ export function ContactExample() {
   return (
     <Frame label="Example: a homeowner from your CRM whose listing expired 23 days ago. Selling score 79, leaning toward selling, $148K potential. Opportunities: listing issue and ADU room. Call this week.">
       <div className="flex flex-col gap-2.5 rounded-lg border border-line bg-white p-3 shadow-card">
-        <div className="flex flex-col items-start gap-2">
-          <div className="flex w-full min-w-0 items-center gap-2.5">
-            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-[13px] font-semibold text-brand">RK</span>
-            <div className="min-w-0">
-              <p className="truncate text-[14px] font-semibold text-ink">Rachel Kim</p>
-              <p className="truncate text-[11.5px] text-muted">Homeowner · 655 Glenarm St</p>
-            </div>
-          </div>
+        <div className="flex items-start justify-between gap-2">
+          <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-[14px] font-semibold text-brand">RK</span>
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[11px] font-semibold text-white">
             <AlarmClock className="size-3" /> Call this week
           </span>
+        </div>
+        <div className="-mt-1 min-w-0">
+          <p className="truncate text-[14px] font-semibold text-ink">Rachel Kim</p>
+          <p className="truncate text-[11.5px] text-muted">Homeowner · 655 Glenarm St</p>
         </div>
 
         <div className="rounded-lg bg-warn-soft/70 px-2.5 py-2">
