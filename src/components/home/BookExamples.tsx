@@ -1,24 +1,26 @@
-import { AlarmClock, UserRound, CircleAlert, Clock, Hammer, Home as HomeIcon, TrendingDown, TriangleAlert, Warehouse } from 'lucide-react'
+import { AlarmClock, CircleDollarSign, Eye, UserRound, CircleAlert, Clock, Hammer, Home as HomeIcon, TrendingDown, TriangleAlert, Warehouse } from 'lucide-react'
 import { photoUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
 
 // What each source brings in, shown with sample data before it's connected: the real card,
-// slimmed down, with a dashed edge and a caption underneath that marks it as a sample.
+// slimmed down, under a banner that marks it as an example.
 // Both cards read the same way: who or what → the one number that matters → why now →
 // the Revive opportunities.
 
-function Sample({ label, caption, children }: { label: string; caption: string; children: React.ReactNode }) {
+function Sample({ label, banner, children }: { label: string; banner: string; children: React.ReactNode }) {
   return (
-    <figure className="flex h-full flex-col gap-2">
-      <div role="img" aria-label={label} className="flex flex-1 flex-col rounded-xl border border-dashed border-[var(--brand-primary-border)] bg-white p-4">
-        <div aria-hidden="true" className="flex flex-1 flex-col gap-4">
-          {children}
-        </div>
+    <div role="img" aria-label={label} className="flex h-full flex-col overflow-hidden rounded-xl border border-[var(--brand-primary-border)] bg-white">
+      {/* the banner says up front that this is an example, not real data */}
+      <p
+        aria-hidden="true"
+        className="flex items-center gap-1.5 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-agent)] px-4 py-2 text-[12px] font-semibold text-white"
+      >
+        <Eye className="size-3.5" /> {banner}
+      </p>
+      <div aria-hidden="true" className="flex flex-1 flex-col gap-4 p-4">
+        {children}
       </div>
-      <figcaption className="px-1 text-[12px] text-muted">
-        <span className="font-semibold text-ink-2">Example</span> · {caption}
-      </figcaption>
-    </figure>
+    </div>
   )
 }
 
@@ -51,10 +53,11 @@ function Opportunities({ children }: { children: React.ReactNode }) {
   )
 }
 
-function Tag({ icon: Icon, tone, children }: { icon: typeof Clock; tone: 'agent' | 'warn'; children: React.ReactNode }) {
+function Tag({ icon: Icon, tone, children }: { icon: typeof Clock; tone: 'agent' | 'warn' | 'teal'; children: React.ReactNode }) {
   const tones = {
     agent: 'bg-[var(--brand-agent-subtle)] text-[var(--brand-agent)]',
     warn: 'bg-warn-soft text-warn',
+    teal: 'bg-[var(--teal-soft)] text-[var(--green)]',
   }
   return (
     <span className={cn('inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11.5px] font-medium', tones[tone])}>
@@ -77,8 +80,8 @@ function Why({ icon: Icon, children }: { icon: typeof Clock; children: React.Rea
 export function ListingExample() {
   return (
     <Sample
-      caption="your listings will show up like this"
-      label="Example with sample data: one of your listings. Worth $1.39M after a Revive project, $210K more than today's $1.18M. 47 days on market with 1 price cut. Revive opportunities: Renovate to Sell, stale listing."
+      banner="Example of your listing"
+      label="Example with sample data: one of your listings. Worth $1.39M after a Revive project, $210K more than today's $1.18M. 47 days on market with 1 price cut. Revive opportunities: Renovate to Sell, stale listing, more commission."
     >
       <Who
         img={photoUrl('comp-100-0')}
@@ -110,6 +113,9 @@ export function ListingExample() {
         <Tag icon={TrendingDown} tone="warn">
           Stale listing
         </Tag>
+        <Tag icon={CircleDollarSign} tone="teal">
+          More commission
+        </Tag>
       </Opportunities>
     </Sample>
   )
@@ -133,8 +139,8 @@ function ScoreRing({ value }: { value: number }) {
 export function ContactExample() {
   return (
     <Sample
-      caption="your contacts will show up like this"
-      label="Example with sample data: a homeowner from your CRM. Selling score 79, likely to sell, with $148K potential. Their listing expired 23 days ago. Call this week. Revive opportunities: listing issue, ADU room."
+      banner="Example of your contact"
+      label="Example with sample data: a homeowner from your CRM. Selling score 79, likely to sell, with $148K potential. Their listing expired 23 days ago. Call this week. Revive opportunities: listing issue, ADU room, more commission."
     >
       <Who
         round
@@ -167,6 +173,9 @@ export function ContactExample() {
         </Tag>
         <Tag icon={Warehouse} tone="agent">
           ADU room
+        </Tag>
+        <Tag icon={CircleDollarSign} tone="teal">
+          More commission
         </Tag>
       </Opportunities>
     </Sample>
