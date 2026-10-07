@@ -11,7 +11,8 @@ import { Composer, Thread, useAsk, useHereCtx } from './Chat'
 // leaving. Every earlier conversation is in the history on the Revive AI page.
 export function DockedChat() {
   const handoff = useDemo((s) => s.handoff)
-  const hasChat = useUi((s) => s.chat.length > 0)
+  const hasAnyChat = useUi((s) => s.chat.length > 0)
+  const activeHere = useUi((s) => s.activeHere)
   const title = useUi((s) => s.threads.find((t) => t.id === s.activeId)?.title)
   const open = useUi((s) => s.dockOpen)
   const setOpen = useUi((s) => s.setDock)
@@ -21,6 +22,16 @@ export function DockedChat() {
   const navigate = useNavigate()
   const { ask, thinking } = useAsk()
   const here = useHereCtx()
+  // on a property page, only a conversation started about this home shows here; anything else waits in
+  // the history, and the dock offers a fresh conversation about this property instead
+  const hasChat = hasAnyChat && (!here || activeHere === here.id)
+  const askHere = (q: string) => {
+    if (here && !hasChat && hasAnyChat) {
+      useUi.getState().clearChat()
+      setOpen(true)
+    }
+    ask(q)
+  }
   const aiRequest = useUi((s) => s.aiRequest)
   const clearAiRequest = useUi((s) => s.clearAiRequest)
 
@@ -106,7 +117,7 @@ export function DockedChat() {
               {starters.map((x) => (
                 <button
                   key={x}
-                  onClick={() => ask(x)}
+                  onClick={() => askHere(x)}
                   className="rounded-xl border border-line bg-white px-3 py-2.5 text-left text-[13px] text-ink-2 hover:border-[var(--brand-agent-border)] hover:text-ink"
                 >
                   {x}
@@ -122,7 +133,7 @@ export function DockedChat() {
             <MapPin className="size-3" /> Asking about {here.label}
           </p>
         )}
-        <Composer onAsk={ask} disabled={thinking} compact />
+        <Composer onAsk={askHere} disabled={thinking} compact />
       </div>
     </section>
   )

@@ -22,6 +22,8 @@ export interface ChatThread {
   updatedAt: number
   chat: ChatMessage[]
   flow: FlowState | null
+  hereId?: string | null // the property page it was started on, if any
+  hereLabel?: string // that property's street address, for the title
 }
 
 const newId = () => `t-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
@@ -41,12 +43,13 @@ function titleOf(chat: ChatMessage[], flow: FlowState | null, prev?: string) {
 }
 
 /** The active conversation, saved into the thread list (or dropped if it's empty). */
-function saveActive(s: Pick<UiState, 'threads' | 'activeId' | 'chat' | 'flow'>): ChatThread[] {
+function saveActive(s: Pick<UiState, 'threads' | 'activeId' | 'chat' | 'flow' | 'activeHere' | 'here'>): ChatThread[] {
   const rest = s.threads.filter((t) => t.id !== s.activeId)
   if (!s.chat.length) return rest
   const prev = s.threads.find((t) => t.id === s.activeId)
   const changed = !prev || prev.chat.length !== s.chat.length
-  return [{ id: s.activeId, title: titleOf(s.chat, s.flow, prev?.title), updatedAt: changed ? Date.now() : prev.updatedAt, chat: s.chat, flow: s.flow }, ...rest]
+  const hereLabel = s.activeHere && s.here?.id === s.activeHere ? s.here.address : prev?.hereLabel
+  return [{ id: s.activeId, title: hereLabel && !/^(Report|Project) · /.test(titleOf(s.chat, s.flow, prev?.title)) ? `${hereLabel} · ${titleOf(s.chat, s.flow)}` : titleOf(s.chat, s.flow, prev?.title), updatedAt: changed ? Date.now() : prev.updatedAt, chat: s.chat, flow: s.flow, hereId: s.activeHere, hereLabel }, ...rest]
 }
 
 interface UiState {
@@ -62,6 +65,7 @@ interface UiState {
   clearChat: () => void // start a new conversation (the current one stays in history)
   threads: ChatThread[] // conversation history, newest first; includes the active one once it has messages
   activeId: string
+  activeHere: string | null // the property page the active conversation is about (null = not tied to one)
   openThread: (id: string) => void
   deleteThread: (id: string) => void
   resetChats: () => void // forget every conversation (demo reset)
@@ -94,7 +98,9 @@ export const useUi = create<UiState>()(
       addChat: (m) =>
         set((s) => {
           const chat = [...s.chat, m]
-          return { chat, threads: saveActive({ ...s, chat }) }
+          // a conversation belongs to the property page it was started on
+          const activeHere = s.chat.length ? s.activeHere : (s.here?.id ?? null)
+          return { chat, activeHere, threads: saveActive({ ...s, chat, activeHere }) }
         }),
       patchChat: (id, patch) =>
         set((s) => {
@@ -102,24 +108,25 @@ export const useUi = create<UiState>()(
           return { chat, threads: saveActive({ ...s, chat }) }
         }),
       clearChat: () =>
-        set((s) => ({ threads: saveActive(s), activeId: newId(), chat: [], flow: null, panel: null, pendingNav: null, dockOpen: false })),
+        set((s) => ({ threads: saveActive(s), activeId: newId(), activeHere: null, chat: [], flow: null, panel: null, pendingNav: null, dockOpen: false })),
       threads: [],
       activeId: newId(),
+      activeHere: null,
       openThread: (id) =>
         set((s) => {
           if (id === s.activeId) return {}
           const threads = saveActive(s)
           const t = threads.find((x) => x.id === id)
           if (!t) return {}
-          return { threads, activeId: id, chat: t.chat, flow: t.flow, panel: null, pendingNav: null }
+          return { threads, activeId: id, activeHere: t.hereId ?? null, chat: t.chat, flow: t.flow, panel: null, pendingNav: null }
         }),
       deleteThread: (id) =>
         set((s) =>
           id === s.activeId
-            ? { threads: s.threads.filter((t) => t.id !== id), activeId: newId(), chat: [], flow: null, panel: null, pendingNav: null, dockOpen: false }
+            ? { threads: s.threads.filter((t) => t.id !== id), activeId: newId(), activeHere: null, chat: [], flow: null, panel: null, pendingNav: null, dockOpen: false }
             : { threads: s.threads.filter((t) => t.id !== id) },
         ),
-      resetChats: () => set({ threads: [], activeId: newId(), chat: [], flow: null, panel: null, pendingNav: null, dockOpen: false }),
+      resetChats: () => set({ threads: [], activeId: newId(), activeHere: null, chat: [], flow: null, panel: null, pendingNav: null, dockOpen: false }),
       flow: null,
       setFlow: (flow) => set((s) => ({ flow, threads: saveActive({ ...s, flow }) })),
       panel: null,
@@ -137,7 +144,7 @@ export const useUi = create<UiState>()(
     {
       name: 'revive-ui',
       storage: createJSONStorage(() => sessionStorage),
-      partialize: (s) => ({ chat: s.chat, flow: s.flow, panel: s.panel, dockOpen: s.dockOpen, threads: s.threads, activeId: s.activeId }),
+      partialize: (s) => ({ chat: s.chat, flow: s.flow, panel: s.panel, dockOpen: s.dockOpen, threads: s.threads, activeId: s.activeId, activeHere: s.activeHere }),
     },
   ),
 )
