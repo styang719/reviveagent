@@ -18,7 +18,9 @@ import { useUi } from '@/store/ui'
 const CRMS = ['Follow Up Boss', 'kvCORE', 'Lofty', 'BoomTown', 'Sierra Interactive', 'Real Geeks']
 const DRE = /^\d{8}$/
 
-function LicenseForm({ autoFocus }: { autoFocus: boolean }) {
+/** License number → listings. Used in Get set up, and inline (no label or hint) on the Your listings panel. */
+export function LicenseForm({ autoFocus = false, inline = false }: { autoFocus?: boolean; inline?: boolean }) {
+  const id = inline ? 'dre-inline' : 'dre'
   const connect = useDemo((s) => s.connectLicense)
   const openStep = useUi((s) => s.openStep)
   const [value, setValue] = useState('')
@@ -44,13 +46,13 @@ function LicenseForm({ autoFocus }: { autoFocus: boolean }) {
     }, 1200)
   }
   return (
-    <form onSubmit={submit} className="mt-2.5" noValidate>
-      <label htmlFor="dre" className="text-[12px] font-medium text-ink-2">
+    <form onSubmit={submit} className={inline ? undefined : 'mt-2.5'} noValidate>
+      <label htmlFor={id} className={inline ? 'sr-only' : 'text-[12px] font-medium text-ink-2'}>
         California DRE license number
       </label>
-      <div className="mt-1 flex gap-2">
+      <div className={cn('flex gap-2', !inline && 'mt-1')}>
         <input
-          id="dre"
+          id={id}
           ref={ref}
           inputMode="numeric"
           autoComplete="off"
@@ -58,22 +60,23 @@ function LicenseForm({ autoFocus }: { autoFocus: boolean }) {
           onChange={(e) => setValue(e.target.value)}
           placeholder="02134589"
           aria-invalid={!!error}
-          aria-describedby={error ? 'dre-error' : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
           className={cn(
-            'h-9 min-w-0 flex-1 rounded-lg border bg-white px-3 text-sm tabular-nums outline-none placeholder:text-faint focus:ring-2',
+            inline ? 'h-10' : 'h-9',
+            'min-w-0 flex-1 rounded-lg border bg-white px-3 text-sm tabular-nums outline-none placeholder:text-faint focus:ring-2',
             error ? 'border-bad focus:ring-bad/20' : 'border-line focus:border-brand focus:ring-brand/20',
           )}
         />
-        <Button type="submit" size="sm" disabled={busy} className="h-9">
-          {busy ? <Loader2 className="animate-spin" aria-label="Searching the MLS" /> : 'Find'}
+        <Button type="submit" size={inline ? 'default' : 'sm'} disabled={busy} className={inline ? 'h-10 shrink-0' : 'h-9'}>
+          {busy ? <Loader2 className="animate-spin" aria-label="Searching the MLS" /> : inline ? 'Add license #' : 'Find'}
         </Button>
       </div>
       {error ? (
-        <p id="dre-error" className="mt-1 text-[12px] text-bad">
+        <p id={`${id}-error`} className="mt-1 text-[12px] text-bad">
           {error}
         </p>
       ) : (
-        <p className="mt-1 text-[12px] text-muted">Public license record. No MLS login needed.</p>
+        !inline && <p className="mt-1 text-[12px] text-muted">Public license record. No MLS login needed.</p>
       )}
     </form>
   )

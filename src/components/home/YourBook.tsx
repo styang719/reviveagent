@@ -5,6 +5,7 @@ import { useConnections, type Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 import { useUi } from '@/store/ui'
 import { ContactExample, ListingExample } from './BookExamples'
+import { LicenseForm } from './ConnectBook'
 
 // "Your opportunities" before the book is fully connected: the two sources side by side,
 // each saying what it pulls in, so it's clear both are needed (not either/or).
@@ -27,7 +28,6 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
       done: conn.mls,
       result: `${plural(listings, 'active listing')} found`,
       cta: 'Add license number',
-      note: 'Public record. No MLS login needed.',
       onClick: () => {
         openStep('license')
         document.getElementById('setup')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -42,7 +42,6 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
       done: conn.crm,
       result: `${plural(contacts, 'contact')} checked`,
       cta: 'Connect CRM',
-      note: 'Read-only. Nothing is sent to your contacts.',
       onClick: () => openCrm('Follow Up Boss'),
     },
   ]
@@ -70,17 +69,15 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
               <p className="mt-1.5 text-[13px] leading-5 text-ink-2">{s.body}</p>
             </div>
             {!s.done && <div className="mt-1 flex-1">{s.key === 'mls' ? <ListingExample /> : <ContactExample />}</div>}
-            {/* the action sits in its own footer row, set off by a rule */}
-            <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--brand-primary-border)] pt-5">
+            <div>
               {s.done ? (
                 <p className="flex items-center gap-1.5 text-sm font-medium text-[var(--green)]">
                   <BadgeCheck className="size-4" /> {s.result}
                 </p>
+              ) : s.key === 'mls' ? (
+                <LicenseForm inline />
               ) : (
-                <>
-                  <Button onClick={s.onClick}>{s.cta}</Button>
-                  <span className="text-[12px] text-muted">{s.note}</span>
-                </>
+                <Button onClick={s.onClick}>{s.cta}</Button>
               )}
             </div>
           </div>
