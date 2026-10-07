@@ -29,7 +29,7 @@ export function ReviveAiIntro() {
     navigate(askPath(q.trim()))
   }
   return (
-    <section aria-labelledby="ai-intro" className="rv-ai-card h-full rounded-2xl p-5 shadow-card sm:p-6">
+    <section aria-labelledby="ai-intro" className="rv-ai-card h-full rounded-2xl p-6 shadow-card sm:p-7">
       <div className="flex items-start gap-4">
         <span className="rv-ai-tile grid size-11 shrink-0 place-items-center rounded-xl text-white" aria-hidden="true">
           <Sparkles className="size-5" />
@@ -45,12 +45,12 @@ export function ReviveAiIntro() {
       </div>
 
       {/* frosted glass box over a slowly drifting AI gradient */}
-      <div className="relative mt-4">
+      <div className="relative mt-7">
         <div className="rv-ai-aurora pointer-events-none absolute -inset-x-2 -inset-y-3 rounded-3xl" aria-hidden="true" />
         {/* one box: the question on top, examples and the button along the bottom */}
         <form
           onSubmit={submit}
-          className="relative rounded-xl border border-white/80 bg-white/55 p-2 shadow-[0_4px_24px_rgba(27,37,89,0.08)] backdrop-blur-xl transition-shadow focus-within:bg-white/70 focus-within:shadow-[0_8px_32px_rgba(97,0,158,0.16)]"
+          className="relative rounded-xl border border-white/80 bg-white/55 p-2.5 shadow-[0_4px_24px_rgba(27,37,89,0.08)] backdrop-blur-xl transition-shadow focus-within:bg-white/70 focus-within:shadow-[0_8px_32px_rgba(97,0,158,0.16)]"
         >
           <label htmlFor="home-ask" className="sr-only">
             Search any address
@@ -64,10 +64,10 @@ export function ReviveAiIntro() {
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search any address"
               autoComplete="off"
-              className="h-11 min-w-0 flex-1 truncate bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
+              className="h-12 min-w-0 flex-1 truncate bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
             />
           </div>
-          <div className="mt-1 flex flex-col gap-2 border-t border-white/80 px-1 pt-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-1.5 flex flex-col gap-2 border-t border-white/80 px-1 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
               {prompts.map((x) => (
                 <Link
