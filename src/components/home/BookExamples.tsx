@@ -9,13 +9,13 @@ import { cn } from '@/lib/utils'
 
 function Sample({ label, banner, children }: { label: string; banner: string; children: React.ReactNode }) {
   return (
-    <div role="img" aria-label={label} className="flex h-full flex-col overflow-hidden rounded-xl border border-[var(--brand-primary-border)] bg-white">
+    <div role="img" aria-label={label} className="flex h-full flex-col overflow-hidden rounded-xl border border-line bg-white shadow-card">
       {/* the banner says up front that this is an example, not real data */}
       <p
         aria-hidden="true"
-        className="flex items-center gap-1.5 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-agent)] px-4 py-2 text-[12px] font-semibold text-white"
+        className="flex items-center gap-1.5 border-b border-line bg-line-soft px-4 py-2 text-[12px] font-semibold text-ink-2"
       >
-        <Eye className="size-3.5" /> {banner}
+        <Eye className="size-3.5 text-muted" /> {banner}
       </p>
       <div aria-hidden="true" className="flex flex-1 flex-col gap-4 p-4">
         {children}
