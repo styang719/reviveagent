@@ -1,4 +1,5 @@
-import { AlarmClock, Phone, CircleDollarSign, Eye, UserRound, CircleAlert, Clock, Hammer, TrendingDown, TriangleAlert, Warehouse } from 'lucide-react'
+import { Phone, CircleDollarSign, Eye, UserRound, CircleAlert, Clock, Hammer, TrendingDown, TriangleAlert, Warehouse } from 'lucide-react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 // What each source brings in, shown with sample data before it's connected, under a label that
@@ -7,9 +8,47 @@ import { cn } from '@/lib/utils'
 // Both cards read the same way: who or what → the one number that matters → why now →
 // the Revive opportunities.
 
+/** True once the element has scrolled into view (and stays true), so the entrance plays once. */
+function useInView<T extends Element>() {
+  const ref = useRef<T>(null)
+  const [seen, setSeen] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || seen) return
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && setSeen(true), { threshold: 0.3 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [seen])
+  return [ref, seen] as const
+}
+
+const InView = createContext(false)
+const reduceMotion = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+/** Counts up to a value once in view; shows it straight away with reduced motion. */
+function useCount(to: number, ms = 900) {
+  const on = useContext(InView)
+  const [v, setV] = useState(0)
+  useEffect(() => {
+    if (!on || reduceMotion()) return
+    let raf = 0
+    const t0 = performance.now()
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - t0) / ms)
+      setV(Math.round(to * (1 - (1 - p) ** 3)))
+      if (p < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [on, to, ms])
+  return reduceMotion() ? to : v
+}
+
 function Sample({ label, banner, cards = false, children }: { label: string; banner: string; cards?: boolean; children: React.ReactNode }) {
+  const [ref, seen] = useInView<HTMLDivElement>()
   return (
-    <div role="img" aria-label={label} className="flex h-full flex-col gap-2.5">
+    <InView.Provider value={seen}>
+    <div ref={ref} role="img" aria-label={label} data-in={seen || undefined} className="rv-sample flex h-full flex-col gap-2.5">
       {/* the label says up front that this is an example, not real data */}
       <p aria-hidden="true" className="flex items-center gap-1.5 text-[12px] font-semibold text-ink-2">
         <Eye className="size-3.5 text-muted" /> {banner}
@@ -19,6 +58,7 @@ function Sample({ label, banner, cards = false, children }: { label: string; ban
         {children}
       </div>
     </div>
+    </InView.Provider>
   )
 }
 
@@ -46,7 +86,7 @@ function Opportunities({ children }: { children: React.ReactNode }) {
   return (
     <div className="mt-auto border-t border-line pt-3">
       <p className="text-[10.5px] font-semibold tracking-wide text-muted uppercase">Revive opportunities</p>
-      <div className="mt-1.5 flex flex-wrap gap-1.5">{children}</div>
+      <div className="rv-tags mt-1.5 flex flex-wrap gap-1.5">{children}</div>
     </div>
   )
 }
@@ -90,8 +130,12 @@ export function ListingExample() {
       label="Example with sample data: four of your listings with the value Revive could add. 123 Sample St, $1.39M after Revive, up $210K, Renovate to Sell. 456 Example Ave, $1.81M, up $290K, stale listing. 789 Sample Ln, $965K, up $95K, more commission. 12 Example Ct, $1.12M, up $140K, ADU room. $735K potential across 4 listings."
     >
       <ul className="flex flex-col gap-2.5">
-        {LISTINGS.map((l) => (
-          <li key={l.address} className="flex items-center gap-3 rounded-xl border border-white bg-white px-3.5 py-3 shadow-card">
+        {LISTINGS.map((l, i) => (
+          <li
+            key={l.address}
+            style={{ '--d': `${i * 90}ms`, '--sheen': `${i * 0.6}s` } as React.CSSProperties}
+            className="rv-rise rv-sheen relative flex items-center gap-3 overflow-hidden rounded-xl border border-white bg-white px-3.5 py-3 shadow-card"
+          >
             <div className="min-w-0 flex-1">
               {/* line 1: the listing and its Revive opportunity; line 2: the numbers */}
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
@@ -112,22 +156,28 @@ export function ListingExample() {
       </ul>
       <p className="flex flex-wrap items-center justify-between gap-x-2 px-1 text-[12.5px] text-ink-2">
         <span className="whitespace-nowrap">4 Revive opportunities</span>
-        <span className="font-semibold whitespace-nowrap text-[var(--green)] tabular-nums">+$735K potential</span>
+        <Potential />
       </p>
     </Sample>
   )
 }
 
+function Potential() {
+  const v = useCount(735)
+  return <span className="font-semibold whitespace-nowrap text-[var(--green)] tabular-nums">+${v}K potential</span>
+}
+
 function ScoreRing({ value }: { value: number }) {
   const r = 22
   const c = 2 * Math.PI * r
+  const shown = useCount(value, 1100)
   return (
     <span className="relative grid size-14 shrink-0 place-items-center">
       <svg viewBox="0 0 52 52" className="absolute inset-0 -rotate-90">
         <circle cx="26" cy="26" r={r} fill="none" stroke="var(--line)" strokeWidth="5" />
-        <circle cx="26" cy="26" r={r} fill="none" stroke="var(--green)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(c * value) / 100} ${c}`} />
+        <circle cx="26" cy="26" r={r} fill="none" stroke="var(--green)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(c * shown) / 100} ${c}`} />
       </svg>
-      <span className="relative text-[18px] font-semibold text-ink tabular-nums">{value}</span>
+      <span className="relative text-[18px] font-semibold text-ink tabular-nums">{shown}</span>
     </span>
   )
 }
@@ -145,7 +195,11 @@ export function ContactExample() {
         sub="Anytown, CA"
         badge={
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[11px] font-semibold text-white">
-            <AlarmClock className="size-3" /> Call this week
+            <span className="relative flex size-1.5" aria-hidden="true">
+              <span className="rv-pulse absolute inset-0 rounded-full bg-white" />
+              <span className="relative size-1.5 rounded-full bg-white" />
+            </span>
+            Call this week
           </span>
         }
       />
