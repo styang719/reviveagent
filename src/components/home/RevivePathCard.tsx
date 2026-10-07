@@ -85,11 +85,19 @@ export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[]
 
       <div className="flex flex-col gap-3 px-5 py-4">
         <p className="text-sm leading-5 text-ink-2">{context}</p>
-        {cta && (
-          <Button variant={partner ? 'warn' : 'default'} className="self-start" asChild={!!cta.to} onClick={cta.onClick}>
-            {cta.to ? <Link to={cta.to}>{cta.label}</Link> : <span>{cta.label}</span>}
+        <div className="flex flex-wrap items-center gap-2">
+          {cta && (
+            <Button variant={partner ? 'warn' : 'default'} asChild={!!cta.to} onClick={cta.onClick}>
+              {cta.to ? <Link to={cta.to}>{cta.label}</Link> : <span>{cta.label}</span>}
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            onClick={() => toast('Revive Partner program', { description: 'Close 2 Revive deals to become a Partner. Partners get exclusive seller leads from Revive, sent to them first.' })}
+          >
+            Learn more
           </Button>
-        )}
+        </div>
       </div>
     </section>
   )

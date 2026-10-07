@@ -1,4 +1,3 @@
-import type { ListingPromoVersion } from '@/components/home/ListingsPromo'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Stage, Tier } from '@/data/types'
@@ -18,8 +17,6 @@ interface DemoState {
   license: string | null // DRE license number; finds the agent's MLS listings and past sales
   reports: Record<string, GeneratedReport> // made in Revive AI, keyed by property / report id
   projects: Record<string, CreatedProject> // started in Revive AI, keyed by property / report id
-  listingPromo: ListingPromoVersion // which listings promo the new-agent Home shows (3 versions to compare)
-  setListingPromo: (v: ListingPromoVersion) => void
   handoff: Handoff // how Revive AI hands a finished report/project to its page (3 versions to compare)
   addReport: (r: GeneratedReport) => void
   addProject: (p: CreatedProject) => void
@@ -78,12 +75,10 @@ export const useDemo = create<DemoState>()(
           activity: withActivity(s, p.propertyId, `You submitted a ${p.product} project`),
         })),
       handoff: 'link',
-      listingPromo: 'table',
-      setListingPromo: (listingPromo) => set({ listingPromo }),
       setHandoff: (handoff) => set({ handoff }),
       connectLicense: (license) => set({ license }),
-      reset: () => set((s) => ({ ...initial(), tier: s.tier, handoff: s.handoff, listingPromo: s.listingPromo })),
+      reset: () => set((s) => ({ ...initial(), tier: s.tier, handoff: s.handoff })),
     }),
-    { name: 'revive-demo', version: 7, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, handoff: 'link', listingPromo: 'table', ...(s as object) }) as DemoState },
+    { name: 'revive-demo', version: 7, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, handoff: 'link', ...(s as object) }) as DemoState },
   ),
 )
