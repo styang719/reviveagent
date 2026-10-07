@@ -218,8 +218,7 @@ export function SetupTodo({ opps }: { opps: Opportunity[] }) {
   const listings = opps.filter((o) => o.property.source === 'listings')
   const contacts = opps.filter((o) => o.property.source === 'contacts')
   const reportGenerated = useDemo((s) => s.reportGenerated)
-  const setDiscuss = useUi((s) => s.setDiscuss)
-  const project = opps.some((o) => o.stage === 'project')
+  const project = useDemo((s) => Object.keys(s.projects).length > 0) || opps.some((o) => o.stage === 'project')
   const firstListing = opps.find((o) => o.cta.kind === 'propose')
 
   const todos: Todo[] = [
@@ -245,15 +244,14 @@ export function SetupTodo({ opps }: { opps: Opportunity[] }) {
       doneTitle: 'First Revive AI report generated',
       hint: reportGenerated ? 'Done in Revive AI' : 'Any address: value, upside and the right product · 1 min',
       done: reportGenerated,
-      to: '/ai',
+      to: '/ai?flow=report',
     },
     {
       id: 'project',
       title: 'Start your first project',
-      hint: firstListing ? `Propose Revive on ${firstListing.property.address}` : 'Talk a property through with a Revive advisor',
+      hint: firstListing ? `Propose Revive on ${firstListing.property.address}` : 'Revive AI walks you through it · 3 min',
       done: project,
-      to: firstListing ? `/property/${firstListing.id}?tab=project` : undefined,
-      onClick: firstListing ? undefined : () => setDiscuss(true),
+      to: firstListing ? `/ai?flow=project&property=${firstListing.id}` : '/ai?flow=project',
     },
   ]
   const done = todos.filter((t) => t.done).length

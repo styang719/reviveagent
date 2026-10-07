@@ -1,63 +1,51 @@
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Sparkles } from 'lucide-react'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { PropertyView, usePropertyModel, type PropertyTab } from '@/components/property/PropertyView'
 import { PAGE } from '@/lib/utils'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { Estimate, PersonLine, Reasons } from '@/components/opportunity/OpportunityCard'
-import { SourceTag, StageTag, UrgencyTag } from '@/components/opportunity/Tags'
-import { useCta } from '@/components/opportunity/useCta'
-import { PropertyPhoto } from '@/components/property/PropertyPhoto'
-import { Button } from '@/components/ui/button'
-import { useOpportunities } from '@/lib/opportunities'
+import { useDemo } from '@/store/demo'
+import { useUi } from '@/store/ui'
 import { Placeholder } from './Placeholder'
 
-export default function Property() {
-  const { id } = useParams()
-  const [params] = useSearchParams()
-  const runCta = useCta()
-  const o = useOpportunities().find((x) => x.id === id)
+const TABS: PropertyTab[] = ['overview', 'report', 'project', 'marketing']
 
-  if (id === 'new') {
-    return (
-      <Placeholder title={params.get('address') ?? 'New address'} intro="Revive AI report for an address you searched." phase={2} />
-    )
-  }
-  if (!o) {
-    return <Placeholder title="Property not found" intro="It may not be visible at this tier. Try switching the demo tier." phase={2} />
-  }
-  const p = o.property
+export default function Property() {
+  const { id = '' } = useParams()
+  const [params, setParams] = useSearchParams()
+  const location = useLocation()
+  const handoff = useDemo((s) => s.handoff)
+  const hasChat = useUi((s) => s.chat.length > 0)
+  const m = usePropertyModel(id, params.get('address') ?? undefined)
+  const tabParam = params.get('tab') as PropertyTab | null
+  const tab: PropertyTab = tabParam && TABS.includes(tabParam) ? tabParam : 'overview'
+  const fromAi = !!(location.state as { fromAi?: boolean } | null)?.fromAi
+
+  if (!m) return <Placeholder title="Property not found" intro="It may not be visible at this tier. Try switching the demo tier." phase={2} />
+
   return (
     <div className={PAGE}>
-      <Link to="/" className="inline-flex items-center gap-1 text-[13px] text-muted hover:text-brand">
-        <ArrowLeft className="size-3.5" /> Back
-      </Link>
-      <div className="mt-3 flex flex-col gap-5 rounded-xl border border-line bg-white p-5 shadow-card sm:flex-row">
-        <PropertyPhoto photo={p.photo} label={p.address} className="h-40 w-full sm:h-36 sm:w-56" />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap gap-1.5">
-            <UrgencyTag urgency={o.urgency} />
-            <SourceTag source={p.source} />
-            <StageTag stage={o.stage} />
-          </div>
-          <h1 className="mt-2 text-2xl font-semibold text-ink">{p.address}</h1>
-          <p className="text-sm text-muted">
-            {p.city} · {p.homeType} · {p.beds} bd · {p.baths} ba · {p.sqft.toLocaleString()} sqft · built {p.yearBuilt}
-          </p>
-          <div className="mt-1">
-            <PersonLine o={o} />
-          </div>
-          <div className="mt-3">
-            <Reasons o={o} />
-          </div>
-        </div>
-        <div className="flex flex-col items-start gap-3 sm:items-end">
-          <Estimate o={o} />
-          <Button onClick={() => runCta(o)} variant={o.cta.kind === 'claim' ? 'warn' : 'default'}>
-            {o.cta.label}
-          </Button>
-        </div>
-      </div>
-      <div className="mt-6 rounded-xl border border-dashed border-line bg-head p-6 text-sm text-muted">
-        Tabs (Overview · Revive AI report · Project · Marketing) arrive in phase 2
-        {params.get('tab') ? `. You asked for the “${params.get('tab')}” tab.` : '.'}
+      {fromAi && hasChat && handoff !== 'dock' ? (
+        // A (and B's "open as a page"): the result is a page; the conversation is one click back
+        <Link
+          to="/ai"
+          className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-agent-subtle)] px-3 py-1.5 text-[13px] font-medium text-[var(--brand-agent)] hover:brightness-95"
+        >
+          <ArrowLeft className="size-3.5" /> <Sparkles className="size-3.5" /> Back to your Revive AI conversation
+        </Link>
+      ) : (
+        <Link to="/" className="inline-flex items-center gap-1 text-[13px] text-muted hover:text-brand">
+          <ArrowLeft className="size-3.5" /> Home
+        </Link>
+      )}
+      <div className="mt-4 max-w-5xl">
+        <PropertyView
+          m={m}
+          tab={tab}
+          onTab={(t) => {
+            const next = new URLSearchParams(params)
+            next.set('tab', t)
+            setParams(next, { replace: true, state: location.state })
+          }}
+        />
       </div>
     </div>
   )

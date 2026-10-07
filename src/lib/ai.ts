@@ -30,12 +30,27 @@ export type Block =
   | { kind: 'draft'; to: string; personId: string; body: string }
   | { kind: 'connect'; need: 'crm' | 'mls' }
   | { kind: 'suggestions'; items: string[] }
+  | { kind: 'flow'; step: FlowStep; refId?: string } // an interactive step in a guided flow
+
+export type FlowStep =
+  | 'report-details'
+  | 'report-photos'
+  | 'report-questions'
+  | 'report-progress'
+  | 'report-ready'
+  | 'project-property'
+  | 'project-product'
+  | 'project-details'
+  | 'project-review'
+  | 'project-progress'
+  | 'project-ready'
 
 export interface ChatMessage {
   id: string
   role: 'user' | 'ai'
   text?: string
   blocks?: Block[]
+  answered?: boolean // a flow step the agent already completed (shown read-only)
 }
 
 export const STARTERS = [

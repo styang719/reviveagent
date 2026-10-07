@@ -15,3 +15,11 @@ for (const [path, url] of Object.entries(TILES)) {
 export function tileUrl(z: number, x: number, y: number) {
   return TILE_INDEX[`${z}/${x}/${y}`]
 }
+
+/** Keys of every bundled photo (used as the prototype's 'MLS photos'). */
+export function allPhotoKeys() {
+  return Object.keys(PHOTOS)
+    .map((p) => /photos\/(.+)\.jpg$/.exec(p)?.[1])
+    .filter((k): k is string => !!k)
+    .sort()
+}

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Stage, Tier } from '@/data/types'
+import type { CreatedProject, GeneratedReport, Handoff } from '@/lib/flows'
 
 // Demo state. Tier and the overrides below are the only state; every screen derives from data + this store.
 interface DemoState {
@@ -14,6 +15,12 @@ interface DemoState {
   crmConnected: boolean
   reportGenerated: boolean // first Revive AI report (no connection needed)
   license: string | null // DRE license number; finds the agent's MLS listings and past sales
+  reports: Record<string, GeneratedReport> // made in Revive AI, keyed by property / report id
+  projects: Record<string, CreatedProject> // started in Revive AI, keyed by property / report id
+  handoff: Handoff // how Revive AI hands a finished report/project to its page (3 versions to compare)
+  addReport: (r: GeneratedReport) => void
+  addProject: (p: CreatedProject) => void
+  setHandoff: (h: Handoff) => void
   setTier: (tier: Tier) => void
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
   claimReferral: (propertyId: string) => void
@@ -34,6 +41,8 @@ const initial = () => ({
   crmConnected: false,
   reportGenerated: false,
   license: null as string | null,
+  reports: {} as Record<string, GeneratedReport>,
+  projects: {} as Record<string, CreatedProject>,
 })
 
 const today = () => new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -58,9 +67,18 @@ export const useDemo = create<DemoState>()(
         set((s) => ({ updated: { ...s.updated, [id]: Date.now() }, activity: withActivity(s, id, 'You sent Revive a status update') })),
       connectCrm: () => set({ crmConnected: true }),
       markReportGenerated: () => set({ reportGenerated: true }),
+      addReport: (r) => set((s) => ({ reports: { ...s.reports, [r.id]: r }, reportGenerated: true })),
+      addProject: (p) =>
+        set((s) => ({
+          projects: { ...s.projects, [p.propertyId]: p },
+          stageOverrides: { ...s.stageOverrides, [p.propertyId]: 'project' },
+          activity: withActivity(s, p.propertyId, `You submitted a ${p.product} project`),
+        })),
+      handoff: 'link',
+      setHandoff: (handoff) => set({ handoff }),
       connectLicense: (license) => set({ license }),
-      reset: () => set((s) => ({ ...initial(), tier: s.tier })),
+      reset: () => set((s) => ({ ...initial(), tier: s.tier, handoff: s.handoff })),
     }),
-    { name: 'revive-demo', version: 5, storage: createJSONStorage(() => localStorage), migrate: (s) => s as DemoState },
+    { name: 'revive-demo', version: 6, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, handoff: 'link', ...(s as object) }) as DemoState },
   ),
 )

@@ -25,6 +25,14 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
 - **Revive AI** (top of the sidebar, `/ai`): a chat about any home or anyone in the book. Answers are built
   from the sample data (`src/lib/ai.ts`): home value and upside, ADU fit, who to call, drafted notes.
   There is no separate search or top bar: Revive AI is the way to look anything up.
+- **Guided flows in Revive AI** (`src/lib/flowEngine.ts`, `src/components/ai/FlowSteps.tsx`):
+  *Generate a Revive AI report* (address → confirm details → pick MLS photos / add your own → client questions →
+  report) and *Start a project* (property → product → timeline/occupancy → review → submit). Started from the
+  Home to-dos, the Revive AI starters, or a property page (`/ai?flow=report|project&property=…`).
+- **AI hand-off** (demo bar): where a finished report or project opens. Every result lives on its property page
+  (Overview · Revive AI report · Project · Marketing); the versions differ in how the agent gets there:
+  A · Link (a card in the chat links to the page, which links back), B · Side panel (the page opens beside the
+  chat), C · Docked chat (the page opens and the conversation docks in the corner).
 - New agents start with nothing connected. Try a license number like `02134589` (finds 2 listings) and
   “Connect Follow Up Boss” (adds 12 contacts).
 - Deep links: `/?tier=partner` pins a tier; `?demo=0` hides the demo bar for screenshots (`?demo=1` brings it back).
