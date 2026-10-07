@@ -77,7 +77,9 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
               ) : s.key === 'mls' ? (
                 <LicenseForm inline />
               ) : (
-                <Button onClick={s.onClick}>{s.cta}</Button>
+                <div className="flex justify-end">
+                  <Button onClick={s.onClick}>{s.cta}</Button>
+                </div>
               )}
             </div>
           </div>
