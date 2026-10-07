@@ -12,12 +12,14 @@ interface DemoState {
   referralClockStart: number // exclusivity countdowns run from here
   // A new agent starts with nothing connected; Active and Partner agents are always connected.
   crmConnected: boolean
+  reportGenerated: boolean // first Revive AI report (no connection needed)
   license: string | null // DRE license number; finds the agent's MLS listings and past sales
   setTier: (tier: Tier) => void
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
   claimReferral: (propertyId: string) => void
   markReferralUpdated: (propertyId: string) => void
   connectCrm: () => void
+  markReportGenerated: () => void
   connectLicense: (license: string) => void
   reset: () => void
 }
@@ -30,6 +32,7 @@ const initial = () => ({
   activity: {},
   referralClockStart: Date.now(),
   crmConnected: false,
+  reportGenerated: false,
   license: null as string | null,
 })
 
@@ -54,6 +57,7 @@ export const useDemo = create<DemoState>()(
       markReferralUpdated: (id) =>
         set((s) => ({ updated: { ...s.updated, [id]: Date.now() }, activity: withActivity(s, id, 'You sent Revive a status update') })),
       connectCrm: () => set({ crmConnected: true }),
+      markReportGenerated: () => set({ reportGenerated: true }),
       connectLicense: (license) => set({ license }),
       reset: () => set((s) => ({ ...initial(), tier: s.tier })),
     }),

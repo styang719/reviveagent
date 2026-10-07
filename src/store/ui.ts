@@ -8,6 +8,8 @@ interface UiState {
   crmPick: string | null // CRM connect dialog: null closed, '' = choose a CRM, name = connect that CRM
   openStep: (s: Step | null) => void
   openCrm: (pick: string | null) => void
+  discussOpen: boolean // the 'Discuss a property' request dialog
+  setDiscuss: (open: boolean) => void
   chat: ChatMessage[] // the Revive AI conversation (kept while navigating)
   addChat: (m: ChatMessage) => void
   clearChat: () => void
@@ -18,6 +20,8 @@ export const useUi = create<UiState>((set) => ({
   crmPick: null,
   openStep: (setupOpen) => set({ setupOpen }),
   openCrm: (crmPick) => set({ crmPick }),
+  discussOpen: false,
+  setDiscuss: (discussOpen) => set({ discussOpen }),
   chat: [],
   addChat: (m) => set((s) => ({ chat: [...s.chat, m] })),
   clearChat: () => set({ chat: [] }),

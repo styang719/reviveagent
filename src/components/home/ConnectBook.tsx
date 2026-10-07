@@ -1,4 +1,4 @@
-import { Check, Loader2, Lock } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -156,7 +156,7 @@ type Todo = {
   doneTitle?: string
   hint: string
   done: boolean
-  locked?: boolean
+  onClick?: () => void
   to?: string
   body?: React.ReactNode
 }
@@ -166,16 +166,16 @@ function TodoItem({ t, open, onToggle }: { t: Todo; open: boolean; onToggle?: ()
     <span
       className={cn(
         'mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border-2',
-        t.done ? 'border-ok bg-ok text-white' : t.locked ? 'border-dashed border-line text-faint' : open ? 'border-brand' : 'border-faint',
+        t.done ? 'border-ok bg-ok text-white' : open ? 'border-brand' : 'border-faint',
       )}
       aria-hidden="true"
     >
-      {t.done ? <Check className="size-3" strokeWidth={3.5} /> : t.locked ? <Lock className="size-2.5" /> : null}
+      {t.done && <Check className="size-3" strokeWidth={3.5} />}
     </span>
   )
   const label = (
     <span className="min-w-0 flex-1">
-      <span className={cn('block text-sm font-medium', t.done ? 'text-muted line-through decoration-faint' : t.locked ? 'text-muted' : 'text-ink')}>
+      <span className={cn('block text-sm font-medium', t.done ? 'text-muted line-through decoration-faint' : 'text-ink')}>
         {t.done ? (t.doneTitle ?? t.title) : t.title}
       </span>
       <span className="block text-[12px] text-muted">{t.hint}</span>
@@ -184,7 +184,7 @@ function TodoItem({ t, open, onToggle }: { t: Todo; open: boolean; onToggle?: ()
   const row = 'flex w-full items-start gap-3 rounded-lg px-2 py-2 text-left'
   return (
     <li className={cn('rounded-xl', open && 'bg-head ring-1 ring-line')}>
-      {t.done || t.locked ? (
+      {t.done ? (
         <div className={row}>
           {mark}
           {label}
@@ -194,6 +194,11 @@ function TodoItem({ t, open, onToggle }: { t: Todo; open: boolean; onToggle?: ()
           {mark}
           {label}
         </Link>
+      ) : t.onClick ? (
+        <button type="button" onClick={t.onClick} className={cn(row, 'hover:bg-head')}>
+          {mark}
+          {label}
+        </button>
       ) : (
         <button type="button" onClick={onToggle} aria-expanded={open} className={cn(row, !open && 'hover:bg-head')}>
           {mark}
@@ -212,11 +217,10 @@ export function SetupTodo({ opps }: { opps: Opportunity[] }) {
   const openStep = useUi((s) => s.openStep)
   const listings = opps.filter((o) => o.property.source === 'listings')
   const contacts = opps.filter((o) => o.property.source === 'contacts')
-  const shared = opps.some((o) => o.stage === 'shared' || o.activity.some((a) => a.startsWith('You shared')))
+  const reportGenerated = useDemo((s) => s.reportGenerated)
+  const setDiscuss = useUi((s) => s.setDiscuss)
   const project = opps.some((o) => o.stage === 'project')
-  const firstShare = opps.find((o) => o.cta.kind === 'share')
   const firstListing = opps.find((o) => o.cta.kind === 'propose')
-  const any = crm || mls
 
   const todos: Todo[] = [
     {
@@ -236,20 +240,20 @@ export function SetupTodo({ opps }: { opps: Opportunity[] }) {
       body: <CrmChoices />,
     },
     {
-      id: 'share',
-      title: 'Share your first Revive AI report',
-      hint: any ? 'Send a homeowner what their home could be worth' : 'After you connect your book',
-      done: shared,
-      locked: !any,
-      to: firstShare ? `/property/${firstShare.id}?tab=report` : undefined,
+      id: 'report',
+      title: 'Generate your first Revive AI report',
+      doneTitle: 'First Revive AI report generated',
+      hint: reportGenerated ? 'Done in Revive AI' : 'Any address: value, upside and the right product · 1 min',
+      done: reportGenerated,
+      to: '/ai',
     },
     {
       id: 'project',
       title: 'Start your first project',
-      hint: any ? 'Your first Revive deal' : 'After you connect your book',
+      hint: firstListing ? `Propose Revive on ${firstListing.property.address}` : 'Talk a property through with a Revive advisor',
       done: project,
-      locked: !any,
       to: firstListing ? `/property/${firstListing.id}?tab=project` : undefined,
+      onClick: firstListing ? undefined : () => setDiscuss(true),
     },
   ]
   const done = todos.filter((t) => t.done).length

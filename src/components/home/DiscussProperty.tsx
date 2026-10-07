@@ -3,13 +3,15 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { useUi } from '@/store/ui'
 
 // Header action: talk a property through with a Revive project advisor before committing to anything.
 const PRODUCTS = ['Not sure yet', 'Renovate to Sell', 'Renovate to Stay', 'Sell 360', 'Flip 360']
 const WHEN = ['Today', 'Tomorrow morning', 'Later this week']
 
 export function DiscussProperty() {
-  const [open, setOpen] = useState(false)
+  const open = useUi((s) => s.discussOpen)
+  const setOpen = useUi((s) => s.setDiscuss)
   const [address, setAddress] = useState('')
   const [error, setError] = useState<string | null>(null)
 

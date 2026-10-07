@@ -10,6 +10,7 @@ import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
 import { useConnections, useOpportunities } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
+import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 
 // Revive AI as its own page: a chat about any home or anyone in the agent's book.
@@ -170,6 +171,7 @@ export default function ReviveAI() {
   const clearChat = useUi((s) => s.clearChat)
   const opps = useOpportunities()
   const { crm } = useConnections()
+  const markReportGenerated = useDemo((s) => s.markReportGenerated)
   const [draft, setDraft] = useState('')
   const [thinking, setThinking] = useState(false)
   const endRef = useRef<HTMLDivElement>(null)
@@ -197,7 +199,9 @@ export default function ReviveAI() {
     setDraft('')
     setThinking(true)
     setTimeout(() => {
-      addChat({ id: uid(), role: 'ai', blocks: answer(text, { opps, crm }) })
+      const blocks = answer(text, { opps, crm })
+      if (blocks.some((b) => b.kind === 'property')) markReportGenerated()
+      addChat({ id: uid(), role: 'ai', blocks })
       setThinking(false)
     }, 750)
   }
