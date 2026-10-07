@@ -17,13 +17,13 @@ export const askPath = (q: string) => `/ai?q=${encodeURIComponent(q)}`
 export function ReviveAiIntro() {
   const navigate = useNavigate()
   const [q, setQ] = useState('')
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const prompts = [
     { label: 'Value of 250 Elm St?', q: 'What could 250 Elm St sell for after a Revive project?' },
     { label: 'ADU at 412 Oak Ave?', q: STARTERS[2] },
   ]
-  const submit = (e?: React.FormEvent) => {
-    e?.preventDefault()
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault()
     // nothing typed yet: point them at the box rather than open an empty chat
     if (!q.trim()) return inputRef.current?.focus()
     navigate(askPath(q.trim()))
@@ -44,55 +44,45 @@ export function ReviveAiIntro() {
         </div>
       </div>
 
-      {/* frosted glass box over a slowly drifting AI gradient */}
-      <div className="relative mt-4 flex flex-1 flex-col">
-        <div className="rv-ai-aurora pointer-events-none absolute -inset-x-2 -inset-y-3 rounded-3xl" aria-hidden="true" />
-        {/* one box: the question on top, examples and the button along the bottom */}
-        <form
-          onSubmit={submit}
-          className="relative flex min-h-36 flex-1 flex-col rounded-xl border border-white/80 bg-white/55 p-2 shadow-[0_4px_24px_rgba(27,37,89,0.08)] backdrop-blur-xl transition-shadow focus-within:bg-white/70 focus-within:shadow-[0_8px_32px_rgba(97,0,158,0.16)]"
-        >
-          <label htmlFor="home-ask" className="sr-only">
-            Search any address
-          </label>
-          {/* the box grows to fill the card; there's room to add context after the address */}
-          <div className="flex flex-1 items-start gap-2 px-2 pt-2.5">
-            <Sparkles className="mt-0.5 size-5 shrink-0 text-[#61009e]" aria-hidden="true" />
-            <textarea
+      {/* a single-line search bar on the drifting AI gradient, examples under it; centered in the card */}
+      <div className="flex flex-1 flex-col justify-center gap-3 pt-5">
+        <div className="relative">
+          <div className="rv-ai-aurora pointer-events-none absolute -inset-x-2 -inset-y-3 rounded-3xl" aria-hidden="true" />
+          <form
+            onSubmit={submit}
+            className="relative flex items-center gap-2 rounded-xl border border-white/80 bg-white/60 py-2 pr-2 pl-4 shadow-[0_4px_24px_rgba(27,37,89,0.08)] backdrop-blur-xl transition-shadow focus-within:bg-white/75 focus-within:shadow-[0_8px_32px_rgba(97,0,158,0.16)]"
+          >
+            <label htmlFor="home-ask" className="sr-only">
+              Search any address
+            </label>
+            <Sparkles className="size-5 shrink-0 text-[#61009e]" aria-hidden="true" />
+            <input
               id="home-ask"
               ref={inputRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  submit()
-                }
-              }}
-              rows={2}
               placeholder="Search any address"
               autoComplete="off"
-              className="h-full min-h-12 w-full min-w-0 flex-1 resize-none bg-transparent text-[15px] leading-6 text-ink outline-none placeholder:text-faint"
+              className="h-11 min-w-0 flex-1 truncate bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
             />
-          </div>
-          <div className="mt-2 flex flex-col gap-2 border-t border-white/80 px-1 pt-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
-              {prompts.map((x) => (
-                <Link
-                  key={x.q}
-                  to={askPath(x.q)}
-                  className="rounded-full border border-white/90 bg-white/60 px-2.5 py-1 text-[12.5px] whitespace-nowrap text-ink-2 hover:bg-white hover:text-ink"
-                >
-                  {x.label}
-                </Link>
-              ))}
-            </div>
-            <button type="submit" className="rv-ai-btn flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white">
+            <button type="submit" className="rv-ai-btn flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white">
               <Sparkles className="size-4" />
-              Get insights
+              <span className="max-sm:sr-only">Get insights</span>
             </button>
-          </div>
-        </form>
+          </form>
+        </div>
+        <div className="relative flex flex-wrap items-center gap-1.5">
+          <span className="mr-0.5 text-[12.5px] text-muted">Try</span>
+          {prompts.map((x) => (
+            <Link
+              key={x.q}
+              to={askPath(x.q)}
+              className="rounded-full border border-white/90 bg-white/70 px-2.5 py-1 text-[12.5px] whitespace-nowrap text-ink-2 shadow-sm hover:bg-white hover:text-ink"
+            >
+              {x.label}
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   )
