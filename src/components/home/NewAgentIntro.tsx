@@ -1,10 +1,9 @@
-import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { projectGain, reviveProjects, type ReviveProject } from '@/data/reviveProjects'
 import { STARTERS } from '@/lib/ai'
 import { photoUrl } from '@/lib/assets'
-import { gain, money } from '@/lib/format'
 
 // Context for a brand-new agent, so Home has something useful before anything is connected:
 // what Revive AI does (works with no setup), what Revive has done nearby, and what each part
@@ -89,67 +88,29 @@ export function ReviveAiIntro() {
   )
 }
 
-/** A Revive project as a full-photo card: product and status up top, the result and key details on a dark overlay. */
+/** A Revive project, kept minimal: the photo, what it earned, and where. */
 export function CaseStudy({ p }: { p: ReviveProject }) {
-  const g = projectGain(p)
-  const label = p.status === 'sold' ? 'more than before' : p.status === 'progress' ? 'expected' : 'added value'
-  const details = [
-    `${p.weeks} wk build`,
-    p.daysOnMarket ? `Sold in ${p.daysOnMarket} days` : null,
-    p.offers ? `${p.offers} offers` : null,
-    p.rent ? `${money(p.rent)}/mo rent` : null,
-    !p.daysOnMarket && !p.rent ? p.scope.slice(0, 2).join(' + ') : null,
-  ].filter(Boolean) as string[]
+  const label = p.status === 'sold' ? 'Additional profit' : p.status === 'progress' ? 'Expected profit' : 'Added value'
   return (
     <Link
       to="/case-studies"
-      className="group relative block h-96 overflow-hidden rounded-2xl bg-navy shadow-card focus-visible:ring-4 focus-visible:ring-[var(--brand-primary-border)]"
+      className="group relative block aspect-[9/16] overflow-hidden rounded-2xl bg-navy shadow-card focus-visible:ring-4 focus-visible:ring-[var(--brand-primary-border)]"
     >
       <img src={photoUrl(p.photo)} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0b1430]/95 via-[#0b1430]/35 to-[#0b1430]/10" />
-
-      <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-2">
-        <span className="max-w-[70%] truncate rounded-md bg-white px-2.5 py-1 text-[12px] font-semibold text-ink shadow-sm">{p.product}</span>
-        <span className="rounded-md border border-white/30 bg-white/15 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
-          {p.status === 'sold' ? 'Sold' : p.status === 'progress' ? 'In progress' : 'Complete'}
-        </span>
-      </div>
-
-      <div className="absolute inset-x-4 bottom-4 text-white">
-        <p className="text-[32px] leading-9 font-semibold tracking-tight tabular-nums">{gain(g)}</p>
-        <p className="text-[13px] text-white/75">{label}</p>
-        <div className="mt-3 flex items-end justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-[15px] font-semibold">{p.block}</p>
-            <p className="text-[12px] text-white/70">
-              {p.city} · {p.when}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {details.slice(0, 3).map((d) => (
-                <span key={d} className="rounded-full border border-white/25 bg-white/10 px-2 py-0.5 text-[11.5px] backdrop-blur-sm">
-                  {d}
-                </span>
-              ))}
-            </div>
-          </div>
-          <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white text-ink shadow-md transition-transform group-hover:rotate-45">
-            <ArrowUpRight className="size-5" />
-          </span>
+      <div className="absolute inset-x-3 bottom-3 rounded-xl bg-[#0b1430]/55 p-4 text-white backdrop-blur-md">
+        <p className="text-[12.5px] font-medium text-[#7ff0d6]">{label}</p>
+        <p className="mt-0.5 text-[26px] leading-8 font-semibold tracking-tight tabular-nums">${projectGain(p).toLocaleString('en-US')}</p>
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/20 pt-3">
+          <span className="truncate text-[14px]">{p.city}</span>
+          <ArrowRight className="size-5 shrink-0 transition-transform group-hover:translate-x-0.5" />
         </div>
       </div>
     </Link>
   )
 }
 
-/** Proof: recent Revive projects near the agent's office, in a scrollable carousel. */
+/** Proof: recent Revive projects near the agent's office, drifting by slowly in an endless row. */
 export function CaseStudies() {
-  const track = useRef<HTMLDivElement>(null)
-  const scroll = (dir: 1 | -1) => {
-    const el = track.current
-    if (!el) return
-    const card = el.querySelector('li')
-    el.scrollBy({ left: dir * ((card?.clientWidth ?? 300) + 16), behavior: 'smooth' })
-  }
   return (
     <section aria-labelledby="cases-title">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -159,30 +120,25 @@ export function CaseStudies() {
           </h2>
           <p className="mt-1.5 text-[13px] text-muted">Recent projects around Pasadena. Revive covers the work until the home sells.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link to="/case-studies" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-            View all {reviveProjects.length} <ArrowRight className="size-3.5" />
-          </Link>
-          <div className="flex gap-1.5">
-            <button onClick={() => scroll(-1)} className="grid size-9 place-items-center rounded-full border border-line bg-white text-ink-2 hover:bg-head" aria-label="Previous projects">
-              <ChevronLeft className="size-4" />
-            </button>
-            <button onClick={() => scroll(1)} className="grid size-9 place-items-center rounded-full border border-line bg-white text-ink-2 hover:bg-head" aria-label="More projects">
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
+        <Link to="/case-studies" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
+          View all {reviveProjects.length} <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+      {/* the row is drawn twice and moves left by one copy, at the same pace as the listings example */}
+      <div className="rv-fade-x rv-marquee-x -mx-1 overflow-hidden px-1">
+        <div className="rv-marquee-x-track flex w-max">
+          {[0, 1].map((copy) => (
+            <ul key={copy} className="flex gap-4 pr-4" aria-hidden={copy === 1 || undefined}>
+              {reviveProjects.map((p) => (
+                <li key={p.id} className="w-56 shrink-0 sm:w-60">
+                  <CaseStudy p={p} />
+                </li>
+              ))}
+            </ul>
+          ))}
         </div>
       </div>
-      <div ref={track} className="-mx-1 snap-x snap-mandatory overflow-x-auto px-1 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <ul className="flex gap-4">
-          {reviveProjects.map((p) => (
-            <li key={p.id} className="w-[min(300px,80%)] shrink-0 snap-start sm:w-[calc((100%-2rem)/2.4)]">
-              <CaseStudy p={p} />
-            </li>
-          ))}
-        </ul>
-      </div>
-      <p className="mt-1 text-[11px] text-faint">Sample projects; photos are illustrative.</p>
+      <p className="mt-2 text-[11px] text-faint">Sample projects; photos are illustrative.</p>
     </section>
   )
 }

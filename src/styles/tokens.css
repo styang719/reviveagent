@@ -355,3 +355,9 @@
   mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
 }
 @media (prefers-reduced-motion: reduce) { .rv-marquee-y-track { animation: none; } }
+
+/* case studies on Home: an endless sideways drift, same pace as the listings example */
+.rv-marquee-x-track { animation: rv-marquee-x 48s linear infinite; }
+.rv-marquee-x:hover .rv-marquee-x-track { animation-play-state: paused; }
+@keyframes rv-marquee-x { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .rv-marquee-x-track { animation: none; } }
