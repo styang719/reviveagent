@@ -1,5 +1,6 @@
 import { ArrowRight, FileText, Hammer, Handshake, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { AiLink } from '@/components/ai/AiLink'
 import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
@@ -67,9 +68,9 @@ function Section({
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-line px-5 py-4">
           <p className="text-[13.5px] text-ink-2">{empty.text}</p>
           <Button size="sm" variant="outline" asChild>
-            <Link to={empty.to}>
+            <AiLink to={empty.to}>
               <Sparkles /> {empty.cta}
-            </Link>
+            </AiLink>
           </Button>
         </div>
       )}
@@ -137,9 +138,9 @@ export default function Properties() {
           <p className="mt-1 text-[15px] text-ink-2">Every home you’re working on with Revive. Each one has its own page with the report, project and marketing.</p>
         </div>
         <Button asChild>
-          <Link to="/ai?flow=report">
+          <AiLink to="/ai?flow=report">
             <FileText /> New Revive AI report
-          </Link>
+          </AiLink>
         </Button>
       </div>
       <div className="mt-2">

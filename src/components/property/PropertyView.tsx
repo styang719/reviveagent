@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { SourceTag, StageTag } from '@/components/opportunity/Tags'
+import { AiLink } from '@/components/ai/AiLink'
 import { Button } from '@/components/ui/button'
 import { properties } from '@/data/properties'
 import type { Comp, ProjectState, Scenario } from '@/data/types'
@@ -114,9 +115,9 @@ export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab
               </Button>
             ) : (
               <Button size="sm" asChild>
-                <Link to={aiPath('project', m)}>
+                <AiLink to={aiPath('project', m)}>
                   <Hammer /> Start a project
-                </Link>
+                </AiLink>
               </Button>
             )}
             <Button size="sm" variant="outline" onClick={() => toast.success('Report link copied', { description: 'Branded with your name. You’ll see when it’s opened.' })}>
@@ -219,9 +220,9 @@ function Report({ m, compact }: { m: Model; compact: boolean }) {
         </p>
         {!r && (
           <Button size="sm" asChild>
-            <Link to={aiPath('report', m)}>
+            <AiLink to={aiPath('report', m)}>
               Generate the full report <ArrowRight />
-            </Link>
+            </AiLink>
           </Button>
         )}
       </div>
@@ -326,9 +327,9 @@ function Project({ m }: { m: Model }) {
         ))}
       </ol>
       <Button size="sm" className="mt-4" asChild>
-        <Link to={aiPath('project', m)}>
+        <AiLink to={aiPath('project', m)}>
           <Hammer /> Start a project with Revive AI
-        </Link>
+        </AiLink>
       </Button>
     </div>
   )

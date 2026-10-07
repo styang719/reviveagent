@@ -8,8 +8,8 @@ import { QrCode } from './QrCode'
 
 const NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/opportunities', label: 'Opportunities', icon: Target },
   { to: '/properties', label: 'Properties', icon: Building2 },
+  { to: '/opportunities', label: 'Opportunities', icon: Target },
   { to: '/marketing', label: 'Marketing', icon: Megaphone },
   { to: '/inbox', label: 'Inbox', icon: Inbox, badge: 8 },
 ]

@@ -36,7 +36,8 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
   sections: Discussing with Revive (submitted projects), In construction, and Revive AI reports. Each opens its
   property page.
 - **Conversations**: every CTA that opens Revive AI with context (a Home to-do, Ask Revive, Start a project on a
-  property) starts a new conversation. Earlier ones are listed on the Revive AI page, ChatGPT style, named by
+  property) starts a new conversation in the docked chat, without leaving the page; its expand button opens the
+  full Revive AI page. Earlier ones are listed on the Revive AI page, ChatGPT style, named by
   what they're about (e.g. “Report · 55 Fair Oaks Ave”), and can be reopened or deleted. Kept for the browser
   session; Reset demo clears them.
 - New agents start with nothing connected. Try a license number like `02134589` (finds 2 listings) and

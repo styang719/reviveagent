@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
+import { startProject, startReport } from '@/lib/flowEngine'
 import { Composer, Thread, useAsk } from './Chat'
 
 // The conversation follows the agent: when Revive AI opens a result page, the chat docks in the
@@ -19,6 +20,25 @@ export function DockedChat() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { ask, thinking } = useAsk()
+  const aiRequest = useUi((s) => s.aiRequest)
+  const clearAiRequest = useUi((s) => s.clearAiRequest)
+
+  // a CTA asked Revive AI to start something: a fresh conversation, right here in the dock
+  useEffect(() => {
+    if (!aiRequest) return
+    clearAiRequest()
+    const params = new URLSearchParams(aiRequest.path.split('?')[1] ?? '')
+    const ui = useUi.getState()
+    if (ui.chat.length) ui.clearChat()
+    const flow = params.get('flow')
+    const property = params.get('property') ?? undefined
+    const address = params.get('address') ?? undefined
+    if (flow === 'report') startReport({ propertyId: property, address })
+    else if (flow === 'project') startProject({ propertyId: property })
+    else if (params.get('q')) ask(params.get('q')!)
+    setOpen(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiRequest])
 
   // a finished report/project in version C opens its page; the chat comes along, expanded
   useEffect(() => {

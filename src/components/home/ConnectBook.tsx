@@ -1,6 +1,5 @@
 import { Check, Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
@@ -10,6 +9,7 @@ import { useConnections, type Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
+import { AiLink } from '@/components/ai/AiLink'
 
 // New agents connect two sources: the license number (listings and past sales on the MLS) and the
 // CRM (contacts). Each is its own to-do (different systems, different consent); either can go first,
@@ -193,10 +193,10 @@ function TodoItem({ t, open, onToggle }: { t: Todo; open: boolean; onToggle?: ()
           {label}
         </div>
       ) : t.to ? (
-        <Link to={t.to} className={cn(row, 'hover:bg-head')}>
+        <AiLink to={t.to} className={cn(row, 'hover:bg-head')}>
           {mark}
           {label}
-        </Link>
+        </AiLink>
       ) : t.onClick ? (
         <button type="button" onClick={t.onClick} className={cn(row, 'hover:bg-head')}>
           {mark}

@@ -1,6 +1,8 @@
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { AiLink } from '@/components/ai/AiLink'
+import { useUi } from '@/store/ui'
 import { projectGain, reviveProjects, type ReviveProject } from '@/data/reviveProjects'
 import { STARTERS } from '@/lib/ai'
 import { photoUrl } from '@/lib/assets'
@@ -13,7 +15,7 @@ export const askPath = (q: string) => `/ai?q=${encodeURIComponent(q)}`
 
 /** Revive AI works on day one: no CRM or license needed. Asking here opens the Revive AI page. */
 export function ReviveAiIntro() {
-  const navigate = useNavigate()
+  const requestAi = useUi((s) => s.requestAi)
   const [q, setQ] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const prompts = [
@@ -24,7 +26,8 @@ export function ReviveAiIntro() {
     e.preventDefault()
     // nothing typed yet: point them at the box rather than open an empty chat
     if (!q.trim()) return inputRef.current?.focus()
-    navigate(askPath(q.trim()))
+    requestAi(askPath(q.trim()))
+    setQ('')
   }
   return (
     <section aria-labelledby="ai-intro" className="rv-ai-card h-full rounded-2xl p-6 shadow-card sm:p-7">
@@ -68,13 +71,13 @@ export function ReviveAiIntro() {
           <div className="mt-1.5 flex flex-col gap-2 border-t border-white/80 px-1 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
               {prompts.map((x) => (
-                <Link
+                <AiLink
                   key={x.q}
                   to={askPath(x.q)}
                   className="rounded-full border border-white/90 bg-white/60 px-2.5 py-1 text-[12.5px] whitespace-nowrap text-ink-2 hover:bg-white hover:text-ink"
                 >
                   {x.label}
-                </Link>
+                </AiLink>
               ))}
             </div>
             <button type="submit" className="rv-ai-btn flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white">
