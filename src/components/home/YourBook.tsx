@@ -23,7 +23,7 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
       icon: HomeIcon,
       title: 'Your listings',
       from: 'from the MLS',
-      body: 'See which listings would sell faster, or for more, with Revive. Takes 30 seconds.',
+      body: 'See which listings would sell faster, or for more, with Revive.',
       done: conn.mls,
       result: `${plural(listings, 'active listing')} found`,
       cta: 'Add license number',
