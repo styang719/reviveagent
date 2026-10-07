@@ -1,10 +1,10 @@
-import { Maximize2, Minus, Sparkles } from 'lucide-react'
+import { MapPin, Maximize2, Minus, Sparkles } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 import { startProject, startReport } from '@/lib/flowEngine'
-import { Composer, Thread, useAsk } from './Chat'
+import { Composer, Thread, useAsk, useHereCtx } from './Chat'
 
 // The conversation follows the agent: when Revive AI opens a result page, the chat docks in the
 // corner so they can keep asking ("add a kitchen scenario", "start a project from this") without
@@ -20,6 +20,7 @@ export function DockedChat() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { ask, thinking } = useAsk()
+  const here = useHereCtx()
   const aiRequest = useUi((s) => s.aiRequest)
   const clearAiRequest = useUi((s) => s.clearAiRequest)
 
@@ -48,7 +49,17 @@ export function DockedChat() {
     navigate(pendingNav, { state: { fromAi: true } })
   }, [pendingNav, setPendingNav, setOpen, navigate])
 
-  if (handoff !== 'dock' || !hasChat || pathname === '/ai') return null
+  // on a property page the dock is always there, ready to answer about that home
+  if (handoff !== 'dock' || (!hasChat && !here) || pathname === '/ai') return null
+  const starters = here
+    ? [
+        `What could ${here.label} sell for after a renovation?`,
+        'Is there room for an ADU?',
+        'Compare the Revive scenarios',
+        here.ctx.person ? `Draft a note to ${here.ctx.person.name.split(' ')[0]} about this home` : 'Draft a note to the homeowner',
+        'Start a project on this home',
+      ]
+    : []
 
   if (!open)
     return (
@@ -59,7 +70,7 @@ export function DockedChat() {
         <span className="rv-ai-tile grid size-8 place-items-center rounded-full text-white">
           <Sparkles className="size-4" />
         </span>
-        <span className="max-w-64 truncate">Revive AI · {title ?? 'continue the conversation'}</span>
+        <span className="max-w-64 truncate">{hasChat ? `Revive AI · ${title ?? 'continue the conversation'}` : `Ask Revive about ${here?.label}`}</span>
       </button>
     )
 
@@ -73,7 +84,7 @@ export function DockedChat() {
           <span className="rv-ai-tile grid size-6 shrink-0 place-items-center rounded-md text-white">
             <Sparkles className="size-3.5" />
           </span>
-          <span className="truncate">{title ?? 'Revive AI'}</span>
+          <span className="truncate">{hasChat ? (title ?? 'Revive AI') : `Revive AI · ${here?.label}`}</span>
         </p>
         <div className="flex items-center gap-1">
           <Link to="/ai" className="grid size-8 place-items-center rounded-md text-muted hover:bg-white" aria-label="Open in Revive AI, with all your conversations">
@@ -85,9 +96,32 @@ export function DockedChat() {
         </div>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <Thread onAsk={ask} thinking={thinking} compact />
+        {hasChat ? (
+          <Thread onAsk={ask} thinking={thinking} compact />
+        ) : (
+          <div>
+            <p className="text-[14px] font-semibold text-ink">Ask anything about {here?.label}</p>
+            <p className="mt-1 text-[12.5px] text-ink-2">Its value, the Revive scenarios, ADU room, a note to the owner, or start a project.</p>
+            <div className="mt-4 flex flex-col gap-2">
+              {starters.map((x) => (
+                <button
+                  key={x}
+                  onClick={() => ask(x)}
+                  className="rounded-xl border border-line bg-white px-3 py-2.5 text-left text-[13px] text-ink-2 hover:border-[var(--brand-agent-border)] hover:text-ink"
+                >
+                  {x}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       <div className="border-t border-line p-3">
+        {here && (
+          <p className="mb-2 flex items-center gap-1.5 px-1 text-[11.5px] text-muted">
+            <MapPin className="size-3" /> Asking about {here.label}
+          </p>
+        )}
         <Composer onAsk={ask} disabled={thinking} compact />
       </div>
     </section>

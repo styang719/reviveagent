@@ -1,4 +1,5 @@
 import { ArrowLeft, Sparkles } from 'lucide-react'
+import { useEffect } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { PropertyView, usePropertyModel, type PropertyTab } from '@/components/property/PropertyView'
 import { PAGE } from '@/lib/utils'
@@ -18,6 +19,16 @@ export default function Property() {
   const tabParam = params.get('tab') as PropertyTab | null
   const tab: PropertyTab = tabParam && TABS.includes(tabParam) ? tabParam : 'report'
   const fromAi = !!(location.state as { fromAi?: boolean } | null)?.fromAi
+
+  // tell Revive AI which home this is, so the docked chat can answer about it
+  const setHere = useUi((s) => s.setHere)
+  const hereKey = m ? `${m.id}|${m.address}|${m.city}` : ''
+  useEffect(() => {
+    if (!hereKey) return
+    const [hid, address, city] = hereKey.split('|')
+    setHere({ id: hid, address, city })
+    return () => setHere(null)
+  }, [hereKey, setHere])
 
   if (!m) return <Placeholder title="Property not found" intro="It may not be visible at this tier. Try switching the demo tier." phase={2} />
 

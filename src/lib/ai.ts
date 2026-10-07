@@ -60,10 +60,22 @@ export const STARTERS = [
   'Draft a note to Maya about her home’s value',
 ]
 
+/** The property page the agent is on, so "what's it worth?" or "draft a note" mean this home. */
+export interface HereCtx {
+  property?: Property // set when the home is in the sample data
+  person?: Person // its owner, when visible
+  address: string // "33 Fair Oaks Ave, Pasadena"
+  block: Extract<Block, { kind: 'property' }>
+  scenarios: { product: string; note: string; gain: number | null }[]
+}
+
 interface Ctx {
   opps: Opportunity[] // what this agent can see (tier + connections)
   crm: boolean
+  here?: HereCtx
 }
+
+const STREET = /\b\d+\s+[a-z][a-z ]*?\b(st|street|ave|avenue|blvd|dr|drive|rd|road|ln|lane|ct|court|pl|place|way)\b\.?/i
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim()
 
@@ -137,12 +149,19 @@ function sampleBlock(address: string): Block {
 export function answer(q: string, ctx: Ctx): Block[] {
   const t = norm(q)
   const visiblePeople = people.filter((p) => ctx.opps.some((o) => o.person?.id === p.id))
-  const person = findPerson(q, visiblePeople)
-  const home = findProperty(q) ?? (person ? ctx.opps.find((o) => o.person?.id === person.id)?.property : undefined)
+  // on a property page, a question that names no other home or person is about this one
+  const named = findPerson(q, visiblePeople)
+  const otherHome = findProperty(q) ?? (STREET.test(q) ? 'other' : undefined)
+  const here = !named && !otherHome ? ctx.here : undefined
+  const person = named ?? here?.person
+  const home = findProperty(q) ?? (named ? ctx.opps.find((o) => o.person?.id === named.id)?.property : undefined) ?? here?.property
   const wantsDraft = /\b(draft|write|note|email|text|message)\b/.test(t)
 
   // "Draft a note to Maya …"
   if (wantsDraft) {
+    if (!person && here) {
+      return [{ kind: 'text', text: `I don’t know who owns ${here.address.split(',')[0]} yet. Tell me their name, like “Draft a note to Alex Rivera about this home”, or connect your CRM so I can find them.` }]
+    }
     if (!person) {
       if (!ctx.crm) return [{ kind: 'text', text: 'I can draft notes to your contacts once your CRM is connected.' }, { kind: 'connect', need: 'crm' }]
       return [{ kind: 'text', text: 'Who should it go to? Name someone in your book, like “Draft a note to Natalie”.' }]
@@ -169,6 +188,13 @@ export function answer(q: string, ctx: Ctx): Block[] {
 
   // An address or a person in the book
   if (home) {
+    const ranked = home.scenarios.filter((x) => x.gain).sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))
+    if (/compar|scenario|option|which product|best product/.test(t) && ranked.length) {
+      return [
+        { kind: 'text', text: `Revive’s scenarios for ${home.address}, best first:` },
+        { kind: 'text', text: ranked.map((x) => `• ${x.product}: ${gain(x.gain!)} — ${x.note}`).join('\n') },
+      ]
+    }
     const blocks: Block[] = []
     if (/\badu\b|granny|second unit|back ?house/.test(t)) blocks.push({ kind: 'text', text: aduFit(home) })
     else blocks.push({ kind: 'text', text: `Here’s what Revive sees at ${home.address}.` })
@@ -182,8 +208,32 @@ export function answer(q: string, ctx: Ctx): Block[] {
     return blocks
   }
 
+  // This page's home, when it isn't in the sample data (a report generated in Revive AI)
+  if (here) {
+    const ranked = [...here.scenarios].filter((x) => x.gain).sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))
+    const street = here.address.split(',')[0]
+    if (/\badu\b|granny|second unit|back ?house/.test(t)) {
+      const adu = ranked.find((x) => /adu/i.test(x.product))
+      return [
+        {
+          kind: 'text',
+          text: adu
+            ? `Likely yes. The report has an ADU scenario for ${street}: ${adu.product} adds about ${gain(adu.gain!)} (${adu.note.toLowerCase()}).`
+            : `The report doesn’t include an ADU scenario for ${street}. That usually means the lot is too tight; I’d confirm with the city before promising one.`,
+        },
+      ]
+    }
+    if (/compar|scenario|option|product|which|best/.test(t) && ranked.length) {
+      return [
+        { kind: 'text', text: `Revive’s scenarios for ${street}, best first:` },
+        { kind: 'text', text: ranked.map((x) => `• ${x.product}: ${gain(x.gain!)} — ${x.note}`).join('\n') },
+      ]
+    }
+    return [{ kind: 'text', text: `Here’s what Revive sees at ${street}.` }, here.block]
+  }
+
   // An address we don't have: sample estimate
-  const street = /\b\d+\s+[a-z][a-z ]*?\b(st|street|ave|avenue|blvd|dr|drive|rd|road|ln|lane|ct|court|pl|place|way)\b\.?/i.exec(q)
+  const street = STREET.exec(q)
   if (street) {
     // a city only if it follows a comma and is capitalised: "…Blvd, Pasadena"
     const city = /^,\s*([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)/.exec(q.slice(street.index + street[0].length))

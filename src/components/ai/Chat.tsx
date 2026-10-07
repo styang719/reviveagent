@@ -1,13 +1,15 @@
 import { ArrowRight, ArrowUp, Copy, MapPin } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Estimate, Reasons } from '@/components/opportunity/OpportunityCard'
 import { UrgencyTag } from '@/components/opportunity/Tags'
 import { Button } from '@/components/ui/button'
-import { answer, runAiPath, type Block, type ChatMessage } from '@/lib/ai'
+import { usePropertyModel } from '@/components/property/PropertyView'
+import { properties } from '@/data/properties'
+import { answer, runAiPath, type Block, type ChatMessage, type HereCtx } from '@/lib/ai'
 import { photoUrl } from '@/lib/assets'
-import { flowInput } from '@/lib/flowEngine'
+import { flowInput, startProject, startReport } from '@/lib/flowEngine'
 import { suggestAddresses } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
 import { useConnections, useOpportunities } from '@/lib/opportunities'
@@ -142,7 +144,7 @@ function Blocks({ blocks, onAsk, answered }: { blocks: Block[]; onAsk: (q: strin
   return (
     <div className="flex flex-col gap-3">
       {blocks.map((b, i) => {
-        if (b.kind === 'text') return <p key={i} className="text-[15px] leading-6 text-ink">{b.text}</p>
+        if (b.kind === 'text') return <p key={i} className="text-[15px] leading-6 whitespace-pre-line text-ink">{b.text}</p>
         if (b.kind === 'property') return <PropertyBlock key={i} b={b} />
         if (b.kind === 'opps') return <OppsBlock key={i} ids={b.ids} />
         if (b.kind === 'draft') return <DraftBlock key={i} b={b} />
@@ -171,20 +173,60 @@ function Blocks({ blocks, onAsk, answered }: { blocks: Block[]; onAsk: (q: strin
 
 
 /** Ask Revive AI: free questions get an answer; while a guided flow waits for an address, it goes to the flow. */
+const STREET_IN = /\b\d+\s+[a-z]+/i
+
+/** What Revive AI knows about the property page the agent is on, if any. */
+export function useHereCtx() {
+  const here = useUi((s) => s.here)
+  const m = usePropertyModel(here?.id ?? '__none', here?.id === 'new' ? `${here.address}, ${here.city}` : undefined)
+  return useMemo(() => {
+    if (!here || !m) return null
+    const known = properties.find((p) => p.id === m.id)
+    const best = [...m.scenarios].sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))[0]
+    const ctx: HereCtx = {
+      property: known,
+      person: m.opp?.person,
+      address: `${m.address}, ${m.city}`,
+      scenarios: m.scenarios,
+      block: {
+        kind: 'property',
+        propertyId: known ? m.id : undefined,
+        address: m.address,
+        city: m.city,
+        photo: known?.photo,
+        facts: m.facts,
+        valueNow: m.valueNow,
+        valueLo: m.valueLo,
+        valueHi: m.valueHi,
+        gain: best?.gain ?? 0,
+        product: best?.product ?? 'Renovate to Sell',
+        sample: false,
+      },
+    }
+    return { id: m.id, known: !!known, hasReport: !!m.report, label: m.address, ctx }
+  }, [here, m])
+}
+
 export function useAsk() {
   const addChat = useUi((s) => s.addChat)
   const opps = useOpportunities()
   const { crm } = useConnections()
   const markReportGenerated = useDemo((s) => s.markReportGenerated)
   const [thinking, setThinking] = useState(false)
+  const here = useHereCtx()
   const ask = (q: string) => {
     const text = q.trim()
     if (!text || thinking) return
     if (flowInput(text)) return
+    // on a property page, "start a project" or "generate the report" act on this home
+    if (here && !STREET_IN.test(text)) {
+      if (/\b(start|begin|create|submit|kick off)\b.*\bproject\b/i.test(text)) return startProject({ propertyId: here.id })
+      if (/\b(generate|run|create|make|full)\b.*\breport\b/i.test(text) && !here.hasReport) return startReport({ propertyId: here.known ? here.id : undefined, address: here.known ? undefined : here.ctx.address })
+    }
     addChat({ id: uid(), role: 'user', text })
     setThinking(true)
     setTimeout(() => {
-      const blocks = answer(text, { opps, crm })
+      const blocks = answer(text, { opps, crm, here: here?.ctx })
       if (blocks.some((b) => b.kind === 'property')) markReportGenerated()
       addChat({ id: uid(), role: 'ai', blocks })
       setThinking(false)
@@ -233,6 +275,7 @@ export function Composer({ onAsk, disabled, autoFocus = false, compact = false }
   const [active, setActive] = useState(0)
   const [dismissed, setDismissed] = useState(false)
   const awaiting = useUi((s) => s.flow?.awaiting)
+  const hereAddr = useUi((s) => s.here?.address)
   const ref = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
     if (autoFocus || awaiting) ref.current?.focus()
@@ -322,7 +365,7 @@ export function Composer({ onAsk, disabled, autoFocus = false, compact = false }
           aria-activedescendant={open ? `${listId}-${active}` : undefined}
           aria-autocomplete={awaiting === 'address' ? 'list' : undefined}
           autoComplete="off"
-          placeholder={awaiting === 'address' ? 'Start typing the address' : 'Ask Revive AI anything'}
+          placeholder={awaiting === 'address' ? 'Start typing the address' : hereAddr && compact ? `Ask about ${hereAddr}` : 'Ask Revive AI anything'}
           className={cn('max-h-40 min-h-10 flex-1 resize-none bg-transparent py-2 text-ink outline-none placeholder:text-faint', compact ? 'text-sm' : 'text-[15px]')}
         />
         <button type="submit" disabled={!draft.trim() || disabled} className="rv-ai-btn grid size-10 shrink-0 place-items-center rounded-xl text-white disabled:opacity-40" aria-label="Send">

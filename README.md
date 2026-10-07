@@ -34,6 +34,9 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
   versions were explored and set aside; the code paths remain behind `handoff` in the demo store.)
 - **Properties** (`/properties`, was Projects): every home the agent is working on with Revive, in two
   sections: Revive projects (open the Project tab) and Revive AI reports (open the report tab).
+- **Page context**: on a property page the docked chat is always available ("Ask Revive about …") and answers
+  about that home: its value, the Revive scenarios, ADU room, a note to the owner, or starting a project or the
+  full report. Naming another address or person still works.
 - **Conversations**: every CTA that opens Revive AI with context (a Home to-do, Ask Revive, Start a project on a
   property) starts a new conversation in the docked chat, without leaving the page; its expand button opens the
   full Revive AI page. Earlier ones are listed on the Revive AI page, ChatGPT style, named by
