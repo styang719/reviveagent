@@ -1,4 +1,4 @@
-import { AlarmClock, CircleDollarSign, Eye, UserRound, CircleAlert, Clock, Hammer, Home as HomeIcon, TrendingDown, TriangleAlert, Warehouse } from 'lucide-react'
+import { AlarmClock, CircleDollarSign, Eye, UserRound, CircleAlert, Clock, Hammer, TrendingDown, TriangleAlert, Warehouse } from 'lucide-react'
 import { photoUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
 
@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 // Both cards read the same way: who or what → the one number that matters → why now →
 // the Revive opportunities.
 
-function Sample({ label, banner, children }: { label: string; banner: string; children: React.ReactNode }) {
+function Sample({ label, banner, flush = false, children }: { label: string; banner: string; flush?: boolean; children: React.ReactNode }) {
   return (
     <div role="img" aria-label={label} className="flex h-full flex-col overflow-hidden rounded-xl border border-line bg-white shadow-card">
       {/* the banner says up front that this is an example, not real data */}
@@ -17,7 +17,7 @@ function Sample({ label, banner, children }: { label: string; banner: string; ch
       >
         <Eye className="size-3.5 text-muted" /> {banner}
       </p>
-      <div aria-hidden="true" className="flex flex-1 flex-col gap-4 p-4">
+      <div aria-hidden="true" className={cn('flex flex-1 flex-col', !flush && 'gap-4 p-4')}>
         {children}
       </div>
     </div>
@@ -60,7 +60,7 @@ function Tag({ icon: Icon, tone, children }: { icon: typeof Clock; tone: 'agent'
     teal: 'bg-[var(--teal-soft)] text-[var(--green)]',
   }
   return (
-    <span className={cn('inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11.5px] font-medium', tones[tone])}>
+    <span className={cn('inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11.5px] font-medium whitespace-nowrap', tones[tone])}>
       <Icon className="size-3" /> {children}
     </span>
   )
@@ -76,47 +76,53 @@ function Why({ icon: Icon, children }: { icon: typeof Clock; children: React.Rea
   )
 }
 
-/** One of your listings, read by Revive. */
+const LISTINGS = [
+  { photo: 'comp-100-0', address: '123 Sample St', days: 47, after: '$1.39M', gain: '+$210K', tag: { icon: Hammer, tone: 'agent', text: 'Renovate to Sell' } },
+  { photo: 'comp-111-2', address: '456 Example Ave', days: 63, after: '$1.81M', gain: '+$290K', tag: { icon: TrendingDown, tone: 'warn', text: 'Stale listing' } },
+  { photo: 'comp-104-0', address: '789 Sample Ln', days: 21, after: '$965K', gain: '+$95K', tag: { icon: CircleDollarSign, tone: 'teal', text: 'More commission' } },
+  { photo: 'comp-105-2', address: '12 Example Ct', days: 9, after: '$1.01M', gain: '+$25K', tag: null },
+] as const
+
+/** Your listings, read by Revive: a list, ranked by upside. */
 export function ListingExample() {
   return (
     <Sample
-      banner="Example of your listing"
-      label="Example with sample data: one of your listings. Worth $1.39M after a Revive project, $210K more than today's $1.18M. 47 days on market with 1 price cut. Revive opportunities: Renovate to Sell, stale listing, more commission."
+      flush
+      banner="Example of your listings"
+      label="Example with sample data: four of your listings with the value Revive could add. 123 Sample St, $1.39M after Revive, up $210K, Renovate to Sell. 456 Example Ave, $1.81M, up $290K, stale listing. 789 Sample Ln, $965K, up $95K, more commission. 12 Example Ct, on track. $595K potential across 3 listings."
     >
-      <Who
-        img={photoUrl('comp-100-0')}
-        name="123 Sample St"
-        sub="Anytown, CA"
-        badge={
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-line-soft px-2 py-0.5 text-[11px] font-medium text-ink-2">
-            <HomeIcon className="size-3" /> Your listing
-          </span>
-        }
-      />
-
-      {/* the number that matters */}
-      <div>
-        <p className="text-[11.5px] text-muted">Value after Revive</p>
-        <p className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
-          <span className="text-[26px] leading-8 font-semibold text-ink tabular-nums">$1.39M</span>
-          <span className="rounded-full bg-ok-soft px-2 py-0.5 text-[12px] font-semibold text-[var(--green)] tabular-nums">+$210K</span>
-        </p>
-        <p className="mt-0.5 text-[12px] text-muted tabular-nums">$1.18M today</p>
+      <div className="flex items-center justify-between gap-2 px-4 pt-3 pb-1.5 text-[10.5px] font-semibold tracking-wide text-muted uppercase">
+        <span>Listing</span>
+        <span>After Revive</span>
       </div>
-
-      <Why icon={Clock}>47 days on market and 1 price cut. Comparable refreshed homes sold in about 3 weeks.</Why>
-
-      <Opportunities>
-        <Tag icon={Hammer} tone="agent">
-          Renovate to Sell
-        </Tag>
-        <Tag icon={TrendingDown} tone="warn">
-          Stale listing
-        </Tag>
-        <Tag icon={CircleDollarSign} tone="teal">
-          More commission
-        </Tag>
-      </Opportunities>
+      <ul className="@container divide-y divide-line">
+        {LISTINGS.map((l) => (
+          <li key={l.address} className="flex items-center gap-3 px-4 py-2.5">
+            <img src={photoUrl(l.photo)} alt="" className="hidden size-10 shrink-0 rounded-lg object-cover @[18rem]:block" />
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <p className="truncate text-[13.5px] font-semibold text-ink">{l.address}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                {l.tag ? (
+                  <Tag icon={l.tag.icon} tone={l.tag.tone}>
+                    {l.tag.text}
+                  </Tag>
+                ) : (
+                  <span className="text-[11.5px] text-muted">On track</span>
+                )}
+                <span className={cn('text-[11.5px] tabular-nums', l.days > 30 ? 'text-hot' : 'text-muted')}>{l.days} days</span>
+              </div>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="text-[14px] font-semibold text-ink tabular-nums">{l.after}</p>
+              <p className={cn('text-[11.5px] font-semibold tabular-nums', l.tag ? 'text-[var(--green)]' : 'text-muted')}>{l.gain}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-auto flex flex-wrap items-center justify-between gap-x-2 border-t border-line bg-[var(--brand-primary-subtle)]/50 px-4 py-2.5 text-[12.5px] text-ink-2">
+        <span className="whitespace-nowrap">3 Revive opportunities</span>
+        <span className="font-semibold whitespace-nowrap text-[var(--green)] tabular-nums">+$595K potential</span>
+      </p>
     </Sample>
   )
 }
