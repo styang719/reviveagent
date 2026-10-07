@@ -29,7 +29,7 @@ export function ReviveAiIntro() {
     navigate(askPath(q.trim()))
   }
   return (
-    <section aria-labelledby="ai-intro" className="rv-ai-card flex h-full flex-col rounded-2xl p-5 shadow-card sm:p-6">
+    <section aria-labelledby="ai-intro" className="rv-ai-card h-full rounded-2xl p-5 shadow-card sm:p-6">
       <div className="flex items-start gap-4">
         <span className="rv-ai-tile grid size-11 shrink-0 place-items-center rounded-xl text-white" aria-hidden="true">
           <Sparkles className="size-5" />
@@ -44,17 +44,18 @@ export function ReviveAiIntro() {
         </div>
       </div>
 
-      {/* a single-line search bar on the drifting AI gradient, examples under it; centered in the card */}
-      <div className="flex flex-1 flex-col justify-center gap-3 pt-5">
-        <div className="relative">
-          <div className="rv-ai-aurora pointer-events-none absolute -inset-x-2 -inset-y-3 rounded-3xl" aria-hidden="true" />
-          <form
-            onSubmit={submit}
-            className="relative flex items-center gap-2 rounded-xl border border-white/80 bg-white/60 py-2 pr-2 pl-4 shadow-[0_4px_24px_rgba(27,37,89,0.08)] backdrop-blur-xl transition-shadow focus-within:bg-white/75 focus-within:shadow-[0_8px_32px_rgba(97,0,158,0.16)]"
-          >
-            <label htmlFor="home-ask" className="sr-only">
-              Search any address
-            </label>
+      {/* frosted glass box over a slowly drifting AI gradient */}
+      <div className="relative mt-4">
+        <div className="rv-ai-aurora pointer-events-none absolute -inset-x-2 -inset-y-3 rounded-3xl" aria-hidden="true" />
+        {/* one box: the question on top, examples and the button along the bottom */}
+        <form
+          onSubmit={submit}
+          className="relative rounded-xl border border-white/80 bg-white/55 p-2 shadow-[0_4px_24px_rgba(27,37,89,0.08)] backdrop-blur-xl transition-shadow focus-within:bg-white/70 focus-within:shadow-[0_8px_32px_rgba(97,0,158,0.16)]"
+        >
+          <label htmlFor="home-ask" className="sr-only">
+            Search any address
+          </label>
+          <div className="flex items-center gap-2 px-2">
             <Sparkles className="size-5 shrink-0 text-[#61009e]" aria-hidden="true" />
             <input
               id="home-ask"
@@ -65,24 +66,25 @@ export function ReviveAiIntro() {
               autoComplete="off"
               className="h-11 min-w-0 flex-1 truncate bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
             />
-            <button type="submit" className="rv-ai-btn flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white">
+          </div>
+          <div className="mt-1 flex flex-col gap-2 border-t border-white/80 px-1 pt-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
+              {prompts.map((x) => (
+                <Link
+                  key={x.q}
+                  to={askPath(x.q)}
+                  className="rounded-full border border-white/90 bg-white/60 px-2.5 py-1 text-[12.5px] whitespace-nowrap text-ink-2 hover:bg-white hover:text-ink"
+                >
+                  {x.label}
+                </Link>
+              ))}
+            </div>
+            <button type="submit" className="rv-ai-btn flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white">
               <Sparkles className="size-4" />
-              <span className="max-sm:sr-only">Get insights</span>
+              Get insights
             </button>
-          </form>
-        </div>
-        <div className="relative flex flex-wrap items-center gap-1.5">
-          <span className="mr-0.5 text-[12.5px] text-muted">Try</span>
-          {prompts.map((x) => (
-            <Link
-              key={x.q}
-              to={askPath(x.q)}
-              className="rounded-full border border-white/90 bg-white/70 px-2.5 py-1 text-[12.5px] whitespace-nowrap text-ink-2 shadow-sm hover:bg-white hover:text-ink"
-            >
-              {x.label}
-            </Link>
-          ))}
-        </div>
+          </div>
+        </form>
       </div>
     </section>
   )
