@@ -68,7 +68,7 @@ export function LicenseForm({ autoFocus = false, inline = false }: { autoFocus?:
           )}
         />
         <Button type="submit" size={inline ? 'default' : 'sm'} disabled={busy} className={inline ? 'h-10 shrink-0' : 'h-9'}>
-          {busy ? <Loader2 className="animate-spin" aria-label="Searching the MLS" /> : inline ? 'Add license #' : 'Find'}
+          {busy ? <Loader2 className="animate-spin" aria-label="Searching the MLS" /> : inline ? 'Add license number' : 'Find'}
         </Button>
       </div>
       {error ? (
