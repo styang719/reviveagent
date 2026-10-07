@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { plural } from '@/lib/format'
 import { useConnections, type Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
-import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 import { ContactExample, ListingExample } from './BookExamples'
 
@@ -13,7 +12,6 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
   const conn = useConnections()
   const openStep = useUi((s) => s.openStep)
   const openCrm = useUi((s) => s.openCrm)
-  const example = useDemo((s) => s.bookExample)
   if (conn.mls && conn.crm) return null
   const listings = opps.filter((o) => o.property.source === 'listings').length
   const contacts = opps.filter((o) => o.property.source === 'contacts').length
@@ -73,7 +71,7 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
                 <p className="mt-1 text-[13px] leading-5 text-ink-2">{s.body}</p>
               </div>
             </div>
-            {!s.done && <div className="flex-1">{s.key === 'mls' ? <ListingExample style={example} /> : <ContactExample style={example} />}</div>}
+            {!s.done && <div className="flex-1">{s.key === 'mls' ? <ListingExample /> : <ContactExample />}</div>}
             <div>
               {s.done ? (
                 <p className="flex items-center gap-1.5 text-sm font-medium text-[var(--green)]">

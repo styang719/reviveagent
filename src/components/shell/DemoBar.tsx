@@ -4,7 +4,6 @@ import { TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
 import type { Handoff } from '@/lib/flows'
-import type { ExampleStyle } from '@/components/home/BookExamples'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 
@@ -12,12 +11,6 @@ const HANDOFFS: { id: Handoff; label: string }[] = [
   { id: 'link', label: 'A · Link' },
   { id: 'panel', label: 'B · Side panel' },
   { id: 'dock', label: 'C · Docked chat' },
-]
-
-const EXAMPLES: { id: ExampleStyle; label: string }[] = [
-  { id: 'flat', label: 'A · Flat' },
-  { id: 'promo', label: 'B · Promo' },
-  { id: 'teaser', label: 'C · Teaser' },
 ]
 
 export const DEMO_BAR_HEIGHT = 44
@@ -29,8 +22,6 @@ export function DemoBar() {
   const handoff = useDemo((s) => s.handoff)
   const setHandoff = useDemo((s) => s.setHandoff)
   const clearChat = useUi((s) => s.clearChat)
-  const example = useDemo((s) => s.bookExample)
-  const setExample = useDemo((s) => s.setBookExample)
 
   return (
     <div
@@ -66,20 +57,6 @@ export function DemoBar() {
             aria-checked={handoff === h.id}
             onClick={() => setHandoff(h.id)}
             className={cn('rounded-md px-3 py-1 font-medium whitespace-nowrap', handoff === h.id ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
-          >
-            {h.label}
-          </button>
-        ))}
-      </div>
-      <span className="ml-2 shrink-0">Example cards</span>
-      <div className="flex shrink-0 rounded-lg bg-white/10 p-0.5" role="radiogroup" aria-label="Example cards on the new-agent Home">
-        {EXAMPLES.map((h) => (
-          <button
-            key={h.id}
-            role="radio"
-            aria-checked={example === h.id}
-            onClick={() => setExample(h.id)}
-            className={cn('rounded-md px-3 py-1 font-medium whitespace-nowrap', example === h.id ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
           >
             {h.label}
           </button>
