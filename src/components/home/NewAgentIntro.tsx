@@ -1,11 +1,11 @@
-import { Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Badge } from '@/components/ui/badge'
 import { projectGain, reviveProjects, type ReviveProject } from '@/data/reviveProjects'
 import { STARTERS } from '@/lib/ai'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
+import { cn } from '@/lib/utils'
 
 // Context for a brand-new agent, so Home has something useful before anything is connected:
 // what Revive AI does (works with no setup), what Revive has done nearby, and what each part
@@ -90,31 +90,75 @@ export function ReviveAiIntro() {
   )
 }
 
-function CaseStudy({ p }: { p: ReviveProject }) {
+/** A Revive project as a premium card: photo with the result on it, before → after, the stats. */
+export function CaseStudy({ p }: { p: ReviveProject }) {
   const g = projectGain(p)
-  const headline =
-    p.status === 'sold'
-      ? { value: gain(g), label: `sale price vs. before · sold in ${p.daysOnMarket} days` }
-      : { value: gain(g), label: p.rent ? `added value · rents for ${money(p.rent)}/mo` : 'added value' }
+  const from = p.before
+  const to = p.status === 'sold' ? p.after : p.est
+  const label =
+    p.status === 'sold' ? 'more than before' : p.status === 'progress' ? 'expected' : p.rent ? `added value · ${money(p.rent)}/mo rent` : 'added value'
+  const stats = [
+    { k: 'Build', v: `${p.weeks} wks` },
+    p.daysOnMarket ? { k: 'Listed', v: `${p.daysOnMarket} days` } : null,
+    p.offers ? { k: 'Offers', v: String(p.offers) } : null,
+    !p.daysOnMarket && p.scope.length ? { k: 'Scope', v: `${p.scope.length} areas` } : null,
+  ].filter(Boolean) as { k: string; v: string }[]
   return (
-    <article className="flex flex-col overflow-hidden rounded-xl border border-line bg-white shadow-card">
-      <div className="relative">
-        <img src={photoUrl(p.photo)} alt="" className="h-36 w-full object-cover" />
-        <Badge variant="navy" className="absolute top-2.5 left-2.5">
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(28,46,88,0.14)]">
+      <div className="relative h-44 overflow-hidden">
+        <img src={photoUrl(p.photo)} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f1a33]/85 via-[#0f1a33]/25 to-transparent" />
+        <span className="absolute top-3 left-3 max-w-[calc(100%-7rem)] truncate rounded-full border border-white/30 bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
           {p.product}
-        </Badge>
+        </span>
+        <span
+          className={cn(
+            'absolute top-3 right-3 rounded-full px-2 py-0.5 text-[10.5px] font-semibold tracking-wide uppercase',
+            p.status === 'sold' ? 'bg-white text-ink' : p.status === 'progress' ? 'bg-[var(--brand-agent)] text-white' : 'bg-[var(--teal-soft)] text-[var(--green)]',
+          )}
+        >
+          {p.status === 'sold' ? 'Sold' : p.status === 'progress' ? 'In progress' : 'Complete'}
+        </span>
+        <div className="absolute inset-x-4 bottom-3 text-white">
+          <p className="text-[28px] leading-8 font-semibold tracking-tight tabular-nums">{gain(g)}</p>
+          <p className="text-[12px] text-white/80">{label}</p>
+        </div>
       </div>
-      <div className="flex flex-1 flex-col p-4">
-        <p className="text-[13px] text-muted">
-          {p.block}, {p.city}
-        </p>
-        <p className="mt-1 text-2xl leading-7 font-semibold text-[var(--green)] tabular-nums">{headline.value}</p>
-        <p className="text-[13px] text-ink-2">{headline.label}</p>
-        <p className="mt-3 text-[13px] text-muted">
-          {p.scope.join(' · ')} · {p.weeks} weeks
-          {p.offers ? ` · ${p.offers} offers` : ''}
-        </p>
-        <p className="mt-auto pt-3 text-[12px] text-faint">{p.when}</p>
+
+      <div className="flex flex-1 flex-col gap-4 p-4">
+        <div>
+          <p className="text-[14px] font-semibold text-ink">{p.block}</p>
+          <p className="text-[12px] text-muted">
+            {p.city} · {p.when}
+          </p>
+        </div>
+
+        {from && to ? (
+          <div>
+            <div className="flex items-baseline justify-between text-[12px] tabular-nums">
+              <span className="text-muted">
+                Before <span className="font-semibold text-ink-2">{money(from)}</span>
+              </span>
+              <span className="text-muted">
+                {p.status === 'sold' ? 'Sold' : 'Est.'} <span className="font-semibold text-ink">{money(to)}</span>
+              </span>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line-soft">
+              <div className="h-full rounded-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-agent)]" style={{ width: `${Math.min(100, (from / to) * 100 + 4)}%` }} />
+            </div>
+          </div>
+        ) : (
+          <p className="text-[12.5px] leading-5 text-ink-2">{p.scope.join(' · ')}</p>
+        )}
+
+        <dl className="mt-auto grid divide-x divide-line rounded-xl bg-head py-2 text-center" style={{ gridTemplateColumns: `repeat(${Math.min(3, stats.length)}, minmax(0, 1fr))` }}>
+          {stats.slice(0, 3).map((x) => (
+            <div key={x.k} className="px-1">
+              <dt className="text-[10.5px] text-muted">{x.k}</dt>
+              <dd className="text-[13px] font-semibold text-ink tabular-nums">{x.v}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </article>
   )
@@ -122,16 +166,21 @@ function CaseStudy({ p }: { p: ReviveProject }) {
 
 /** Proof: recent Revive projects near the agent's office. */
 export function CaseStudies() {
-  const shown = reviveProjects.filter((p) => p.status !== 'progress').slice(0, 3)
+  const shown = reviveProjects.filter((p) => p.status !== 'progress').slice(0, 2)
   return (
     <section aria-labelledby="cases-title">
-      <div className="mb-6">
-        <h2 id="cases-title" className="text-xl font-semibold text-ink">
-          What Revive has done near you
-        </h2>
-        <p className="mt-1.5 text-[13px] text-muted">Recent projects around Pasadena. Revive covers the work until the home sells.</p>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 id="cases-title" className="text-xl font-semibold text-ink">
+            What Revive has done near you
+          </h2>
+          <p className="mt-1.5 text-[13px] text-muted">Recent projects around Pasadena. Revive covers the work until the home sells.</p>
+        </div>
+        <Link to="/case-studies" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
+          View all {reviveProjects.length} <ArrowRight className="size-3.5" />
+        </Link>
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2">
         {shown.map((p) => (
           <CaseStudy key={p.id} p={p} />
         ))}

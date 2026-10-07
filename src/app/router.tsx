@@ -5,6 +5,7 @@ import Marketing from '@/pages/Marketing'
 import Opportunities from '@/pages/Opportunities'
 import Person from '@/pages/Person'
 import Projects from '@/pages/Projects'
+import CaseStudies from '@/pages/CaseStudies'
 import ReviveAI from '@/pages/ReviveAI'
 import Property from '@/pages/Property'
 import { Placeholder } from '@/pages/Placeholder'
@@ -23,6 +24,7 @@ export const router = createRouter([
       { path: '/', element: <Home /> },
       { path: '/opportunities', element: <Opportunities /> },
       { path: '/projects', element: <Projects /> },
+      { path: '/case-studies', element: <CaseStudies /> },
       { path: '/marketing', element: <Marketing /> },
       { path: '/inbox', element: <Inbox /> },
       { path: '/property/:id', element: <Property /> },
