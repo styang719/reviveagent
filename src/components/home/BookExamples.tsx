@@ -1,4 +1,5 @@
 import { AlarmClock, Eye, AlertCircle, Clock, Phone, Sparkles, TrendingUp, TriangleAlert, Warehouse } from 'lucide-react'
+import rachel from '@/assets/avatar-rachel.jpg'
 import { photoUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
 
@@ -90,7 +91,7 @@ export function ContactExample() {
     <Frame label="Example: a homeowner from your CRM whose listing expired 23 days ago. Selling score 79, leaning toward selling, $148K potential. Opportunities: listing issue and ADU room. Call this week.">
       <div className="flex flex-col gap-2.5 rounded-lg border border-line bg-white p-3 shadow-card">
         <div className="flex items-start justify-between gap-2">
-          <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-[14px] font-semibold text-brand">RK</span>
+          <img src={rachel} alt="" className="size-12 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm" />
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[11px] font-semibold text-white">
             <AlarmClock className="size-3" /> Call this week
           </span>
