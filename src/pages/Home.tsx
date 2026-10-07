@@ -47,12 +47,12 @@ export default function Home() {
 
   const whoToCall = feed.length > 0 && (
     <section aria-labelledby="who-to-call">
-      <div className="mb-5 flex items-end justify-between gap-3">
+      <div className="mb-6 flex items-end justify-between gap-3">
         <div>
-          <h2 id="who-to-call" className="text-lg font-semibold text-ink">
+          <h2 id="who-to-call" className="text-xl font-semibold text-ink">
             Who to call this week
           </h2>
-          <p className="mt-1 text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
+          <p className="mt-1.5 text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
         </div>
         <Link to="/opportunities" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
           See all {actionableCount} <ArrowRight className="size-3.5" />

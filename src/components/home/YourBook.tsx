@@ -47,19 +47,19 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
 
   return (
     <section aria-labelledby="book-title">
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 id="book-title" className="text-lg font-semibold text-ink">
+          <h2 id="book-title" className="text-xl font-semibold text-ink">
             {connected ? 'Connect the rest of your book' : 'Your opportunities'}
           </h2>
-          <p className="mt-1 text-[13px] text-muted">Revive pulls in two sources and ranks who to call, and why. Connect both to see everyone.</p>
+          <p className="mt-1.5 text-[13px] text-muted">Revive pulls in two sources and ranks who to call, and why. Connect both to see everyone.</p>
         </div>
         <span className="rounded-full bg-line-soft px-2.5 py-1 text-xs font-medium text-ink-2 tabular-nums">{connected} of 2 connected</span>
       </div>
       {/* the two sources side by side; until one is connected it shows an example of what it brings in */}
-      <div className="grid gap-10 sm:grid-cols-2 sm:gap-x-8">
+      <div className="grid gap-10 sm:grid-cols-2 sm:gap-x-10">
         {sources.map((s) => (
-          <div key={s.key} className={cn('flex flex-col gap-4', s.done && 'rounded-xl bg-ok-soft/40 p-4')}>
+          <div key={s.key} className={cn('flex flex-col gap-5', s.done && 'rounded-xl bg-ok-soft/40 p-4')}>
             <div className="flex gap-3">
               <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg', s.done ? 'bg-ok-soft text-ok' : 'bg-brand-soft text-brand')}>
                 <s.icon className="size-5" />
