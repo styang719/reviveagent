@@ -1,69 +1,144 @@
-import { ArrowRight, FileText, Hammer, Handshake, Sparkles } from 'lucide-react'
+import { ArrowRight, Calendar, FileText, Hammer, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AiLink } from '@/components/ai/AiLink'
 import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
+import { PROJECT_STEPS } from '@/lib/flows'
 import { useOpportunities } from '@/lib/opportunities'
-import { PAGE } from '@/lib/utils'
+import { cn, PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
-// Every property the agent is working with Revive, grouped by where it is: talking with Revive,
-// in construction, or with a Revive AI report. Each opens its property page.
-
-type Row = { id: string; address: string; city: string; photo?: string; status: string; value?: string; tab: 'report' | 'project' }
+// Every property the agent is working on with Revive, in two sections: Revive projects (open the
+// property page on the Project tab) and Revive AI reports (open it on the report tab).
 
 const img = (key?: string) => (key?.startsWith('data:') ? key : photoUrl(key))
 
-function PropertyCard({ r }: { r: Row }) {
+interface ProjectRow {
+  id: string
+  address: string
+  city: string
+  photo?: string
+  product: string
+  status: 'review' | 'active'
+  stage: string
+  steps: number
+  step: number // index of the current step
+  next?: string
+  target?: string
+}
+
+interface ReportRow {
+  id: string
+  address: string
+  city: string
+  photo?: string
+  valueNow: number
+  upside?: number
+  product?: string
+  when?: string
+}
+
+function ProjectCard({ p }: { p: ProjectRow }) {
+  const pct = Math.round(((p.step + (p.status === 'active' ? 0.5 : 0.2)) / p.steps) * 100)
   return (
     <Link
-      to={`/property/${r.id}?tab=${r.tab}`}
-      className="group flex items-center gap-4 rounded-xl border border-line bg-white p-3 shadow-card transition-shadow hover:shadow-md"
+      to={`/property/${p.id}?tab=project`}
+      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
     >
-      <span className="size-16 shrink-0 overflow-hidden rounded-lg bg-line-soft">
-        {r.photo && <img src={img(r.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-semibold text-ink">{r.address}</span>
-        <span className="block truncate text-[13px] text-muted">{r.city}</span>
-        <span className="mt-1 block truncate text-[12.5px] text-ink-2">{r.status}</span>
-      </span>
-      {r.value && <span className="shrink-0 text-[13px] font-semibold text-[var(--green)] tabular-nums">{r.value}</span>}
-      <ArrowRight className="size-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" />
+      <div className="relative h-40 overflow-hidden bg-line-soft">
+        {p.photo && <img src={img(p.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+        <span
+          className={cn(
+            'absolute top-3 left-3 rounded-full px-2.5 py-1 text-[11.5px] font-semibold shadow-sm',
+            p.status === 'active' ? 'bg-[var(--brand-primary)] text-white' : 'bg-white text-ink',
+          )}
+        >
+          {p.status === 'active' ? 'In construction' : 'In review with Revive'}
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <div>
+          <p className="truncate text-[15px] font-semibold text-ink">{p.address}</p>
+          <p className="text-[12.5px] text-muted">
+            {p.city} · {p.product}
+          </p>
+        </div>
+        <div>
+          <div className="flex items-baseline justify-between gap-2 text-[12px]">
+            <span className="truncate font-medium text-ink-2">{p.stage}</span>
+            <span className="shrink-0 text-muted tabular-nums">
+              Step {p.step + 1} of {p.steps}
+            </span>
+          </div>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line-soft">
+            <div className="h-full rounded-full bg-[var(--brand-primary)]" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3 text-[12.5px]">
+          <span className="flex min-w-0 items-center gap-1.5 text-ink-2">
+            <Calendar className="size-3.5 shrink-0 text-muted" />
+            <span className="truncate">{p.next ?? 'Nothing waiting on you'}</span>
+          </span>
+          {p.target && <span className="shrink-0 font-semibold text-ink tabular-nums">{p.target}</span>}
+        </div>
+      </div>
     </Link>
   )
 }
 
-function Section({
-  icon: Icon,
-  title,
-  hint,
-  rows,
-  empty,
-}: {
-  icon: typeof Hammer
-  title: string
-  hint: string
-  rows: Row[]
-  empty: { text: string; cta: string; to: string }
-}) {
+function ReportCard({ r }: { r: ReportRow }) {
   return (
-    <section className="mt-10 first-of-type:mt-8">
-      <div className="mb-4 flex items-center gap-2.5">
+    <Link
+      to={`/property/${r.id}?tab=report`}
+      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
+    >
+      <div className="relative h-36 overflow-hidden bg-line-soft">
+        {r.photo && <img src={img(r.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+        <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-[var(--brand-agent)] shadow-sm">
+          <Sparkles className="size-3" /> Revive AI report
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <div>
+          <p className="truncate text-[15px] font-semibold text-ink">{r.address}</p>
+          <p className="text-[12.5px] text-muted">{r.city}</p>
+        </div>
+        <dl className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-head px-3 py-2">
+            <dt className="text-[11px] text-muted">Value today</dt>
+            <dd className="text-[15px] font-semibold text-ink tabular-nums">{money(r.valueNow)}</dd>
+          </div>
+          <div className="rounded-lg bg-ok-soft px-3 py-2">
+            <dt className="text-[11px] text-muted">Best upside</dt>
+            <dd className="text-[15px] font-semibold text-[var(--green)] tabular-nums">{r.upside ? gain(r.upside) : '—'}</dd>
+          </div>
+        </dl>
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3 text-[12.5px]">
+          <span className="truncate text-ink-2">{r.product ?? 'No project yet'}</span>
+          <span className="flex shrink-0 items-center gap-1 font-medium text-brand">
+            View report <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
+        {r.when && <p className="-mt-1 text-[11.5px] text-faint">{r.when}</p>}
+      </div>
+    </Link>
+  )
+}
+
+function Section({ icon: Icon, title, hint, count, children, empty }: { icon: typeof Hammer; title: string; hint: string; count: number; children: React.ReactNode; empty: { text: string; cta: string; to: string } }) {
+  return (
+    <section className="mt-10">
+      <div className="flex items-center gap-2.5">
         <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
           <Icon className="size-4" />
         </span>
-        <h2 className="text-lg font-semibold text-ink">{title}</h2>
-        <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{rows.length}</span>
+        <h2 className="text-xl font-semibold text-ink">{title}</h2>
+        <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{count}</span>
       </div>
-      <p className="-mt-2 mb-4 text-[13px] text-muted">{hint}</p>
-      {rows.length ? (
-        <div className="grid gap-3 lg:grid-cols-2">
-          {rows.map((r) => (
-            <PropertyCard key={`${r.tab}-${r.id}`} r={r} />
-          ))}
-        </div>
+      <p className="mt-1.5 mb-5 text-[13px] text-muted">{hint}</p>
+      {count ? (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">{children}</div>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-line px-5 py-4">
           <p className="text-[13.5px] text-ink-2">{empty.text}</p>
@@ -83,51 +158,60 @@ export default function Properties() {
   const reports = useDemo((s) => s.reports)
   const opps = useOpportunities()
 
-  // with Revive: projects submitted from Revive AI, built-in projects still in review
-  const discussing: Row[] = [
+  const projects: ProjectRow[] = [
     ...Object.values(created).map((p) => ({
       id: p.propertyId,
       address: p.address,
       city: p.city,
       photo: opps.find((o) => o.id === p.propertyId)?.property.photo ?? reports[p.propertyId]?.photos[0],
-      status: `${p.product} · Revive review within 48 hrs`,
-      tab: 'project' as const,
+      product: p.product,
+      status: 'review' as const,
+      stage: 'Revive review · within 48 hrs',
+      steps: PROJECT_STEPS.length,
+      step: 1,
+      next: 'Offer terms arrive by email',
     })),
     ...opps
-      .filter((o) => o.property.project?.status === 'submitted' && !created[o.id])
-      .map((o) => ({ id: o.id, address: o.property.address, city: o.property.city, photo: o.property.photo, status: `${o.property.project!.product} · ${o.property.project!.stageLabel}`, tab: 'project' as const })),
+      .filter((o) => o.property.project && !created[o.id])
+      .map((o) => {
+        const pr = o.property.project!
+        const step = Math.max(0, pr.timeline.findIndex((t) => t.state === 'current'))
+        return {
+          id: o.id,
+          address: o.property.address,
+          city: o.property.city,
+          photo: o.property.photo,
+          product: pr.product,
+          status: pr.status === 'active' ? ('active' as const) : ('review' as const),
+          stage: pr.stageLabel,
+          steps: pr.timeline.length,
+          step,
+          next: pr.nextFromAgent,
+          target: pr.targetList ? `List ${money(pr.targetList)}` : undefined,
+        }
+      }),
   ]
-  const building: Row[] = opps
-    .filter((o) => o.property.project?.status === 'active' && !created[o.id])
-    .map((o) => ({
-      id: o.id,
-      address: o.property.address,
-      city: o.property.city,
-      photo: o.property.photo,
-      status: `${o.property.project!.product} · ${o.property.project!.stageLabel}`,
-      value: `${o.property.project!.progressPct}%`,
-      tab: 'project',
-    }))
-  const inProject = new Set([...discussing, ...building].map((r) => r.id))
-  const reported: Row[] = [
+  const inProject = new Set(projects.map((p) => p.id))
+  const reportRows: ReportRow[] = [
     ...Object.values(reports)
       .filter((r) => !inProject.has(r.id))
       .sort((a, b) => b.createdAt - a.createdAt)
       .map((r) => {
-        const best = Math.max(0, ...r.scenarios.map((s) => s.gain ?? 0))
-        return { id: r.id, address: r.address, city: r.city, photo: r.photos[0], status: `Report · value today ${money(r.valueNow)}`, value: best ? gain(best) : undefined, tab: 'report' as const }
+        const best = [...r.scenarios].sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))[0]
+        return {
+          id: r.id,
+          address: r.address,
+          city: r.city,
+          photo: r.photos[0],
+          valueNow: r.valueNow,
+          upside: best?.gain ?? undefined,
+          product: best?.gain ? best.product : undefined,
+          when: `Generated ${new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+        }
       }),
     ...opps
-      .filter((o) => o.property.reportRun && !o.property.project && !reports[o.id] && !inProject.has(o.id))
-      .map((o) => ({
-        id: o.id,
-        address: o.property.address,
-        city: o.property.city,
-        photo: o.property.photo,
-        status: `Report · value today ${money(o.property.valueNow)}`,
-        value: o.gain ? gain(o.gain) : undefined,
-        tab: 'report' as const,
-      })),
+      .filter((o) => o.property.reportRun && !reports[o.id] && !inProject.has(o.id))
+      .map((o) => ({ id: o.id, address: o.property.address, city: o.property.city, photo: o.property.photo, valueNow: o.property.valueNow, upside: o.gain || undefined, product: o.product })),
   ]
 
   return (
@@ -143,29 +227,30 @@ export default function Properties() {
           </AiLink>
         </Button>
       </div>
-      <div className="mt-2">
-        <Section
-          icon={Handshake}
-          title="Discussing with Revive"
-          hint="Projects you’ve submitted. Revive reviews each within 48 hours, then sends offer terms."
-          rows={discussing}
-          empty={{ text: 'Nothing with Revive yet. Start a project from any report.', cta: 'Start a project', to: '/ai?flow=project' }}
-        />
-        <Section
-          icon={Hammer}
-          title="In construction"
-          hint="Revive is doing the work. Follow each project to listing."
-          rows={building}
-          empty={{ text: 'No projects under construction yet.', cta: 'Start a project', to: '/ai?flow=project' }}
-        />
-        <Section
-          icon={FileText}
-          title="Revive AI reports"
-          hint="Homes you’ve run a report on. Share it with the homeowner, or turn it into a project."
-          rows={reported}
-          empty={{ text: 'No reports yet. Any address works, nothing to connect first.', cta: 'Generate a report', to: '/ai?flow=report' }}
-        />
-      </div>
+
+      <Section
+        icon={Hammer}
+        title="Revive projects"
+        hint="From review with Revive to construction to listing. Opens the project."
+        count={projects.length}
+        empty={{ text: 'No projects yet. Start one from any report.', cta: 'Start a project', to: '/ai?flow=project' }}
+      >
+        {projects.map((p) => (
+          <ProjectCard key={p.id} p={p} />
+        ))}
+      </Section>
+
+      <Section
+        icon={FileText}
+        title="Revive AI reports"
+        hint="Homes you’ve run a report on. Share it with the homeowner, or turn it into a project."
+        count={reportRows.length}
+        empty={{ text: 'No reports yet. Any address works, nothing to connect first.', cta: 'Generate a report', to: '/ai?flow=report' }}
+      >
+        {reportRows.map((r) => (
+          <ReportCard key={r.id} r={r} />
+        ))}
+      </Section>
     </div>
   )
 }
