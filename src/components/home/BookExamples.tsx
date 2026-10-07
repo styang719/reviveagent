@@ -1,4 +1,4 @@
-import { AlarmClock, CircleDollarSign, Eye, UserRound, CircleAlert, Clock, Hammer, TrendingDown, TriangleAlert, Warehouse } from 'lucide-react'
+import { AlarmClock, Phone, CircleDollarSign, Eye, UserRound, CircleAlert, Clock, Hammer, TrendingDown, TriangleAlert, Warehouse } from 'lucide-react'
 import { photoUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
 
@@ -80,7 +80,6 @@ const LISTINGS = [
   { photo: 'comp-100-0', address: '123 Sample St', days: 47, after: '$1.39M', gain: '+$210K', tag: { icon: Hammer, tone: 'agent', text: 'Renovate to Sell' } },
   { photo: 'comp-111-2', address: '456 Example Ave', days: 63, after: '$1.81M', gain: '+$290K', tag: { icon: TrendingDown, tone: 'warn', text: 'Stale listing' } },
   { photo: 'comp-104-0', address: '789 Sample Ln', days: 21, after: '$965K', gain: '+$95K', tag: { icon: CircleDollarSign, tone: 'teal', text: 'More commission' } },
-  { photo: 'comp-105-2', address: '12 Example Ct', days: 9, after: '$1.01M', gain: '+$25K', tag: null },
 ] as const
 
 /** Your listings, read by Revive: a list, ranked by upside. */
@@ -89,15 +88,15 @@ export function ListingExample() {
     <Sample
       flush
       banner="Example of your listings"
-      label="Example with sample data: four of your listings with the value Revive could add. 123 Sample St, $1.39M after Revive, up $210K, Renovate to Sell. 456 Example Ave, $1.81M, up $290K, stale listing. 789 Sample Ln, $965K, up $95K, more commission. 12 Example Ct, on track. $595K potential across 3 listings."
+      label="Example with sample data: three of your listings with the value Revive could add. 123 Sample St, $1.39M after Revive, up $210K, Renovate to Sell. 456 Example Ave, $1.81M, up $290K, stale listing. 789 Sample Ln, $965K, up $95K, more commission. $595K potential across 3 listings."
     >
       <div className="flex items-center justify-between gap-2 px-4 pt-3 pb-1.5 text-[10.5px] font-semibold tracking-wide text-muted uppercase">
         <span>Listing</span>
         <span>After Revive</span>
       </div>
-      <ul className="@container divide-y divide-line">
+      <ul className="@container flex flex-1 flex-col divide-y divide-line">
         {LISTINGS.map((l) => (
-          <li key={l.address} className="flex items-center gap-3 px-4 py-2.5">
+          <li key={l.address} className="flex flex-1 items-center gap-3 px-4 py-2.5">
             <img src={photoUrl(l.photo)} alt="" className="hidden size-10 shrink-0 rounded-lg object-cover @[18rem]:block" />
             <div className="min-w-0 flex-1 overflow-hidden">
               <p className="truncate text-[13.5px] font-semibold text-ink">{l.address}</p>
@@ -119,7 +118,7 @@ export function ListingExample() {
           </li>
         ))}
       </ul>
-      <p className="mt-auto flex flex-wrap items-center justify-between gap-x-2 border-t border-line bg-[var(--brand-primary-subtle)]/50 px-4 py-2.5 text-[12.5px] text-ink-2">
+      <p className="flex flex-wrap items-center justify-between gap-x-2 border-t border-line bg-[var(--brand-primary-subtle)]/50 px-4 py-2.5 text-[12.5px] text-ink-2">
         <span className="whitespace-nowrap">3 Revive opportunities</span>
         <span className="font-semibold whitespace-nowrap text-[var(--green)] tabular-nums">+$595K potential</span>
       </p>
@@ -184,6 +183,13 @@ export function ContactExample() {
           More commission
         </Tag>
       </Opportunities>
+
+      <div className="-mx-4 -mb-4 flex items-center justify-between gap-2 border-t border-line bg-[var(--brand-primary-subtle)]/50 px-4 py-2.5">
+        <span className="text-[12.5px] text-ink-2">Called 2 mo ago</span>
+        <span className="inline-flex items-center gap-1 rounded-md border border-[var(--brand-primary-border)] bg-white px-2.5 py-1 text-[12.5px] font-semibold text-brand">
+          <Phone className="size-3.5" /> Call
+        </span>
+      </div>
     </Sample>
   )
 }
