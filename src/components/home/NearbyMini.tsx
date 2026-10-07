@@ -42,7 +42,7 @@ export function NearbyMini({ opps }: { opps: Opportunity[] }) {
           <Circle
             center={[AGENT.office.lat, AGENT.office.lng]}
             radius={AGENT.marketRadiusMiles * 1609}
-            pathOptions={{ color: '#2563EB', weight: 1.5, opacity: 0.6, fillOpacity: 0.04, dashArray: '6 5' }}
+            pathOptions={{ color: '#3e62b6', weight: 1.5, opacity: 0.6, fillOpacity: 0.04, dashArray: '6 5' }}
             interactive={false}
           />
           <Marker position={[AGENT.office.lat, AGENT.office.lng]} icon={baseIcon} interactive={false} zIndexOffset={-100} />

@@ -9,7 +9,7 @@ const badgeVariants = cva(
       variant: {
         default: 'bg-line-soft text-ink-2',
         brand: 'bg-brand-soft text-brand',
-        ok: 'bg-ok-soft text-[#08795a]',
+        ok: 'bg-ok-soft text-[var(--green)]',
         warn: 'bg-warn-soft text-warn',
         bad: 'bg-bad-soft text-bad',
         navy: 'bg-navy text-white',

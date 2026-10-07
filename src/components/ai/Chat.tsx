@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUp, Copy } from 'lucide-react'
+import { ArrowRight, ArrowUp, Copy, MapPin } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { answer, runAiPath, type Block, type ChatMessage } from '@/lib/ai'
 import { photoUrl } from '@/lib/assets'
 import { flowInput } from '@/lib/flowEngine'
+import { suggestAddresses } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
 import { useConnections, useOpportunities } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
@@ -53,7 +54,7 @@ function PropertyBlock({ b }: { b: Extract<Block, { kind: 'property' }> }) {
           </div>
           <div className="rounded-lg bg-ok-soft/60 p-2.5">
             <p className="text-[11px] text-muted">Est. upside</p>
-            <p className="text-base font-semibold text-[#08795a] tabular-nums">{gain(b.gain)}</p>
+            <p className="text-base font-semibold text-[var(--green)] tabular-nums">{gain(b.gain)}</p>
             <p className="truncate text-[11px] text-muted">{b.product}</p>
           </div>
         </div>
@@ -229,45 +230,105 @@ export function Thread({ onAsk, thinking, compact = false }: { onAsk: (q: string
 
 export function Composer({ onAsk, disabled, autoFocus = false, compact = false }: { onAsk: (q: string) => void; disabled?: boolean; autoFocus?: boolean; compact?: boolean }) {
   const [draft, setDraft] = useState('')
+  const [active, setActive] = useState(0)
+  const [dismissed, setDismissed] = useState(false)
   const awaiting = useUi((s) => s.flow?.awaiting)
   const ref = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
     if (autoFocus || awaiting) ref.current?.focus()
   }, [autoFocus, awaiting])
-  const send = () => {
-    if (!draft.trim() || disabled) return
-    onAsk(draft)
+
+  // address autofill while a flow is waiting for an address
+  const suggestions = awaiting === 'address' && !dismissed ? suggestAddresses(draft) : []
+  const open = suggestions.length > 0
+  const listId = compact ? 'addr-list-dock' : 'addr-list'
+
+  const sendText = (text: string) => {
+    if (!text.trim() || disabled) return
+    onAsk(text)
     setDraft('')
+    setActive(0)
+    setDismissed(false)
   }
   return (
-    <form
-      className="flex w-full items-end gap-2 rounded-2xl border border-line bg-white p-2 pl-4 shadow-card focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10"
-      onSubmit={(e) => {
-        e.preventDefault()
-        send()
-      }}
-    >
-      <label htmlFor={compact ? 'ai-input-dock' : 'ai-input'} className="sr-only">
-        Ask Revive AI
-      </label>
-      <textarea
-        id={compact ? 'ai-input-dock' : 'ai-input'}
-        ref={ref}
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            send()
-          }
+    <div className="relative w-full">
+      {open && (
+        <ul
+          id={listId}
+          role="listbox"
+          aria-label="Address suggestions"
+          className="absolute right-0 bottom-full left-0 z-20 mb-2 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-xl"
+        >
+          {suggestions.map((sg, i) => (
+            <li
+              key={sg.value}
+              id={`${listId}-${i}`}
+              role="option"
+              aria-selected={i === active}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                sendText(sg.value)
+              }}
+              onMouseEnter={() => setActive(i)}
+              className={cn('flex cursor-pointer items-center gap-3 px-3 py-2', i === active && 'bg-[var(--brand-primary-subtle)]')}
+            >
+              <MapPin className={cn('size-4 shrink-0', sg.known ? 'text-[var(--brand-agent)]' : 'text-muted')} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-ink">{sg.line}</span>
+                <span className="block truncate text-[12px] text-muted">{sg.area}</span>
+              </span>
+              {sg.known && <span className="shrink-0 rounded-full bg-[var(--brand-agent-subtle)] px-2 py-0.5 text-[11px] font-medium text-[var(--brand-agent)]">On record</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+      <form
+        className="flex w-full items-end gap-2 rounded-2xl border border-line bg-white p-2 pl-4 shadow-card focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10"
+        onSubmit={(e) => {
+          e.preventDefault()
+          sendText(open ? suggestions[active].value : draft)
         }}
-        rows={1}
-        placeholder={awaiting === 'address' ? 'Type the property address' : 'Ask Revive AI anything'}
-        className={cn('max-h-40 min-h-10 flex-1 resize-none bg-transparent py-2 text-ink outline-none placeholder:text-faint', compact ? 'text-sm' : 'text-[15px]')}
-      />
-      <button type="submit" disabled={!draft.trim() || disabled} className="rv-ai-btn grid size-10 shrink-0 place-items-center rounded-xl text-white disabled:opacity-40" aria-label="Send">
-        <ArrowUp className="size-5" />
-      </button>
-    </form>
+      >
+        <label htmlFor={compact ? 'ai-input-dock' : 'ai-input'} className="sr-only">
+          {awaiting === 'address' ? 'Property address' : 'Ask Revive AI'}
+        </label>
+        <textarea
+          id={compact ? 'ai-input-dock' : 'ai-input'}
+          ref={ref}
+          value={draft}
+          onChange={(e) => {
+            setDraft(e.target.value)
+            setActive(0)
+            setDismissed(false)
+          }}
+          onKeyDown={(e) => {
+            if (open && e.key === 'ArrowDown') {
+              e.preventDefault()
+              setActive((a) => (a + 1) % suggestions.length)
+            } else if (open && e.key === 'ArrowUp') {
+              e.preventDefault()
+              setActive((a) => (a - 1 + suggestions.length) % suggestions.length)
+            } else if (open && e.key === 'Escape') {
+              setDismissed(true)
+            } else if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              sendText(open ? suggestions[active].value : draft)
+            }
+          }}
+          rows={1}
+          role={awaiting === 'address' ? 'combobox' : undefined}
+          aria-expanded={awaiting === 'address' ? open : undefined}
+          aria-controls={open ? listId : undefined}
+          aria-activedescendant={open ? `${listId}-${active}` : undefined}
+          aria-autocomplete={awaiting === 'address' ? 'list' : undefined}
+          autoComplete="off"
+          placeholder={awaiting === 'address' ? 'Start typing the address' : 'Ask Revive AI anything'}
+          className={cn('max-h-40 min-h-10 flex-1 resize-none bg-transparent py-2 text-ink outline-none placeholder:text-faint', compact ? 'text-sm' : 'text-[15px]')}
+        />
+        <button type="submit" disabled={!draft.trim() || disabled} className="rv-ai-btn grid size-10 shrink-0 place-items-center rounded-xl text-white disabled:opacity-40" aria-label="Send">
+          <ArrowUp className="size-5" />
+        </button>
+      </form>
+    </div>
   )
 }

@@ -157,7 +157,7 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
   return (
     <div className={cn('rounded-lg p-3', tone === 'ok' ? 'bg-ok-soft/60' : 'bg-head')}>
       <p className="text-[12px] text-muted">{label}</p>
-      <p className={cn('text-lg font-semibold tabular-nums', tone === 'ok' ? 'text-[#08795a]' : 'text-ink')}>{value}</p>
+      <p className={cn('text-lg font-semibold tabular-nums', tone === 'ok' ? 'text-[var(--green)]' : 'text-ink')}>{value}</p>
       {sub && <p className="truncate text-[12px] text-muted">{sub}</p>}
     </div>
   )
@@ -237,7 +237,7 @@ function Report({ m, compact }: { m: Model; compact: boolean }) {
               </div>
               {s.gain ? (
                 <span className="text-right">
-                  <span className="block text-base font-semibold text-[#08795a] tabular-nums">{gain(s.gain)}</span>
+                  <span className="block text-base font-semibold text-[var(--green)] tabular-nums">{gain(s.gain)}</span>
                   <span className="block text-[11px] text-muted">{money(m.valueNow + s.gain)} after</span>
                 </span>
               ) : (

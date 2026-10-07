@@ -154,3 +154,59 @@ export function recommendProduct(report?: GeneratedReport, goal?: string): strin
 }
 
 export const PROJECT_STEPS = ['Project submitted', 'Revive review (within 48 hrs)', 'Offer terms', 'Letter of intent', 'Work begins', 'Listed or complete']
+
+// ---------------- Address autofill ----------------
+// The prototype has no places API, so suggestions come from homes Revive knows plus real
+// street names around the agent's market (a production build would call an address service).
+
+const STREETS: [string, string, string][] = [
+  ['Fair Oaks Ave', 'Pasadena', '91105'],
+  ['E Colorado Blvd', 'Pasadena', '91101'],
+  ['N Lake Ave', 'Pasadena', '91104'],
+  ['S Orange Grove Blvd', 'Pasadena', '91105'],
+  ['E California Blvd', 'Pasadena', '91106'],
+  ['E Del Mar Blvd', 'Pasadena', '91106'],
+  ['N Hill Ave', 'Pasadena', '91106'],
+  ['N Allen Ave', 'Pasadena', '91106'],
+  ['N Los Robles Ave', 'Pasadena', '91101'],
+  ['S Marengo Ave', 'Pasadena', '91101'],
+  ['Glenarm St', 'Pasadena', '91106'],
+  ['Arroyo Blvd', 'Pasadena', '91105'],
+  ['Sierra Madre Blvd', 'Pasadena', '91107'],
+  ['Mission St', 'South Pasadena', '91030'],
+  ['Huntington Dr', 'San Marino', '91108'],
+  ['Lincoln Ave', 'Altadena', '91001'],
+  ['Foothill Blvd', 'La Cañada Flintridge', '91011'],
+  ['Honolulu Ave', 'Montrose', '91020'],
+  ['Brand Blvd', 'Glendale', '91203'],
+]
+
+export interface AddressSuggestion {
+  line: string // street address
+  area: string // "Pasadena, CA 91105"
+  value: string // what gets sent: "55 Fair Oaks Ave, Pasadena"
+  known: boolean // a home Revive already has on record
+}
+
+export function suggestAddresses(q: string, limit = 5): AddressSuggestion[] {
+  const t = q.trim().toLowerCase()
+  if (t.length < 2) return []
+  const out: AddressSuggestion[] = []
+  for (const p of properties) {
+    if (p.minTier !== 'new' || p.source === 'revive') continue
+    if (`${p.address} ${p.city}`.toLowerCase().includes(t)) out.push({ line: p.address, area: `${p.city}, CA`, value: `${p.address}, ${p.city}`, known: true })
+  }
+  const m = /^(\d+)\s*(.*)$/.exec(t)
+  if (m) {
+    const [, num, rest] = m
+    for (const [street, city, zip] of STREETS) {
+      const s = street.toLowerCase()
+      const plain = s.replace(/^[nsew] /, '')
+      if (!rest || s.startsWith(rest) || plain.startsWith(rest) || s.includes(` ${rest}`)) {
+        const line = `${num} ${street}`
+        if (!out.some((o) => o.line.toLowerCase() === line.toLowerCase())) out.push({ line, area: `${city}, CA ${zip}`, value: `${line}, ${city}`, known: false })
+      }
+    }
+  }
+  return out.slice(0, limit)
+}

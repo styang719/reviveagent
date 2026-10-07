@@ -6,7 +6,7 @@ import { DEALS_TO_PARTNER, TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { plural } from '@/lib/format'
 import type { Opportunity } from '@/lib/opportunities'
-import { useUi } from '@/store/ui'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
@@ -18,7 +18,6 @@ const STEPS = [
 /** Where the agent is with Revive, and what the next deal unlocks. */
 export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[] }) {
   const deals = TIERS[tier].deals
-  const openStep = useUi((s) => s.openStep)
   const partner = deals >= DEALS_TO_PARTNER
   const pct = Math.min(1, deals / DEALS_TO_PARTNER)
   const listing = opps.find((o) => o.cta.kind === 'propose')
@@ -37,11 +36,8 @@ export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[]
     : listing
       ? { label: `Propose Revive on ${listing.property.address}`, to: `/property/${listing.id}?tab=project` }
       : {
-          label: 'Add your license number',
-          onClick: () => {
-            openStep('license')
-            document.getElementById('setup')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          },
+          label: 'Book a call',
+          onClick: () => toast('Call requested', { description: 'A Revive partner manager will reach out within one business day to pick a time.' }),
         }
 
   return (
@@ -50,19 +46,19 @@ export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[]
         <img src={mark} alt="" aria-hidden="true" className="pointer-events-none absolute -top-4 -right-4 h-28 w-auto opacity-[0.07]" />
         <div className="relative flex items-start justify-between gap-3">
           <div>
-            <h2 id="status-title" className="text-[13px] font-medium text-[#A8B0D0]">
+            <h2 id="status-title" className="text-[13px] font-medium text-[var(--brand-primary-border)]">
               Your Revive status
             </h2>
             <p className="mt-0.5 text-xl font-semibold">{partner ? 'Revive Partner' : `${deals} of ${DEALS_TO_PARTNER} deals to Partner`}</p>
           </div>
-          {partner && <span className="rounded-full bg-[#fde68a] px-2.5 py-1 text-[11px] font-bold text-navy">PARTNER</span>}
+          {partner && <span className="rounded-full bg-[var(--teal-soft)] px-2.5 py-1 text-[11px] font-bold text-navy">PARTNER</span>}
         </div>
 
         {/* the track: Start → First deal → Partner */}
         <ol className="relative mt-5 flex justify-between" aria-label={`${deals} of ${DEALS_TO_PARTNER} deals`}>
           <span className="absolute top-4 right-4 left-4 h-1 rounded-full bg-white/15" aria-hidden="true" />
           <span
-            className="absolute top-4 left-4 h-1 rounded-full bg-[#7dd3b0] transition-[width] duration-500"
+            className="absolute top-4 left-4 h-1 rounded-full bg-[var(--teal)] transition-[width] duration-500"
             style={{ width: `calc((100% - 2rem) * ${pct})` }}
             aria-hidden="true"
           />
@@ -75,7 +71,7 @@ export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[]
                 <span
                   className={cn(
                     'grid size-9 place-items-center rounded-full border-2',
-                    done ? 'border-[#7dd3b0] bg-[#7dd3b0] text-navy' : next ? 'border-white bg-navy text-white' : 'border-white/25 bg-navy text-white/50',
+                    done ? 'border-[var(--teal)] bg-[var(--teal)] text-navy' : next ? 'border-white bg-navy text-white' : 'border-white/25 bg-navy text-white/50',
                   )}
                 >
                   <Icon className="size-4" strokeWidth={2.4} />

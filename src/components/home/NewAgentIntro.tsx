@@ -50,7 +50,7 @@ export function ReviveAiIntro() {
             Ask Revive AI
           </label>
           <div className="flex items-center gap-2 px-2">
-            <Sparkles className="size-5 shrink-0 text-[#8b5cf6]" aria-hidden="true" />
+            <Sparkles className="size-5 shrink-0 text-[#61009e]" aria-hidden="true" />
             <input
               id="home-ask"
               value={q}
@@ -101,7 +101,7 @@ function CaseStudy({ p }: { p: ReviveProject }) {
         <p className="text-[13px] text-muted">
           {p.block}, {p.city}
         </p>
-        <p className="mt-1 text-2xl leading-7 font-semibold text-[#08795a] tabular-nums">{headline.value}</p>
+        <p className="mt-1 text-2xl leading-7 font-semibold text-[var(--green)] tabular-nums">{headline.value}</p>
         <p className="text-[13px] text-ink-2">{headline.label}</p>
         <p className="mt-3 text-[13px] text-muted">
           {p.scope.join(' · ')} · {p.weeks} weeks

@@ -4,22 +4,24 @@
 /* Revive tokens (from Your_Contacts.html + Figma "Revive Design System x ShadCN") */
 :root {
   /* sidebar */
-  --sb-bg: #1b1f4f;
+  --sb-bg: #1c2e58; /* blue/900 */
   --sb-active: #5274c0;
   --sb-ink: #b6b9c3;
   --sb-dim: rgba(255, 255, 255, 0.5);
   --sb-line: rgba(255, 255, 255, 0.5);
   --sb-input: rgba(255, 255, 255, 0.04);
   /* navy */
-  --navy: #1b2559;
-  --navy-2: #2a3568;
-  --navy-3: #141c46;
+  --navy: #1c2e58; /* blue/900 */
+  --navy-2: #2f4a89; /* blue/700 */
+  --navy-3: #1c2e58;
   /* brand + status */
-  --blue: #2563eb;
-  --blue-hover: #1d4fd8;
-  --blue-soft: #eff4ff;
-  --green: #0fa678;
-  --green-soft: #e7f7f1;
+  --blue: #3e62b6; /* brand/primary */
+  --blue-hover: #2f4a89;
+  --blue-soft: #f0f3fa;
+  --green: #058071; /* brand/accent */
+  --green-soft: #effefa;
+  --teal: #04c8aa; /* brand/accent (dark surfaces) */
+  --teal-soft: #c8fff2;
   --amber: #b45309;
   --amber-soft: #fef3c7;
   --red: #dc2626;
@@ -38,7 +40,7 @@
   --hot-soft: #fff1e8;
   --hot-line: #fccbaa;
   /* text + lines */
-  --ink: #111827;
+  --ink: #25262c; /* base/foreground */
   --ink-2: #374151;
   --muted: #626a78;
   --faint: #9ca3af;
@@ -209,7 +211,7 @@
 .leaflet-control-attribution { font-size: 10px; }
 .rv-office {
   display: block; width: 14px; height: 14px; transform: translate(-50%, -50%); border-radius: 50%;
-  background: #fff; border: 4px solid var(--blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  background: #fff; border: 4px solid var(--blue); box-shadow: 0 0 0 3px rgba(62, 98, 182, 0.25);
 }
 .rv-pill.k-project-done { background: var(--green); }
 /* locked homes on the onboarding map: grey, with what they are (house = listing, person = contact) */
@@ -256,14 +258,14 @@
 .rv-callout {
   position: absolute; left: 44px; top: -118px; display: flex; flex-direction: column; gap: 2px; width: 200px;
   padding: 10px 12px; background: #fff; border: 1px solid var(--line); border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(27, 37, 89, 0.18); font: 400 12px/1.35 var(--font-sans); color: var(--ink-2);
+  box-shadow: 0 8px 24px rgba(28, 46, 88, 0.18); font: 400 12px/1.35 var(--font-sans); color: var(--ink-2);
 }
 .rv-callout em { font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .rv-callout strong { font-weight: 700; color: var(--navy); }
 .rv-callout strong.hot { color: var(--hot); }
 .rv-callout span { font-weight: 600; color: var(--ink); }
 .rv-callout span.muted { font-weight: 400; color: var(--muted); }
-.rv-callout span.up { font-weight: 700; color: #08795a; }
+.rv-callout span.up { font-weight: 700; color: var(--green); }
 /* B · numbered example pins */
 .rv-num {
   display: grid; place-items: center; width: 28px; height: 28px; transform: translate(-50%, -50%);
@@ -280,27 +282,27 @@
 .rv-bubble b { font-size: 12px; font-weight: 700; color: var(--navy); }
 /* Revive AI: plain like the other tabs at rest; when open, a gradient tile that pops in and shimmers */
 .rv-ai-tile {
-  background: linear-gradient(120deg, #5274c0, #8b5cf6, #22d3ee, #5274c0);
+  background: linear-gradient(120deg, #3e62b6, #61009e, #b080e0, #3e62b6);
   background-size: 300% 300%;
-  box-shadow: 0 0 12px rgba(139, 92, 246, 0.45);
+  box-shadow: 0 0 12px rgba(97, 0, 158, 0.35);
   animation: rv-ai-shift 6s ease-in-out infinite, rv-ai-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 .rv-ai-text {
-  background: linear-gradient(90deg, #ffffff, #d8ccff 60%, #a5f3fc);
+  background: linear-gradient(90deg, #ffffff, #e0caf2 60%, #cda7ec);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .rv-ai-text-rest {
   /* same gradient as the resting icon */
-  background: linear-gradient(110deg, #7aa2ff, #a78bfa 55%, #5eead4);
+  background: linear-gradient(110deg, #c2ceea, #b080e0 55%, #cda7ec);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 @keyframes rv-ai-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 @keyframes rv-ai-pop { from { transform: scale(0.55) rotate(-25deg); } to { transform: scale(1) rotate(0); } }
-.rv-typing i { width: 7px; height: 7px; border-radius: 50%; background: #a5b4fc; animation: rv-dot 1s ease-in-out infinite; }
+.rv-typing i { width: 7px; height: 7px; border-radius: 50%; background: #b080e0; animation: rv-dot 1s ease-in-out infinite; }
 .rv-typing i:nth-child(2) { animation-delay: 0.15s; }
 .rv-typing i:nth-child(3) { animation-delay: 0.3s; }
 @keyframes rv-dot { 0%, 100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
@@ -309,11 +311,11 @@
 }
 /* AI action button: the AI gradient without the cyan end, so white text stays readable */
 .rv-ai-btn {
-  background: linear-gradient(110deg, #3f63c4, #7c4dff);
-  box-shadow: 0 2px 10px rgba(124, 77, 255, 0.35);
+  background: linear-gradient(110deg, #3e62b6, #61009e);
+  box-shadow: 0 2px 10px rgba(97, 0, 158, 0.3);
   transition: filter 0.15s, box-shadow 0.15s;
 }
-.rv-ai-btn:hover { filter: brightness(1.08); box-shadow: 0 4px 14px rgba(124, 77, 255, 0.45); }
+.rv-ai-btn:hover { filter: brightness(1.08); box-shadow: 0 4px 14px rgba(97, 0, 158, 0.4); }
 /* soft animated gradient behind the glass ask box: light shades of brand blue and agent purple */
 .rv-ai-aurora {
   background:
@@ -334,6 +336,6 @@
 /* the Ask card itself: brand primary-subtle into agent-subtle */
 .rv-ai-card {
   background: linear-gradient(120deg, #f6f8fc, #fbf9fd 50%, #f8f3fb);
-  border: 1px solid #ece2f6;
+  border: 1px solid var(--brand-agent-border-subtle);
 }
 @media (prefers-reduced-motion: reduce) { .rv-ai-aurora { animation: none; } }

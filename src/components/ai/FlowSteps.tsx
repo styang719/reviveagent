@@ -242,7 +242,7 @@ function ReportReady({ id }: { id: string }) {
             {best?.gain ? (
               <span>
                 <span className="text-muted">Best upside </span>
-                <span className="font-semibold text-[#08795a] tabular-nums">{gain(best.gain)}</span>
+                <span className="font-semibold text-[var(--green)] tabular-nums">{gain(best.gain)}</span>
                 <span className="text-muted"> · {best.product}</span>
               </span>
             ) : null}

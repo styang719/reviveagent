@@ -68,7 +68,7 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
               <p className="mt-0.5 text-[13px] leading-5 text-ink-2">{s.body}</p>
               <div className="mt-3">
                 {s.done ? (
-                  <p className="flex items-center gap-1.5 text-sm font-medium text-[#08795a]">
+                  <p className="flex items-center gap-1.5 text-sm font-medium text-[var(--green)]">
                     <BadgeCheck className="size-4" /> {s.result}
                   </p>
                 ) : (
