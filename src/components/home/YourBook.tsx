@@ -63,7 +63,7 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
           // each source is its own tinted panel: what it is, an example of what it brings in, the button
           <div key={s.key} className={cn('flex min-w-0 flex-col gap-6 rounded-2xl p-5 2xl:p-6', s.done ? 'bg-ok-soft/60' : 'bg-[var(--brand-primary-subtle)]')}>
             <div>
-              <p className="text-[16px] font-semibold text-ink">
+              <p className="text-lg font-semibold text-ink">
                 {s.title} <span className="font-normal text-muted">{s.from}</span>
               </p>
               <p className="mt-1.5 text-[13px] leading-5 text-ink-2">{s.body}</p>
