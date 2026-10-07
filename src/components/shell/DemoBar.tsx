@@ -4,6 +4,7 @@ import { TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
 import type { Handoff } from '@/lib/flows'
+import type { ListingPromoVersion } from '@/components/home/ListingsPromo'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 
@@ -11,6 +12,12 @@ const HANDOFFS: { id: Handoff; label: string }[] = [
   { id: 'link', label: 'A · Link' },
   { id: 'panel', label: 'B · Side panel' },
   { id: 'dock', label: 'C · Docked chat' },
+]
+
+const PROMOS: { id: ListingPromoVersion; label: string }[] = [
+  { id: 'table', label: 'A · Table' },
+  { id: 'story', label: 'B · Story' },
+  { id: 'pipeline', label: 'C · Pipeline' },
 ]
 
 export const DEMO_BAR_HEIGHT = 44
@@ -22,6 +29,8 @@ export function DemoBar() {
   const handoff = useDemo((s) => s.handoff)
   const setHandoff = useDemo((s) => s.setHandoff)
   const clearChat = useUi((s) => s.clearChat)
+  const promo = useDemo((s) => s.listingPromo)
+  const setPromo = useDemo((s) => s.setListingPromo)
 
   return (
     <div
@@ -57,6 +66,20 @@ export function DemoBar() {
             aria-checked={handoff === h.id}
             onClick={() => setHandoff(h.id)}
             className={cn('rounded-md px-3 py-1 font-medium whitespace-nowrap', handoff === h.id ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
+          >
+            {h.label}
+          </button>
+        ))}
+      </div>
+      <span className="ml-2 shrink-0">Listings promo</span>
+      <div className="flex shrink-0 rounded-lg bg-white/10 p-0.5" role="radiogroup" aria-label="Listings promo on the new-agent Home">
+        {PROMOS.map((h) => (
+          <button
+            key={h.id}
+            role="radio"
+            aria-checked={promo === h.id}
+            onClick={() => setPromo(h.id)}
+            className={cn('rounded-md px-3 py-1 font-medium whitespace-nowrap', promo === h.id ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
           >
             {h.label}
           </button>

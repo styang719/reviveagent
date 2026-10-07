@@ -339,3 +339,14 @@
   border: 1px solid var(--brand-agent-border-subtle);
 }
 @media (prefers-reduced-motion: reduce) { .rv-ai-aurora { animation: none; } }
+
+/* listings promo: a light sweep while Revive reads a row, and a pop when it flags one */
+.rv-scan {
+  background: linear-gradient(90deg, transparent, rgba(97, 0, 158, 0.12) 45%, rgba(62, 98, 182, 0.18) 55%, transparent);
+  background-size: 50% 100%; background-repeat: no-repeat;
+  animation: rv-scan 1s ease-in-out infinite;
+}
+@keyframes rv-scan { from { background-position: -60% 0; } to { background-position: 160% 0; } }
+.rv-pop { animation: rv-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes rv-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .rv-scan, .rv-pop { animation: none; } }
