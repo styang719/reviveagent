@@ -57,11 +57,12 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
         <span className="rounded-full bg-line-soft px-2.5 py-1 text-xs font-medium text-ink-2 tabular-nums">{connected} of 2 connected</span>
       </div>
       {/* the two sources side by side; until one is connected it shows an example of what it brings in */}
-      <div className="grid gap-10 sm:grid-cols-2 sm:gap-x-10">
+      <div className="grid gap-5 sm:grid-cols-2">
         {sources.map((s) => (
-          <div key={s.key} className={cn('flex flex-col gap-5', s.done && 'rounded-xl bg-ok-soft/40 p-4')}>
+          // each source is its own tinted panel: what it is, an example of what it brings in, the button
+          <div key={s.key} className={cn('flex flex-col gap-5 rounded-2xl p-4 sm:p-5 2xl:p-6', s.done ? 'bg-ok-soft/60' : 'bg-[var(--brand-primary-subtle)]')}>
             <div className="flex gap-3">
-              <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg', s.done ? 'bg-ok-soft text-ok' : 'bg-brand-soft text-brand')}>
+              <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg bg-white shadow-sm', s.done ? 'text-ok' : 'text-brand')}>
                 <s.icon className="size-5" />
               </span>
               <div className="min-w-0 flex-1">

@@ -2,22 +2,21 @@ import { AlarmClock, Phone, CircleDollarSign, Eye, UserRound, CircleAlert, Clock
 import { photoUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
 
-// What each source brings in, shown with sample data before it's connected: the real card,
-// slimmed down, under a banner that marks it as an example.
+// What each source brings in, shown with sample data before it's connected, under a label that
+// marks it as an example. Sits on the source's tinted panel: listings as a stack of cards, the
+// contact as one card.
 // Both cards read the same way: who or what → the one number that matters → why now →
 // the Revive opportunities.
 
-function Sample({ label, banner, flush = false, children }: { label: string; banner: string; flush?: boolean; children: React.ReactNode }) {
+function Sample({ label, banner, cards = false, children }: { label: string; banner: string; cards?: boolean; children: React.ReactNode }) {
   return (
-    <div role="img" aria-label={label} className="flex h-full flex-col overflow-hidden rounded-xl border border-line bg-white shadow-card">
-      {/* the banner says up front that this is an example, not real data */}
-      <p
-        aria-hidden="true"
-        className="flex items-center gap-1.5 border-b border-line bg-line-soft px-4 py-2 text-[12px] font-semibold text-ink-2"
-      >
+    <div role="img" aria-label={label} className="flex h-full flex-col gap-2.5">
+      {/* the label says up front that this is an example, not real data */}
+      <p aria-hidden="true" className="flex items-center gap-1.5 text-[12px] font-semibold text-ink-2">
         <Eye className="size-3.5 text-muted" /> {banner}
       </p>
-      <div aria-hidden="true" className={cn('flex flex-1 flex-col', !flush && 'gap-4 p-4')}>
+      {/* either the items are cards themselves, or the content sits on one white card */}
+      <div aria-hidden="true" className={cn('flex flex-1 flex-col', cards ? 'gap-2.5' : 'gap-4 overflow-hidden rounded-xl border border-white bg-white p-4 shadow-card')}>
         {children}
       </div>
     </div>
@@ -53,14 +52,14 @@ function Opportunities({ children }: { children: React.ReactNode }) {
   )
 }
 
-function Tag({ icon: Icon, tone, children }: { icon: typeof Clock; tone: 'agent' | 'warn' | 'teal'; children: React.ReactNode }) {
+function Tag({ icon: Icon, tone, small = false, children }: { icon: typeof Clock; tone: 'agent' | 'warn' | 'teal'; small?: boolean; children: React.ReactNode }) {
   const tones = {
     agent: 'bg-[var(--brand-agent-subtle)] text-[var(--brand-agent)]',
     warn: 'bg-warn-soft text-warn',
     teal: 'bg-[var(--teal-soft)] text-[var(--green)]',
   }
   return (
-    <span className={cn('inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11.5px] font-medium whitespace-nowrap', tones[tone])}>
+    <span className={cn('inline-flex items-center gap-1 rounded-md font-medium whitespace-nowrap', small ? 'px-1.5 py-0.5 text-[11px]' : 'px-2 py-1 text-[11.5px]', tones[tone])}>
       <Icon className="size-3" /> {children}
     </span>
   )
@@ -86,39 +85,34 @@ const LISTINGS = [
 export function ListingExample() {
   return (
     <Sample
-      flush
+      cards
       banner="Example of your listings"
       label="Example with sample data: three of your listings with the value Revive could add. 123 Sample St, $1.39M after Revive, up $210K, Renovate to Sell. 456 Example Ave, $1.81M, up $290K, stale listing. 789 Sample Ln, $965K, up $95K, more commission. $595K potential across 3 listings."
     >
-      <div className="flex items-center justify-between gap-2 px-4 pt-3 pb-1.5 text-[10.5px] font-semibold tracking-wide text-muted uppercase">
-        <span>Listing</span>
-        <span>After Revive</span>
-      </div>
-      <ul className="@container flex flex-1 flex-col divide-y divide-line">
+      <ul className="@container flex flex-1 flex-col gap-2.5">
         {LISTINGS.map((l) => (
-          <li key={l.address} className="flex flex-1 items-center gap-3 px-4 py-2.5">
-            <img src={photoUrl(l.photo)} alt="" className="hidden size-10 shrink-0 rounded-lg object-cover @[18rem]:block" />
-            <div className="min-w-0 flex-1 overflow-hidden">
-              <p className="truncate text-[13.5px] font-semibold text-ink">{l.address}</p>
-              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                {l.tag ? (
-                  <Tag icon={l.tag.icon} tone={l.tag.tone}>
-                    {l.tag.text}
-                  </Tag>
-                ) : (
-                  <span className="text-[11.5px] text-muted">On track</span>
-                )}
-                <span className={cn('text-[11.5px] tabular-nums', l.days > 30 ? 'text-hot' : 'text-muted')}>{l.days} days</span>
+          <li key={l.address} className="flex flex-1 flex-col justify-center gap-2 rounded-xl border border-white bg-white px-3.5 py-3 shadow-card">
+            <div className="flex items-center gap-3">
+              <img src={photoUrl(l.photo)} alt="" className="hidden size-10 shrink-0 rounded-lg object-cover @[18rem]:block" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13.5px] font-semibold text-ink">{l.address}</p>
+                <p className={cn('text-[11.5px] tabular-nums', l.days > 30 ? 'text-hot' : 'text-muted')}>{l.days} days on market</p>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="text-[14px] font-semibold text-ink tabular-nums">{l.after}</p>
+                <p className="text-[11.5px] font-semibold text-[var(--green)] tabular-nums">{l.gain}</p>
               </div>
             </div>
-            <div className="shrink-0 text-right">
-              <p className="text-[14px] font-semibold text-ink tabular-nums">{l.after}</p>
-              <p className={cn('text-[11.5px] font-semibold tabular-nums', l.tag ? 'text-[var(--green)]' : 'text-muted')}>{l.gain}</p>
+            <div className="flex items-center justify-between gap-2">
+              <Tag icon={l.tag.icon} tone={l.tag.tone} small>
+                {l.tag.text}
+              </Tag>
+              <span className="text-[10.5px] whitespace-nowrap text-muted">after Revive</span>
             </div>
           </li>
         ))}
       </ul>
-      <p className="flex flex-wrap items-center justify-between gap-x-2 border-t border-line bg-[var(--brand-primary-subtle)]/50 px-4 py-2.5 text-[12.5px] text-ink-2">
+      <p className="flex flex-wrap items-center justify-between gap-x-2 px-1 text-[12.5px] text-ink-2">
         <span className="whitespace-nowrap">3 Revive opportunities</span>
         <span className="font-semibold whitespace-nowrap text-[var(--green)] tabular-nums">+$595K potential</span>
       </p>
@@ -184,7 +178,7 @@ export function ContactExample() {
         </Tag>
       </Opportunities>
 
-      <div className="-mx-4 -mb-4 flex items-center justify-between gap-2 border-t border-line bg-[var(--brand-primary-subtle)]/50 px-4 py-2.5">
+      <div className="-mx-4 -mb-4 flex items-center justify-between gap-2 border-t border-line bg-head px-4 py-2.5">
         <span className="text-[12.5px] text-ink-2">Called 2 mo ago</span>
         <span className="inline-flex items-center gap-1 rounded-md border border-[var(--brand-primary-border)] bg-white px-2.5 py-1 text-[12.5px] font-semibold text-brand">
           <Phone className="size-3.5" /> Call
