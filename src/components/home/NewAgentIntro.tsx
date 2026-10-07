@@ -20,7 +20,7 @@ export function ReviveAiIntro() {
   // the box itself shows one example; two short chips cover the other kinds of question
   const example = STARTERS[0]
   const prompts = [
-    { label: 'Who’s likely to sell?', q: STARTERS[1] },
+    { label: 'Value of 250 Elm St?', q: 'What could 250 Elm St sell for after a Revive project?' },
     { label: 'ADU at 412 Oak Ave?', q: STARTERS[2] },
   ]
   const submit = (e: React.FormEvent) => {
@@ -35,10 +35,10 @@ export function ReviveAiIntro() {
         </span>
         <div className="min-w-0 flex-1">
           <h2 id="ai-intro" className="text-lg font-semibold text-ink sm:text-xl">
-            Ask Revive about anything
+            Ask Revive about any property
           </h2>
-          <p className="mt-0.5 max-w-2xl text-sm text-ink-2">
-            A home’s value and renovation upside, ADU room, who to call, a note to a client. Works before you connect anything.
+          <p className="mt-0.5 text-sm text-ink-2">
+            See any home’s value today, what it could sell for after a Revive project, and if there’s room for an ADU.
           </p>
         </div>
       </div>
