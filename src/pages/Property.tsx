@@ -36,7 +36,7 @@ export default function Property() {
           <ArrowLeft className="size-3.5" /> Properties
         </Link>
       )}
-      <div className="mt-4 max-w-5xl">
+      <div className="mt-4">
         <PropertyView
           m={m}
           tab={tab}
