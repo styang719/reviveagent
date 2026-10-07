@@ -17,10 +17,15 @@ export const askPath = (q: string) => `/ai?q=${encodeURIComponent(q)}`
 export function ReviveAiIntro() {
   const navigate = useNavigate()
   const [q, setQ] = useState('')
-  const prompts = [STARTERS[0], STARTERS[1], STARTERS[2]]
+  // the box itself shows one example; two short chips cover the other kinds of question
+  const example = STARTERS[0]
+  const prompts = [
+    { label: 'Who’s likely to sell?', q: STARTERS[1] },
+    { label: 'ADU at 412 Oak Ave?', q: STARTERS[2] },
+  ]
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    navigate(q.trim() ? askPath(q.trim()) : '/ai')
+    navigate(askPath(q.trim() || example))
   }
   return (
     <section aria-labelledby="ai-intro" className="rv-ai-card h-full rounded-2xl p-5 shadow-card sm:p-6">
@@ -55,20 +60,20 @@ export function ReviveAiIntro() {
               id="home-ask"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Ask anything"
+              placeholder="What’s 1847 Las Lunas St worth after a reno?"
               autoComplete="off"
               className="h-11 min-w-0 flex-1 truncate bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
             />
           </div>
-          <div className="mt-1 flex flex-col gap-2 border-t border-white/80 px-1 pt-2 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+          <div className="mt-1 flex flex-col gap-2 border-t border-white/80 px-1 pt-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
               {prompts.map((x) => (
                 <Link
-                  key={x}
-                  to={askPath(x)}
-                  className="rounded-full border border-white/90 bg-white/60 px-2.5 py-1 text-[12.5px] text-ink-2 hover:bg-white hover:text-ink"
+                  key={x.q}
+                  to={askPath(x.q)}
+                  className="rounded-full border border-white/90 bg-white/60 px-2.5 py-1 text-[12.5px] whitespace-nowrap text-ink-2 hover:bg-white hover:text-ink"
                 >
-                  {x}
+                  {x.label}
                 </Link>
               ))}
             </div>
