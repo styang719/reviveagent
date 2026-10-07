@@ -78,7 +78,9 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
                 <LicenseForm inline />
               ) : (
                 <div className="flex justify-end">
-                  <Button onClick={s.onClick}>{s.cta}</Button>
+                  <Button onClick={s.onClick} className="h-10">
+                    {s.cta}
+                  </Button>
                 </div>
               )}
             </div>
