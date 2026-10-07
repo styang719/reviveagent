@@ -262,8 +262,8 @@ function ContactCard({ c }: { c: (typeof CONTACTS)[number] }) {
   )
 }
 
-const SLIDE_MS = 1100 // how long a slide takes
-const HOLD_MS = 4200 // how long each contact stays put
+const SLIDE_MS = 700 // how long a slide takes
+const HOLD_MS = 2800 // how long each contact stays put
 
 /** Homeowners from your CRM: slides right to left, one contact at a time, then back to the first. */
 export function ContactExample() {
