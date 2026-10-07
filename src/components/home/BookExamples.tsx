@@ -1,5 +1,4 @@
 import { AlarmClock, Phone, CircleDollarSign, Eye, UserRound, CircleAlert, Clock, Hammer, TrendingDown, TriangleAlert, Warehouse } from 'lucide-react'
-import { photoUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
 
 // What each source brings in, shown with sample data before it's connected, under a label that
@@ -76,9 +75,10 @@ function Why({ icon: Icon, children }: { icon: typeof Clock; children: React.Rea
 }
 
 const LISTINGS = [
-  { photo: 'comp-100-0', address: '123 Sample St', days: 47, after: '$1.39M', gain: '+$210K', tag: { icon: Hammer, tone: 'agent', text: 'Renovate to Sell' } },
-  { photo: 'comp-111-2', address: '456 Example Ave', days: 63, after: '$1.81M', gain: '+$290K', tag: { icon: TrendingDown, tone: 'warn', text: 'Stale listing' } },
-  { photo: 'comp-104-0', address: '789 Sample Ln', days: 21, after: '$965K', gain: '+$95K', tag: { icon: CircleDollarSign, tone: 'teal', text: 'More commission' } },
+  { address: '123 Sample St', days: 47, after: '$1.39M', gain: '+$210K', tag: { icon: Hammer, tone: 'agent', text: 'Renovate to Sell' } },
+  { address: '456 Example Ave', days: 63, after: '$1.81M', gain: '+$290K', tag: { icon: TrendingDown, tone: 'warn', text: 'Stale listing' } },
+  { address: '789 Sample Ln', days: 21, after: '$965K', gain: '+$95K', tag: { icon: CircleDollarSign, tone: 'teal', text: 'More commission' } },
+  { address: '12 Example Ct', days: 34, after: '$1.12M', gain: '+$140K', tag: { icon: Warehouse, tone: 'agent', text: 'ADU room' } },
 ] as const
 
 /** Your listings, read by Revive: a list, ranked by upside. */
@@ -87,34 +87,32 @@ export function ListingExample() {
     <Sample
       cards
       banner="Example of your listings"
-      label="Example with sample data: three of your listings with the value Revive could add. 123 Sample St, $1.39M after Revive, up $210K, Renovate to Sell. 456 Example Ave, $1.81M, up $290K, stale listing. 789 Sample Ln, $965K, up $95K, more commission. $595K potential across 3 listings."
+      label="Example with sample data: four of your listings with the value Revive could add. 123 Sample St, $1.39M after Revive, up $210K, Renovate to Sell. 456 Example Ave, $1.81M, up $290K, stale listing. 789 Sample Ln, $965K, up $95K, more commission. 12 Example Ct, $1.12M, up $140K, ADU room. $735K potential across 4 listings."
     >
-      <ul className="@container flex flex-1 flex-col gap-2.5">
+      <ul className="flex flex-col gap-2.5">
         {LISTINGS.map((l) => (
-          <li key={l.address} className="flex flex-1 flex-col justify-center gap-2 rounded-xl border border-white bg-white px-3.5 py-3 shadow-card">
-            <div className="flex items-center gap-3">
-              <img src={photoUrl(l.photo)} alt="" className="hidden size-10 shrink-0 rounded-lg object-cover @[18rem]:block" />
-              <div className="min-w-0 flex-1">
+          <li key={l.address} className="flex items-center gap-3 rounded-xl border border-white bg-white px-3.5 py-3 shadow-card">
+            <div className="min-w-0 flex-1">
+              {/* line 1: the listing and its Revive opportunity; line 2: the numbers */}
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                 <p className="truncate text-[13.5px] font-semibold text-ink">{l.address}</p>
-                <p className={cn('text-[11.5px] tabular-nums', l.days > 30 ? 'text-hot' : 'text-muted')}>{l.days} days on market</p>
+                <Tag icon={l.tag.icon} tone={l.tag.tone} small>
+                  {l.tag.text}
+                </Tag>
               </div>
-              <div className="shrink-0 text-right">
-                <p className="text-[14px] font-semibold text-ink tabular-nums">{l.after}</p>
-                <p className="text-[11.5px] font-semibold text-[var(--green)] tabular-nums">{l.gain}</p>
+              <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-2">
+                <p className={cn('text-[11.5px] whitespace-nowrap tabular-nums', l.days > 30 ? 'text-hot' : 'text-muted')}>{l.days} days on market</p>
+                <p className="text-[11.5px] whitespace-nowrap text-muted tabular-nums">
+                  <span className="text-[13px] font-semibold text-ink">{l.after}</span> <span className="font-semibold text-[var(--green)]">{l.gain}</span>
+                </p>
               </div>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <Tag icon={l.tag.icon} tone={l.tag.tone} small>
-                {l.tag.text}
-              </Tag>
-              <span className="text-[10.5px] whitespace-nowrap text-muted">after Revive</span>
             </div>
           </li>
         ))}
       </ul>
       <p className="flex flex-wrap items-center justify-between gap-x-2 px-1 text-[12.5px] text-ink-2">
-        <span className="whitespace-nowrap">3 Revive opportunities</span>
-        <span className="font-semibold whitespace-nowrap text-[var(--green)] tabular-nums">+$595K potential</span>
+        <span className="whitespace-nowrap">4 Revive opportunities</span>
+        <span className="font-semibold whitespace-nowrap text-[var(--green)] tabular-nums">+$735K potential</span>
       </p>
     </Sample>
   )
