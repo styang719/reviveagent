@@ -1,4 +1,4 @@
-import { ArrowRight, Hammer, Megaphone, Sparkles, Target } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
@@ -135,37 +135,6 @@ export function CaseStudies() {
         ))}
       </div>
       <p className="mt-2 text-[11px] text-faint">Sample projects; photos are illustrative.</p>
-    </section>
-  )
-}
-
-const PARTS = [
-  { to: '/opportunities', icon: Target, title: 'Opportunities', body: 'Everyone in your book worth a call, ranked, with why now and what Revive could add.' },
-  { to: '/projects', icon: Hammer, title: 'Projects', body: 'Follow each Revive renovation from submission to sale, and what it earned you.' },
-  { to: '/marketing', icon: Megaphone, title: 'Marketing', body: 'Flyers, social posts and emails for every property, branded with your name.' },
-]
-
-/** A short tour of the rest of the product. */
-export function GetToKnowRevive() {
-  return (
-    <section aria-labelledby="tour-title">
-      <h2 id="tour-title" className="mb-3 text-lg font-semibold text-ink">
-        Get to know Revive
-      </h2>
-      <div className="grid gap-4 sm:grid-cols-3">
-        {PARTS.map((x) => (
-          <Link key={x.to} to={x.to} className="group flex flex-col rounded-xl border border-line bg-white p-4 shadow-card transition-shadow hover:shadow-md">
-            <span className="grid size-9 place-items-center rounded-lg bg-brand-soft text-brand">
-              <x.icon className="size-[18px]" />
-            </span>
-            <p className="mt-3 text-[15px] font-semibold text-ink">{x.title}</p>
-            <p className="mt-1 flex-1 text-[13px] leading-5 text-ink-2">{x.body}</p>
-            <p className="mt-3 flex items-center gap-1 text-[13px] font-medium text-brand">
-              Take a look <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-            </p>
-          </Link>
-        ))}
-      </div>
     </section>
   )
 }

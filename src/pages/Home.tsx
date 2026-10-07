@@ -9,7 +9,7 @@ import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { SetupTodo } from '@/components/home/ConnectBook'
 import { StatCards } from '@/components/home/StatCards'
-import { CaseStudies, GetToKnowRevive, ReviveAiIntro } from '@/components/home/NewAgentIntro'
+import { CaseStudies, ReviveAiIntro } from '@/components/home/NewAgentIntro'
 import { YourBook } from '@/components/home/YourBook'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
 import { AGENT, TIERS } from '@/data/tiers'
@@ -89,9 +89,8 @@ export default function Home() {
           <div className="flex min-w-0 flex-col gap-5">
             <YourBook opps={opps} />
             {whoToCall}
-            <div className="mt-3 flex flex-col gap-8">
+            <div className="mt-3">
               <CaseStudies />
-              <GetToKnowRevive />
             </div>
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">
