@@ -5,11 +5,13 @@ import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 import { Composer, Thread, useAsk } from './Chat'
 
-// C · the conversation follows the agent: when Revive AI opens a result page, the chat docks in the
-// corner so she can keep asking ("add a kitchen scenario", "start a project from this") without leaving.
+// The conversation follows the agent: when Revive AI opens a result page, the chat docks in the
+// corner so they can keep asking ("add a kitchen scenario", "start a project from this") without
+// leaving. Every earlier conversation is in the history on the Revive AI page.
 export function DockedChat() {
   const handoff = useDemo((s) => s.handoff)
   const hasChat = useUi((s) => s.chat.length > 0)
+  const title = useUi((s) => s.threads.find((t) => t.id === s.activeId)?.title)
   const open = useUi((s) => s.dockOpen)
   const setOpen = useUi((s) => s.setDock)
   const pendingNav = useUi((s) => s.pendingNav)
@@ -37,7 +39,7 @@ export function DockedChat() {
         <span className="rv-ai-tile grid size-8 place-items-center rounded-full text-white">
           <Sparkles className="size-4" />
         </span>
-        Revive AI · continue the conversation
+        <span className="max-w-64 truncate">Revive AI · {title ?? 'continue the conversation'}</span>
       </button>
     )
 
@@ -47,14 +49,14 @@ export function DockedChat() {
       className="fixed right-4 bottom-4 z-40 flex h-[min(620px,calc(100dvh-120px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-2xl"
     >
       <header className="flex items-center justify-between gap-2 border-b border-line bg-[var(--brand-agent-subtle)]/50 px-4 py-2.5">
-        <p className="flex items-center gap-2 text-sm font-semibold text-ink">
-          <span className="rv-ai-tile grid size-6 place-items-center rounded-md text-white">
+        <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-ink">
+          <span className="rv-ai-tile grid size-6 shrink-0 place-items-center rounded-md text-white">
             <Sparkles className="size-3.5" />
           </span>
-          Revive AI
+          <span className="truncate">{title ?? 'Revive AI'}</span>
         </p>
         <div className="flex items-center gap-1">
-          <Link to="/ai" className="grid size-8 place-items-center rounded-md text-muted hover:bg-white" aria-label="Open the full conversation">
+          <Link to="/ai" className="grid size-8 place-items-center rounded-md text-muted hover:bg-white" aria-label="Open in Revive AI, with all your conversations">
             <Maximize2 className="size-4" />
           </Link>
           <button onClick={() => setOpen(false)} className="grid size-8 place-items-center rounded-md text-muted hover:bg-white" aria-label="Minimize">

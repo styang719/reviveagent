@@ -84,10 +84,25 @@ export function answerQuestions(selling: string, goal: string) {
   patchReport({ selling, goal })
   user(`Selling: ${selling}. What matters most: ${goal}.`)
   ui().addChat(say('Generating your report…', 'report-progress'))
-  setTimeout(finishReport, 3600)
+  const tid = ui().activeId
+  setTimeout(() => inThread(tid, finishReport), 3600)
 }
 
-function finishReport() {
+/**
+ * Finish a delayed step in the conversation that started it, even if the agent has since
+ * opened another chat. The result only takes over the screen if that chat is still open.
+ */
+function inThread(tid: string, fn: (onScreen: boolean) => void) {
+  const s = ui()
+  if (s.activeId === tid) return fn(true)
+  const back = s.activeId
+  s.openThread(tid)
+  fn(false)
+  if (ui().threads.some((t) => t.id === back)) ui().openThread(back)
+  else ui().clearChat() // the chat they were on was still empty
+}
+
+function finishReport(onScreen: boolean) {
   close('report-progress')
   const draft = ui().flow?.report
   if (!draft) return
@@ -95,7 +110,7 @@ function finishReport() {
   demo().addReport(report)
   ui().setFlow(null)
   ui().addChat(say(`Your Revive AI report for ${report.address} is ready.`, 'report-ready', report.id))
-  handOff('report', report.id)
+  if (onScreen) handOff('report', report.id)
 }
 
 // ---------------- Start a Revive project ----------------
@@ -173,7 +188,8 @@ export function submitProject() {
   close('project-review')
   user('Submit the project')
   ui().addChat(say('Submitting to Revive…', 'project-progress'))
-  setTimeout(() => {
+  const tid = ui().activeId
+  setTimeout(() => inThread(tid, (onScreen) => {
     close('project-progress')
     const d = ui().flow?.project
     if (!d?.product || !d.timeline || !d.occupancy) return
@@ -181,8 +197,8 @@ export function submitProject() {
     demo().addProject(project)
     ui().setFlow(null)
     ui().addChat(say(`Project submitted. Revive reviews it within 48 hours; you’ll get the offer terms here and by email.`, 'project-ready', project.propertyId))
-    handOff('project', project.propertyId)
-  }, 1800)
+    if (onScreen) handOff('project', project.propertyId)
+  }), 1800)
 }
 
 // ---------------- Hand-off: where the result opens (three versions) ----------------

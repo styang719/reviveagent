@@ -17,7 +17,7 @@ interface DemoState {
   license: string | null // DRE license number; finds the agent's MLS listings and past sales
   reports: Record<string, GeneratedReport> // made in Revive AI, keyed by property / report id
   projects: Record<string, CreatedProject> // started in Revive AI, keyed by property / report id
-  handoff: Handoff // how Revive AI hands a finished report/project to its page (3 versions to compare)
+  handoff: Handoff // how Revive AI hands a finished report/project to its page; the docked chat was chosen
   addReport: (r: GeneratedReport) => void
   addProject: (p: CreatedProject) => void
   setHandoff: (h: Handoff) => void
@@ -74,11 +74,11 @@ export const useDemo = create<DemoState>()(
           stageOverrides: { ...s.stageOverrides, [p.propertyId]: 'project' },
           activity: withActivity(s, p.propertyId, `You submitted a ${p.product} project`),
         })),
-      handoff: 'link',
+      handoff: 'dock',
       setHandoff: (handoff) => set({ handoff }),
       connectLicense: (license) => set({ license }),
       reset: () => set((s) => ({ ...initial(), tier: s.tier, handoff: s.handoff })),
     }),
-    { name: 'revive-demo', version: 8, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, handoff: 'link', ...(s as object) }) as DemoState },
+    { name: 'revive-demo', version: 9, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, ...(s as object), handoff: 'dock' }) as DemoState },
   ),
 )

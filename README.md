@@ -29,10 +29,13 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
   *Generate a Revive AI report* (address → confirm details → pick MLS photos / add your own → client questions →
   report) and *Start a project* (property → product → timeline/occupancy → review → submit). Started from the
   Home to-dos, the Revive AI starters, or a property page (`/ai?flow=report|project&property=…`).
-- **AI hand-off** (demo bar): where a finished report or project opens. Every result lives on its property page
-  (Overview · Revive AI report · Project · Marketing); the versions differ in how the agent gets there:
-  A · Link (a card in the chat links to the page, which links back), B · Side panel (the page opens beside the
-  chat), C · Docked chat (the page opens and the conversation docks in the corner).
+- **AI hand-off**: a finished report or project opens on its property page (Overview · Revive AI report ·
+  Project · Marketing) and the conversation docks in the corner so the agent can keep going. (Link and side-panel
+  versions were explored and set aside; the code paths remain behind `handoff` in the demo store.)
+- **Conversations**: every CTA that opens Revive AI with context (a Home to-do, Ask Revive, Start a project on a
+  property) starts a new conversation. Earlier ones are listed on the Revive AI page, ChatGPT style, named by
+  what they're about (e.g. “Report · 55 Fair Oaks Ave”), and can be reopened or deleted. Kept for the browser
+  session; Reset demo clears them.
 - New agents start with nothing connected. Try a license number like `02134589` (finds 2 listings) and
   “Connect Follow Up Boss” (adds 12 contacts).
 - Deep links: `/?tier=partner` pins a tier; `?demo=0` hides the demo bar for screenshots (`?demo=1` brings it back).

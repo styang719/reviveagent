@@ -1,4 +1,4 @@
-import { ExternalLink, FileText, Hammer, RotateCcw, Sparkles, Users, X } from 'lucide-react'
+import { ExternalLink, FileText, Hammer, MessageSquare, PanelLeft, Sparkles, SquarePen, Trash2, Users, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
@@ -51,12 +51,89 @@ function SidePanel() {
   )
 }
 
+function ago(t: number) {
+  const m = Math.round((Date.now() - t) / 60000)
+  if (m < 1) return 'Just now'
+  if (m < 60) return `${m} min ago`
+  const h = Math.round(m / 60)
+  return h < 24 ? `${h} hr ago` : `${Math.round(h / 24)} d ago`
+}
+
+/** ChatGPT-style list of conversations: start a new one, or reopen an earlier one. */
+function History({ onPick }: { onPick?: () => void }) {
+  const threads = useUi((s) => s.threads)
+  const activeId = useUi((s) => s.activeId)
+  const chat = useUi((s) => s.chat)
+  const openThread = useUi((s) => s.openThread)
+  const deleteThread = useUi((s) => s.deleteThread)
+  const clearChat = useUi((s) => s.clearChat)
+  return (
+    <nav aria-label="Revive AI conversations" className="flex h-full min-h-0 flex-col gap-3 p-3">
+      <Button
+        variant="outline"
+        className="justify-start"
+        onClick={() => {
+          if (chat.length) clearChat()
+          onPick?.()
+        }}
+      >
+        <SquarePen /> New chat
+      </Button>
+      <p className="px-2 pt-2 text-[11px] font-semibold tracking-wide text-muted uppercase">Recent</p>
+      {threads.length === 0 ? (
+        <p className="px-2 text-[13px] text-muted">Your conversations will show up here.</p>
+      ) : (
+        <ul className="-mx-1 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-1">
+          {threads.map((t) => {
+            const Icon = t.flow?.kind === 'report' || t.chat.some((m) => m.blocks?.some((b) => b.kind === 'flow' && b.step.startsWith('report')))
+              ? FileText
+              : t.flow?.kind === 'project' || t.chat.some((m) => m.blocks?.some((b) => b.kind === 'flow' && b.step.startsWith('project')))
+                ? Hammer
+                : MessageSquare
+            const active = t.id === activeId
+            return (
+              <li key={t.id} className="group relative">
+                <button
+                  onClick={() => {
+                    openThread(t.id)
+                    onPick?.()
+                  }}
+                  aria-current={active ? 'true' : undefined}
+                  className={cn(
+                    'flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 pr-8 text-left transition-colors',
+                    active ? 'bg-[var(--brand-primary-subtle)] text-ink' : 'text-ink-2 hover:bg-line-soft',
+                  )}
+                >
+                  <Icon className={cn('mt-0.5 size-4 shrink-0', active ? 'text-brand' : 'text-muted')} />
+                  <span className="min-w-0">
+                    <span className="block truncate text-[13px] font-medium">{t.title}</span>
+                    <span className="block text-[11.5px] text-muted">{ago(t.updatedAt)}</span>
+                  </span>
+                </button>
+                <button
+                  onClick={() => deleteThread(t.id)}
+                  className="absolute top-2 right-1.5 grid size-6 place-items-center rounded-md text-muted opacity-0 group-hover:opacity-100 hover:bg-line focus-visible:opacity-100"
+                  aria-label={`Delete “${t.title}”`}
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </nav>
+  )
+}
+
 export default function ReviveAI() {
   const chat = useUi((s) => s.chat)
   const clearChat = useUi((s) => s.clearChat)
   const panel = useUi((s) => s.panel)
   const handoff = useDemo((s) => s.handoff)
   const { ask, thinking } = useAsk()
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const threadCount = useUi((s) => s.threads.length)
   const empty = chat.length === 0
   const split = handoff === 'panel' && !!panel
 
@@ -70,6 +147,8 @@ export default function ReviveAI() {
     if (!q && !flow) return
     handled.current = true
     setParams({}, { replace: true })
+    // every CTA that opens Revive AI with context starts its own conversation; the last one stays in history
+    if (useUi.getState().chat.length) clearChat()
     const property = params.get('property') ?? undefined
     const address = params.get('address') ?? undefined
     if (flow === 'report') startReport({ propertyId: property, address })
@@ -78,15 +157,41 @@ export default function ReviveAI() {
   })
 
   return (
-    <div className={cn('grid h-[calc(100dvh-var(--demo-h,0px)-65px)] lg:h-[calc(100dvh-var(--demo-h,0px))]', split ? 'xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]' : 'grid-cols-1')}>
+    <div
+      className={cn(
+        'relative grid h-[calc(100dvh-var(--demo-h,0px)-65px)] lg:h-[calc(100dvh-var(--demo-h,0px))]',
+        split ? 'lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)_minmax(0,520px)]' : 'grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)]',
+      )}
+    >
+      <aside className="hidden min-h-0 border-r border-line bg-head lg:block">
+        <History />
+      </aside>
+      {/* below lg the history opens as a drawer */}
+      {historyOpen && (
+        <div className="absolute inset-0 z-30 flex lg:hidden">
+          <div className="w-72 max-w-[85%] border-r border-line bg-white shadow-xl">
+            <History onPick={() => setHistoryOpen(false)} />
+          </div>
+          <button className="flex-1 bg-ink/20" aria-label="Close conversations" onClick={() => setHistoryOpen(false)} />
+        </div>
+      )}
       <div className="flex min-h-0 min-w-0 flex-col">
         <header className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-10 sm:pt-8">
-          <h1 className="flex items-center gap-2.5 text-xl font-semibold text-ink">
-            <AiAvatar /> Revive AI
-          </h1>
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              onClick={() => setHistoryOpen(true)}
+              className="grid size-9 place-items-center rounded-lg text-ink-2 hover:bg-line-soft lg:hidden"
+              aria-label={`Conversations (${threadCount})`}
+            >
+              <PanelLeft className="size-5" />
+            </button>
+            <h1 className="flex items-center gap-2.5 text-xl font-semibold text-ink">
+              <AiAvatar /> Revive AI
+            </h1>
+          </div>
           {!empty && (
-            <Button variant="outline" size="sm" onClick={clearChat}>
-              <RotateCcw /> New chat
+            <Button variant="outline" size="sm" onClick={clearChat} className="lg:hidden">
+              <SquarePen /> New chat
             </Button>
           )}
         </header>
