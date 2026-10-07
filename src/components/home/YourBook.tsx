@@ -60,7 +60,7 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
       <div className="grid gap-5 sm:grid-cols-2">
         {sources.map((s) => (
           // each source is its own tinted panel: what it is, an example of what it brings in, the button
-          <div key={s.key} className={cn('flex flex-col gap-5 rounded-2xl p-4 sm:p-5 2xl:p-6', s.done ? 'bg-ok-soft/60' : 'bg-[var(--brand-primary-subtle)]')}>
+          <div key={s.key} className={cn('flex min-w-0 flex-col gap-5 rounded-2xl p-4 sm:p-5 2xl:p-6', s.done ? 'bg-ok-soft/60' : 'bg-[var(--brand-primary-subtle)]')}>
             <div className="flex gap-3">
               <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg bg-white shadow-sm', s.done ? 'text-ok' : 'text-brand')}>
                 <s.icon className="size-5" />
