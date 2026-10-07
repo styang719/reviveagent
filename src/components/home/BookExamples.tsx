@@ -1,4 +1,5 @@
 import { AlarmClock, Phone, CircleDollarSign, Eye, UserRound, CircleAlert, Clock, Hammer, TrendingDown, TriangleAlert, Warehouse } from 'lucide-react'
+import { photoUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
 
 // What each source brings in, shown with sample data before it's connected, under a label that
@@ -15,8 +16,11 @@ function Sample({ label, banner, cards = false, children }: { label: string; ban
         <Eye className="size-3.5 text-muted" /> {banner}
       </p>
       {/* either the items are cards themselves, or the content sits on one white card */}
-      <div aria-hidden="true" className={cn('flex flex-1 flex-col', cards ? 'gap-2.5' : 'gap-4 overflow-hidden rounded-xl border border-white bg-white p-4 shadow-card')}>
-        {children}
+      {/* soft fade at the top and bottom so it reads as a preview, not a live list */}
+      <div aria-hidden="true" className="rv-promo-fade -mx-2 flex flex-1 flex-col px-2 py-3">
+        <div className={cn('flex flex-1 flex-col', cards ? 'gap-2.5' : 'gap-4 overflow-hidden rounded-xl border border-white bg-white p-4 shadow-card')}>
+          {children}
+        </div>
       </div>
     </div>
   )
@@ -75,10 +79,10 @@ function Why({ icon: Icon, children }: { icon: typeof Clock; children: React.Rea
 }
 
 const LISTINGS = [
-  { address: '123 Sample St', days: 47, after: '$1.39M', gain: '+$210K', tag: { icon: Hammer, tone: 'agent', text: 'Renovate to Sell' } },
-  { address: '456 Example Ave', days: 63, after: '$1.81M', gain: '+$290K', tag: { icon: TrendingDown, tone: 'warn', text: 'Stale listing' } },
-  { address: '789 Sample Ln', days: 21, after: '$965K', gain: '+$95K', tag: { icon: CircleDollarSign, tone: 'teal', text: 'More commission' } },
-  { address: '12 Example Ct', days: 34, after: '$1.12M', gain: '+$140K', tag: { icon: Warehouse, tone: 'agent', text: 'ADU room' } },
+  { photo: 'comp-100-0', address: '123 Sample St', days: 47, after: '$1.39M', gain: '+$210K', tag: { icon: Hammer, tone: 'agent', text: 'Renovate to Sell' } },
+  { photo: 'comp-111-2', address: '456 Example Ave', days: 63, after: '$1.81M', gain: '+$290K', tag: { icon: TrendingDown, tone: 'warn', text: 'Stale listing' } },
+  { photo: 'comp-104-0', address: '789 Sample Ln', days: 21, after: '$965K', gain: '+$95K', tag: { icon: CircleDollarSign, tone: 'teal', text: 'More commission' } },
+  { photo: 'comp-105-2', address: '12 Example Ct', days: 34, after: '$1.12M', gain: '+$140K', tag: { icon: Warehouse, tone: 'agent', text: 'ADU room' } },
 ] as const
 
 /** Your listings, read by Revive: a list, ranked by upside. */
@@ -91,7 +95,8 @@ export function ListingExample() {
     >
       <ul className="flex flex-col gap-2.5">
         {LISTINGS.map((l) => (
-          <li key={l.address} className="flex items-center gap-3 rounded-xl border border-white bg-white px-3.5 py-3 shadow-card">
+          <li key={l.address} className="@container flex items-center gap-3 rounded-xl border border-white bg-white px-3 py-2.5 shadow-card">
+            <img src={photoUrl(l.photo)} alt="" className="size-11 shrink-0 rounded-lg object-cover" />
             <div className="min-w-0 flex-1">
               {/* line 1: the listing and its Revive opportunity; line 2: the numbers */}
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">

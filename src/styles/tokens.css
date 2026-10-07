@@ -340,3 +340,9 @@
 }
 @media (prefers-reduced-motion: reduce) { .rv-ai-aurora { animation: none; } }
 
+
+/* example previews on Home fade out at the top and bottom, like a promo */
+.rv-promo-fade {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+}
