@@ -1,4 +1,3 @@
-import type { CardLook } from '@/components/home/BookExamples'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Stage, Tier } from '@/data/types'
@@ -18,8 +17,6 @@ interface DemoState {
   license: string | null // DRE license number; finds the agent's MLS listings and past sales
   reports: Record<string, GeneratedReport> // made in Revive AI, keyed by property / report id
   projects: Record<string, CreatedProject> // started in Revive AI, keyed by property / report id
-  cardLook: CardLook // visual treatment of the example cards on the new-agent Home (3 versions)
-  setCardLook: (v: CardLook) => void
   handoff: Handoff // how Revive AI hands a finished report/project to its page (3 versions to compare)
   addReport: (r: GeneratedReport) => void
   addProject: (p: CreatedProject) => void
@@ -78,12 +75,10 @@ export const useDemo = create<DemoState>()(
           activity: withActivity(s, p.propertyId, `You submitted a ${p.product} project`),
         })),
       handoff: 'link',
-      cardLook: 'tinted',
-      setCardLook: (cardLook) => set({ cardLook }),
       setHandoff: (handoff) => set({ handoff }),
       connectLicense: (license) => set({ license }),
-      reset: () => set((s) => ({ ...initial(), tier: s.tier, handoff: s.handoff, cardLook: s.cardLook })),
+      reset: () => set((s) => ({ ...initial(), tier: s.tier, handoff: s.handoff })),
     }),
-    { name: 'revive-demo', version: 9, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, handoff: 'link', cardLook: 'tinted', ...(s as object) }) as DemoState },
+    { name: 'revive-demo', version: 8, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, handoff: 'link', ...(s as object) }) as DemoState },
   ),
 )

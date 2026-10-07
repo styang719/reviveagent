@@ -4,7 +4,6 @@ import { TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
 import type { Handoff } from '@/lib/flows'
-import type { CardLook } from '@/components/home/BookExamples'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 
@@ -12,12 +11,6 @@ const HANDOFFS: { id: Handoff; label: string }[] = [
   { id: 'link', label: 'A · Link' },
   { id: 'panel', label: 'B · Side panel' },
   { id: 'dock', label: 'C · Docked chat' },
-]
-
-const LOOKS: { id: CardLook; label: string }[] = [
-  { id: 'tinted', label: 'A · Tinted' },
-  { id: 'band', label: 'B · Header band' },
-  { id: 'glow', label: 'C · Glow' },
 ]
 
 export const DEMO_BAR_HEIGHT = 44
@@ -29,8 +22,6 @@ export function DemoBar() {
   const handoff = useDemo((s) => s.handoff)
   const setHandoff = useDemo((s) => s.setHandoff)
   const clearChat = useUi((s) => s.clearChat)
-  const look = useDemo((s) => s.cardLook)
-  const setLook = useDemo((s) => s.setCardLook)
 
   return (
     <div
@@ -66,20 +57,6 @@ export function DemoBar() {
             aria-checked={handoff === h.id}
             onClick={() => setHandoff(h.id)}
             className={cn('rounded-md px-3 py-1 font-medium whitespace-nowrap', handoff === h.id ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
-          >
-            {h.label}
-          </button>
-        ))}
-      </div>
-      <span className="ml-2 shrink-0">Example cards</span>
-      <div className="flex shrink-0 rounded-lg bg-white/10 p-0.5" role="radiogroup" aria-label="Look of the example cards on the new-agent Home">
-        {LOOKS.map((h) => (
-          <button
-            key={h.id}
-            role="radio"
-            aria-checked={look === h.id}
-            onClick={() => setLook(h.id)}
-            className={cn('rounded-md px-3 py-1 font-medium whitespace-nowrap', look === h.id ? 'bg-white text-navy' : 'text-white/80 hover:text-white')}
           >
             {h.label}
           </button>
