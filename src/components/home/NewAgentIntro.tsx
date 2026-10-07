@@ -123,11 +123,11 @@ export function CaseStudies() {
   const shown = reviveProjects.filter((p) => p.status !== 'progress').slice(0, 3)
   return (
     <section aria-labelledby="cases-title">
-      <div className="mb-3">
+      <div className="mb-5">
         <h2 id="cases-title" className="text-lg font-semibold text-ink">
           What Revive has done near you
         </h2>
-        <p className="text-[13px] text-muted">Recent projects around Pasadena. Revive covers the work until the home sells.</p>
+        <p className="mt-1 text-[13px] text-muted">Recent projects around Pasadena. Revive covers the work until the home sells.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         {shown.map((p) => (

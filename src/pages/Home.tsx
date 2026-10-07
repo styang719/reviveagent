@@ -47,12 +47,12 @@ export default function Home() {
 
   const whoToCall = feed.length > 0 && (
     <section aria-labelledby="who-to-call">
-      <div className="mb-3 flex items-end justify-between gap-3">
+      <div className="mb-5 flex items-end justify-between gap-3">
         <div>
           <h2 id="who-to-call" className="text-lg font-semibold text-ink">
             Who to call this week
           </h2>
-          <p className="text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
+          <p className="mt-1 text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
         </div>
         <Link to="/opportunities" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
           See all {actionableCount} <ArrowRight className="size-3.5" />
@@ -83,15 +83,13 @@ export default function Home() {
     return (
       <div className={PAGE}>
         {greeting}
-        <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-10 xl:grid-cols-[minmax(0,1fr)_360px]">
           <ReviveAiIntro />
           <RevivePathCard tier={tier} opps={opps} />
-          <div className="flex min-w-0 flex-col gap-5">
+          <div className="flex min-w-0 flex-col gap-12">
             <YourBook opps={opps} />
             {whoToCall}
-            <div className="mt-3">
-              <CaseStudies />
-            </div>
+            <CaseStudies />
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">
             <SetupTodo opps={opps} />
