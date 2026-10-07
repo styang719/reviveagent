@@ -17,7 +17,7 @@ import { useDemo } from '@/store/demo'
 // One page per home. Reports and projects made in Revive AI land here, next to everything else
 // Revive knows about the property: Overview · Revive AI report · Project · Marketing.
 
-export type PropertyTab = 'overview' | 'report' | 'project' | 'marketing'
+export type PropertyTab = 'report' | 'project' | 'marketing'
 
 interface Model {
   id: string
@@ -73,7 +73,6 @@ export function usePropertyModel(id: string, address?: string): Model | null {
 }
 
 const TABS: { id: PropertyTab; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
   { id: 'report', label: 'Revive AI report' },
   { id: 'project', label: 'Project' },
   { id: 'marketing', label: 'Marketing' },
@@ -145,7 +144,6 @@ export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab
       </div>
 
       <div role="tabpanel">
-        {tab === 'overview' && <Overview m={m} />}
         {tab === 'report' && <Report m={m} compact={compact} />}
         {tab === 'project' && <Project m={m} />}
         {tab === 'marketing' && <Marketing m={m} />}
@@ -164,49 +162,9 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
   )
 }
 
-function Overview({ m }: { m: Model }) {
-  const best = [...m.scenarios].sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))[0]
-  return (
-    <div className="flex flex-col gap-5">
-      {m.opp && m.opp.reasons.length > 0 && (
-        <section>
-          <h2 className="text-[15px] font-semibold text-ink">Why now</h2>
-          <ul className="mt-2 flex flex-col gap-1 text-sm text-ink-2">
-            {m.opp.reasons.map((r) => (
-              <li key={r} className="flex gap-2">
-                <Check className="mt-0.5 size-4 shrink-0 text-ok" /> {r}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      <section>
-        <h2 className="text-[15px] font-semibold text-ink">Value</h2>
-        <div className="mt-2 grid gap-2 sm:grid-cols-3">
-          <Stat label="Today" value={money(m.valueNow)} sub={`${money(m.valueLo)}–${money(m.valueHi)}`} />
-          {best?.gain ? <Stat label="After the best project" value={money(m.valueNow + best.gain)} sub={best.product} /> : null}
-          {best?.gain ? <Stat label="Est. upside" value={gain(best.gain)} tone="ok" /> : null}
-        </div>
-        {m.sources.length > 0 && (
-          <p className="mt-2 text-[12px] text-muted">Sources: {m.sources.map((s) => `${s.name} ${money(s.value)}`).join(' · ')}</p>
-        )}
-      </section>
-      {m.opp && m.opp.activity.length > 0 && (
-        <section>
-          <h2 className="text-[15px] font-semibold text-ink">Activity</h2>
-          <ul className="mt-2 flex flex-col gap-1.5 text-sm text-ink-2">
-            {m.opp.activity.slice(0, 6).map((a) => (
-              <li key={a}>{a}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </div>
-  )
-}
-
 function Report({ m, compact }: { m: Model; compact: boolean }) {
   const r = m.report
+  const best = [...m.scenarios].sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))[0]
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-[var(--brand-agent-subtle)]/60 px-4 py-3">
@@ -226,6 +184,41 @@ function Report({ m, compact }: { m: Model; compact: boolean }) {
           </Button>
         )}
       </div>
+
+      {/* what used to be the Overview tab: value, why now, and recent activity lead the report */}
+      <section>
+        <h2 className="text-[15px] font-semibold text-ink">Value</h2>
+        <div className="mt-2 grid gap-2 sm:grid-cols-3">
+          <Stat label="Today" value={money(m.valueNow)} sub={`${money(m.valueLo)}–${money(m.valueHi)}`} />
+          {best?.gain ? <Stat label="After the best project" value={money(m.valueNow + best.gain)} sub={best.product} /> : null}
+          {best?.gain ? <Stat label="Est. upside" value={gain(best.gain)} tone="ok" /> : null}
+        </div>
+        {m.sources.length > 0 && <p className="mt-2 text-[12px] text-muted">Sources: {m.sources.map((x) => `${x.name} ${money(x.value)}`).join(' · ')}</p>}
+      </section>
+
+      {m.opp && m.opp.reasons.length > 0 && (
+        <section>
+          <h2 className="text-[15px] font-semibold text-ink">Why now</h2>
+          <ul className="mt-2 flex flex-col gap-1 text-sm text-ink-2">
+            {m.opp.reasons.map((x) => (
+              <li key={x} className="flex gap-2">
+                <Check className="mt-0.5 size-4 shrink-0 text-ok" /> {x}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {m.opp && m.opp.activity.length > 0 && (
+        <section>
+          <h2 className="text-[15px] font-semibold text-ink">Activity</h2>
+          <ul className="mt-2 flex flex-col gap-1.5 text-sm text-ink-2">
+            {m.opp.activity.slice(0, 6).map((x) => (
+              <li key={x}>{x}</li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section>
         <h2 className="text-[15px] font-semibold text-ink">Scenarios by Revive product</h2>

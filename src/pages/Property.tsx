@@ -6,7 +6,7 @@ import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 import { Placeholder } from './Placeholder'
 
-const TABS: PropertyTab[] = ['overview', 'report', 'project', 'marketing']
+const TABS: PropertyTab[] = ['report', 'project', 'marketing']
 
 export default function Property() {
   const { id = '' } = useParams()
@@ -16,7 +16,7 @@ export default function Property() {
   const hasChat = useUi((s) => s.chat.length > 0)
   const m = usePropertyModel(id, params.get('address') ?? undefined)
   const tabParam = params.get('tab') as PropertyTab | null
-  const tab: PropertyTab = tabParam && TABS.includes(tabParam) ? tabParam : 'overview'
+  const tab: PropertyTab = tabParam && TABS.includes(tabParam) ? tabParam : 'report'
   const fromAi = !!(location.state as { fromAi?: boolean } | null)?.fromAi
 
   if (!m) return <Placeholder title="Property not found" intro="It may not be visible at this tier. Try switching the demo tier." phase={2} />

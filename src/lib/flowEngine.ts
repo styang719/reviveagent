@@ -206,7 +206,8 @@ export function submitProject() {
 function handOff(kind: 'report' | 'project', id: string) {
   const h = demo().handoff
   if (h === 'panel') ui().setPanel({ kind, id })
-  if (h === 'dock') ui().setPendingNav(`/property/${id}?tab=${kind}`)
+  // dock: stay put. The result card in the chat has the button to open the page, so finishing a report
+  // never pulls the agent away from what they were doing.
 }
 
 /** Free text typed while a flow waits for an address. Returns true when the flow used it. */

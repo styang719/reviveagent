@@ -1,10 +1,12 @@
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, MapPin, Sparkles } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AiLink } from '@/components/ai/AiLink'
 import { useUi } from '@/store/ui'
 import { projectGain, reviveProjects, type ReviveProject } from '@/data/reviveProjects'
 import { STARTERS } from '@/lib/ai'
+import { suggestAddresses } from '@/lib/flows'
+import { cn } from '@/lib/utils'
 import { photoUrl } from '@/lib/assets'
 
 // Context for a brand-new agent, so Home has something useful before anything is connected:
@@ -22,10 +24,21 @@ export function ReviveAiIntro() {
     { label: 'Value of 250 Elm St?', q: 'What could 250 Elm St sell for after a Revive project?' },
     { label: 'ADU at 412 Oak Ave?', q: STARTERS[2] },
   ]
+  // smart search: as an address is typed, suggest matching ones; picking one runs a Revive AI report on it
+  const [active, setActive] = useState(0)
+  const [dismissed, setDismissed] = useState(false)
+  const suggestions = dismissed ? [] : suggestAddresses(q)
+  const open = suggestions.length > 0
+  const pick = (value: string) => {
+    requestAi(`/ai?flow=report&address=${encodeURIComponent(value)}`)
+    setQ('')
+    setActive(0)
+  }
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     // nothing typed yet: point them at the box rather than open an empty chat
     if (!q.trim()) return inputRef.current?.focus()
+    if (open) return pick(suggestions[active].value)
     requestAi(askPath(q.trim()))
     setQ('')
   }
@@ -62,12 +75,67 @@ export function ReviveAiIntro() {
               id="home-ask"
               ref={inputRef}
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e) => {
+                setQ(e.target.value)
+                setActive(0)
+                setDismissed(false)
+              }}
+              onKeyDown={(e) => {
+                if (!open) return
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault()
+                  setActive((a) => (a + 1) % suggestions.length)
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault()
+                  setActive((a) => (a - 1 + suggestions.length) % suggestions.length)
+                } else if (e.key === 'Escape') setDismissed(true)
+              }}
+              onBlur={() => setTimeout(() => setDismissed(true), 120)}
+              onFocus={() => setDismissed(false)}
+              role="combobox"
+              aria-expanded={open}
+              aria-controls={open ? 'home-ask-list' : undefined}
+              aria-activedescendant={open ? `home-ask-${active}` : undefined}
+              aria-autocomplete="list"
               placeholder="Search any address"
               autoComplete="off"
               className="h-12 min-w-0 flex-1 truncate bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
             />
           </div>
+          {open && (
+            <ul
+              id="home-ask-list"
+              role="listbox"
+              aria-label="Address suggestions"
+              className="absolute top-[3.75rem] right-2 left-2 z-30 overflow-hidden rounded-xl border border-line bg-white py-1.5 shadow-[0_16px_40px_rgba(28,46,88,0.16)]"
+            >
+              {suggestions.map((sg, i) => (
+                <li
+                  key={sg.value}
+                  id={`home-ask-${i}`}
+                  role="option"
+                  aria-selected={i === active}
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    pick(sg.value)
+                  }}
+                  onMouseEnter={() => setActive(i)}
+                  className={cn('flex cursor-pointer items-center gap-3 px-4 py-2.5', i === active && 'bg-[var(--brand-primary-subtle)]')}
+                >
+                  <MapPin className={cn('size-4 shrink-0', sg.known ? 'text-[var(--brand-agent)]' : 'text-muted')} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[14px] font-medium text-ink">{sg.line}</span>
+                    <span className="block truncate text-[12px] text-muted">{sg.area}</span>
+                  </span>
+                  {sg.known ? (
+                    <span className="shrink-0 rounded-full bg-[var(--brand-agent-subtle)] px-2 py-0.5 text-[11px] font-medium text-[var(--brand-agent)]">On record</span>
+                  ) : (
+                    i === active && <span className="shrink-0 text-[11.5px] text-muted">Run a report ↵</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
           <div className="mt-1.5 flex flex-col gap-2 border-t border-white/80 px-1 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
               {prompts.map((x) => (
