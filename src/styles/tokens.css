@@ -340,27 +340,3 @@
 }
 @media (prefers-reduced-motion: reduce) { .rv-ai-aurora { animation: none; } }
 
-
-/* example cards on Home: a quiet entrance once in view, then an occasional soft sheen */
-.rv-sample .rv-rise { opacity: 0; transform: translateY(6px); }
-.rv-sample[data-in] .rv-rise { animation: rv-rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms) forwards; }
-@keyframes rv-rise { to { opacity: 1; transform: none; } }
-.rv-sample .rv-tags > * { opacity: 0; transform: scale(0.92); }
-.rv-sample[data-in] .rv-tags > * { animation: rv-tag 0.35s ease-out forwards; }
-.rv-sample[data-in] .rv-tags > :nth-child(1) { animation-delay: 0.5s; }
-.rv-sample[data-in] .rv-tags > :nth-child(2) { animation-delay: 0.6s; }
-.rv-sample[data-in] .rv-tags > :nth-child(3) { animation-delay: 0.7s; }
-@keyframes rv-tag { to { opacity: 1; transform: none; } }
-.rv-sheen::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(105deg, transparent 30%, rgba(62, 98, 182, 0.07) 50%, transparent 70%);
-  transform: translateX(-120%);
-}
-.rv-sample[data-in] .rv-sheen::after { animation: rv-sheen 7s ease-in-out calc(1.4s + var(--sheen, 0s)) infinite; }
-@keyframes rv-sheen { 0% { transform: translateX(-120%); } 14%, 100% { transform: translateX(120%); } }
-.rv-pulse { animation: rv-pulse 2s ease-out infinite; }
-@keyframes rv-pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.6); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) {
-  .rv-sample .rv-rise, .rv-sample .rv-tags > * { opacity: 1; transform: none; animation: none !important; }
-  .rv-sheen::after, .rv-pulse { animation: none !important; }
-}
