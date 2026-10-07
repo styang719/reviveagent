@@ -1,11 +1,10 @@
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { projectGain, reviveProjects, type ReviveProject } from '@/data/reviveProjects'
 import { STARTERS } from '@/lib/ai'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
-import { cn } from '@/lib/utils'
 
 // Context for a brand-new agent, so Home has something useful before anything is connected:
 // what Revive AI does (works with no setup), what Revive has done nearby, and what each part
@@ -90,83 +89,67 @@ export function ReviveAiIntro() {
   )
 }
 
-/** A Revive project as a premium card: photo with the result on it, before → after, the stats. */
+/** A Revive project as a full-photo card: product and status up top, the result and key details on a dark overlay. */
 export function CaseStudy({ p }: { p: ReviveProject }) {
   const g = projectGain(p)
-  const from = p.before
-  const to = p.status === 'sold' ? p.after : p.est
-  const label =
-    p.status === 'sold' ? 'more than before' : p.status === 'progress' ? 'expected' : p.rent ? `added value · ${money(p.rent)}/mo rent` : 'added value'
-  const stats = [
-    { k: 'Build', v: `${p.weeks} wks` },
-    p.daysOnMarket ? { k: 'Listed', v: `${p.daysOnMarket} days` } : null,
-    p.offers ? { k: 'Offers', v: String(p.offers) } : null,
-    !p.daysOnMarket && p.scope.length ? { k: 'Scope', v: `${p.scope.length} areas` } : null,
-  ].filter(Boolean) as { k: string; v: string }[]
+  const label = p.status === 'sold' ? 'more than before' : p.status === 'progress' ? 'expected' : 'added value'
+  const details = [
+    `${p.weeks} wk build`,
+    p.daysOnMarket ? `Sold in ${p.daysOnMarket} days` : null,
+    p.offers ? `${p.offers} offers` : null,
+    p.rent ? `${money(p.rent)}/mo rent` : null,
+    !p.daysOnMarket && !p.rent ? p.scope.slice(0, 2).join(' + ') : null,
+  ].filter(Boolean) as string[]
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(28,46,88,0.14)]">
-      <div className="relative h-44 overflow-hidden">
-        <img src={photoUrl(p.photo)} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f1a33]/85 via-[#0f1a33]/25 to-transparent" />
-        <span className="absolute top-3 left-3 max-w-[calc(100%-7rem)] truncate rounded-full border border-white/30 bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
-          {p.product}
-        </span>
-        <span
-          className={cn(
-            'absolute top-3 right-3 rounded-full px-2 py-0.5 text-[10.5px] font-semibold tracking-wide uppercase',
-            p.status === 'sold' ? 'bg-white text-ink' : p.status === 'progress' ? 'bg-[var(--brand-agent)] text-white' : 'bg-[var(--teal-soft)] text-[var(--green)]',
-          )}
-        >
+    <Link
+      to="/case-studies"
+      className="group relative block h-96 overflow-hidden rounded-2xl bg-navy shadow-card focus-visible:ring-4 focus-visible:ring-[var(--brand-primary-border)]"
+    >
+      <img src={photoUrl(p.photo)} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0b1430]/95 via-[#0b1430]/35 to-[#0b1430]/10" />
+
+      <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-2">
+        <span className="max-w-[70%] truncate rounded-md bg-white px-2.5 py-1 text-[12px] font-semibold text-ink shadow-sm">{p.product}</span>
+        <span className="rounded-md border border-white/30 bg-white/15 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
           {p.status === 'sold' ? 'Sold' : p.status === 'progress' ? 'In progress' : 'Complete'}
         </span>
-        <div className="absolute inset-x-4 bottom-3 text-white">
-          <p className="text-[28px] leading-8 font-semibold tracking-tight tabular-nums">{gain(g)}</p>
-          <p className="text-[12px] text-white/80">{label}</p>
-        </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 p-4">
-        <div>
-          <p className="text-[14px] font-semibold text-ink">{p.block}</p>
-          <p className="text-[12px] text-muted">
-            {p.city} · {p.when}
-          </p>
-        </div>
-
-        {from && to ? (
-          <div>
-            <div className="flex items-baseline justify-between text-[12px] tabular-nums">
-              <span className="text-muted">
-                Before <span className="font-semibold text-ink-2">{money(from)}</span>
-              </span>
-              <span className="text-muted">
-                {p.status === 'sold' ? 'Sold' : 'Est.'} <span className="font-semibold text-ink">{money(to)}</span>
-              </span>
-            </div>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line-soft">
-              <div className="h-full rounded-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-agent)]" style={{ width: `${Math.min(100, (from / to) * 100 + 4)}%` }} />
+      <div className="absolute inset-x-4 bottom-4 text-white">
+        <p className="text-[32px] leading-9 font-semibold tracking-tight tabular-nums">{gain(g)}</p>
+        <p className="text-[13px] text-white/75">{label}</p>
+        <div className="mt-3 flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-semibold">{p.block}</p>
+            <p className="text-[12px] text-white/70">
+              {p.city} · {p.when}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {details.slice(0, 3).map((d) => (
+                <span key={d} className="rounded-full border border-white/25 bg-white/10 px-2 py-0.5 text-[11.5px] backdrop-blur-sm">
+                  {d}
+                </span>
+              ))}
             </div>
           </div>
-        ) : (
-          <p className="text-[12.5px] leading-5 text-ink-2">{p.scope.join(' · ')}</p>
-        )}
-
-        <dl className="mt-auto grid divide-x divide-line rounded-xl bg-head py-2 text-center" style={{ gridTemplateColumns: `repeat(${Math.min(3, stats.length)}, minmax(0, 1fr))` }}>
-          {stats.slice(0, 3).map((x) => (
-            <div key={x.k} className="px-1">
-              <dt className="text-[10.5px] text-muted">{x.k}</dt>
-              <dd className="text-[13px] font-semibold text-ink tabular-nums">{x.v}</dd>
-            </div>
-          ))}
-        </dl>
+          <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white text-ink shadow-md transition-transform group-hover:rotate-45">
+            <ArrowUpRight className="size-5" />
+          </span>
+        </div>
       </div>
-    </article>
+    </Link>
   )
 }
 
-/** Proof: recent Revive projects near the agent's office. */
+/** Proof: recent Revive projects near the agent's office, in a scrollable carousel. */
 export function CaseStudies() {
-  const shown = reviveProjects.filter((p) => p.status !== 'progress').slice(0, 2)
+  const track = useRef<HTMLDivElement>(null)
+  const scroll = (dir: 1 | -1) => {
+    const el = track.current
+    if (!el) return
+    const card = el.querySelector('li')
+    el.scrollBy({ left: dir * ((card?.clientWidth ?? 300) + 16), behavior: 'smooth' })
+  }
   return (
     <section aria-labelledby="cases-title">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -176,16 +159,30 @@ export function CaseStudies() {
           </h2>
           <p className="mt-1.5 text-[13px] text-muted">Recent projects around Pasadena. Revive covers the work until the home sells.</p>
         </div>
-        <Link to="/case-studies" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-          View all {reviveProjects.length} <ArrowRight className="size-3.5" />
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to="/case-studies" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
+            View all {reviveProjects.length} <ArrowRight className="size-3.5" />
+          </Link>
+          <div className="flex gap-1.5">
+            <button onClick={() => scroll(-1)} className="grid size-9 place-items-center rounded-full border border-line bg-white text-ink-2 hover:bg-head" aria-label="Previous projects">
+              <ChevronLeft className="size-4" />
+            </button>
+            <button onClick={() => scroll(1)} className="grid size-9 place-items-center rounded-full border border-line bg-white text-ink-2 hover:bg-head" aria-label="More projects">
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
+        </div>
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
-        {shown.map((p) => (
-          <CaseStudy key={p.id} p={p} />
-        ))}
+      <div ref={track} className="-mx-1 snap-x snap-mandatory overflow-x-auto px-1 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ul className="flex gap-4">
+          {reviveProjects.map((p) => (
+            <li key={p.id} className="w-[min(300px,80%)] shrink-0 snap-start sm:w-[calc((100%-2rem)/2.4)]">
+              <CaseStudy p={p} />
+            </li>
+          ))}
+        </ul>
       </div>
-      <p className="mt-2 text-[11px] text-faint">Sample projects; photos are illustrative.</p>
+      <p className="mt-1 text-[11px] text-faint">Sample projects; photos are illustrative.</p>
     </section>
   )
 }
