@@ -1,4 +1,4 @@
-import { AlarmClock, Eye, AlertCircle, Clock, Phone, Sparkles, TrendingUp, TriangleAlert, Warehouse } from 'lucide-react'
+import { AlarmClock, Eye, Home as HomeIcon, AlertCircle, Clock, Phone, Sparkles, TrendingUp, TriangleAlert, Warehouse } from 'lucide-react'
 import rachel from '@/assets/avatar-rachel.jpg'
 import { photoUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
@@ -40,13 +40,16 @@ export function ListingExample() {
     <Frame label="Example: one of your listings, 47 days on market, valued at $1.18M now and $1.39M after a Revive project, a $210K upside with Renovate to Sell.">
       <div className="overflow-hidden rounded-lg border border-line bg-white shadow-card">
         <div className="flex h-full flex-col gap-2 p-3">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
             <img src={photoUrl('comp-100-0')} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
-            <span className="shrink-0 rounded-full bg-line-soft px-2 py-0.5 text-[11px] font-medium text-ink-2">Your listing · MLS</span>
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-[14px] font-semibold text-ink">123 Main St</p>
-            <p className="truncate text-[11.5px] text-muted">South Pasadena · 3 bd · 2 ba</p>
+            <div className="min-w-[6rem] flex-1">
+              <p className="truncate text-[14px] font-semibold text-ink">123 Main St</p>
+              <p className="text-[11.5px] leading-4 text-muted">South Pasadena</p>
+            </div>
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-line-soft px-2 py-0.5 text-[11px] font-medium text-ink-2">
+              <HomeIcon className="size-3" />
+              Your listing
+            </span>
           </div>
           <dl className="divide-y divide-line rounded-lg bg-head px-2.5">
             <Metric label="On market" value="47 days" className="text-hot" icon={Clock} />
@@ -90,15 +93,16 @@ export function ContactExample() {
   return (
     <Frame label="Example: a homeowner from your CRM whose listing expired 23 days ago. Selling score 79, leaning toward selling, $148K potential. Opportunities: listing issue and ADU room. Call this week.">
       <div className="flex flex-col gap-2.5 rounded-lg border border-line bg-white p-3 shadow-card">
-        <div className="flex items-start justify-between gap-2">
-          <img src={rachel} alt="" className="size-12 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm" />
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          <img src={rachel} alt="" className="size-12 shrink-0 rounded-full object-cover shadow-sm ring-2 ring-white" />
+          <div className="min-w-[6rem] flex-1">
+            <p className="truncate text-[14px] font-semibold text-ink">Rachel Kim</p>
+            <p className="text-[11.5px] leading-4 text-muted">655 Glenarm St</p>
+          </div>
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[11px] font-semibold text-white">
-            <AlarmClock className="size-3" /> Call this week
+            <AlarmClock className="size-3" />
+            Call this week
           </span>
-        </div>
-        <div className="-mt-1 min-w-0">
-          <p className="truncate text-[14px] font-semibold text-ink">Rachel Kim</p>
-          <p className="truncate text-[11.5px] text-muted">Homeowner · 655 Glenarm St</p>
         </div>
 
         <div className="rounded-lg bg-warn-soft/70 px-2.5 py-2">
