@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import avatarA from '@/assets/avatars/homeowner-a.svg'
 import avatarB from '@/assets/avatars/homeowner-b.svg'
 import avatarC from '@/assets/avatars/homeowner-c.svg'
-import { photoUrl } from '@/lib/assets'
+import { HouseIllo } from './HouseIllo'
 import { cn } from '@/lib/utils'
 
 // What each source brings in, shown with sample data before it's connected, under a label that
@@ -79,18 +79,18 @@ function Why({ icon: Icon, children }: { icon: typeof Clock; children: React.Rea
 }
 
 const LISTINGS = [
-  { photo: 'comp-100-0', address: '123 Sample St', days: 47, after: '$1.39M', gain: '+$210K', tag: { icon: Hammer, tone: 'agent', text: 'Renovate to Sell' } },
-  { photo: 'comp-111-2', address: '456 Example Ave', days: 63, after: '$1.81M', gain: '+$290K', tag: { icon: TrendingDown, tone: 'warn', text: 'Stale listing' } },
-  { photo: 'comp-104-0', address: '789 Sample Ln', days: 21, after: '$965K', gain: '+$95K', tag: { icon: CircleDollarSign, tone: 'teal', text: 'More commission' } },
-  { photo: 'comp-105-2', address: '12 Example Ct', days: 34, after: '$1.12M', gain: '+$140K', tag: { icon: Warehouse, tone: 'agent', text: 'ADU room' } },
-  { photo: 'comp-102-0', address: '48 Demo Rd', days: 55, after: '$1.46M', gain: '+$185K', tag: { icon: Scissors, tone: 'warn', text: 'Price cut' } },
-  { photo: 'comp-106-1', address: '9 Placeholder Way', days: 18, after: '$890K', gain: '+$70K', tag: { icon: Zap, tone: 'teal', text: 'Sell faster' } },
+  { address: '123 Sample St', days: 47, after: '$1.39M', gain: '+$210K', tag: { icon: Hammer, tone: 'agent', text: 'Renovate to Sell' } },
+  { address: '456 Example Ave', days: 63, after: '$1.81M', gain: '+$290K', tag: { icon: TrendingDown, tone: 'warn', text: 'Stale listing' } },
+  { address: '789 Sample Ln', days: 21, after: '$965K', gain: '+$95K', tag: { icon: CircleDollarSign, tone: 'teal', text: 'More commission' } },
+  { address: '12 Example Ct', days: 34, after: '$1.12M', gain: '+$140K', tag: { icon: Warehouse, tone: 'agent', text: 'ADU room' } },
+  { address: '48 Demo Rd', days: 55, after: '$1.46M', gain: '+$185K', tag: { icon: Scissors, tone: 'warn', text: 'Price cut' } },
+  { address: '9 Placeholder Way', days: 18, after: '$890K', gain: '+$70K', tag: { icon: Zap, tone: 'teal', text: 'Sell faster' } },
 ] as const
 
-function ListingCard({ l }: { l: (typeof LISTINGS)[number] }) {
+function ListingCard({ l, n }: { l: (typeof LISTINGS)[number]; n: number }) {
   return (
     <li className="flex items-center gap-3 rounded-xl border border-white bg-white px-3 py-2.5 shadow-card">
-      <img src={photoUrl(l.photo)} alt="" className="size-11 shrink-0 rounded-lg object-cover" />
+      <HouseIllo variant={n} className="size-11 shrink-0" />
       <div className="min-w-0 flex-1">
         {/* line 1: the listing and its Revive opportunity; line 2: the numbers */}
         <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
@@ -122,8 +122,8 @@ export function ListingExample() {
         <div className="rv-marquee-y-track absolute inset-x-0 top-0 flex flex-col">
           {[0, 1].map((copy) => (
             <ul key={copy} className="flex flex-col gap-2.5 px-1 pb-2.5">
-              {LISTINGS.map((l) => (
-                <ListingCard key={l.address} l={l} />
+              {LISTINGS.map((l, n) => (
+                <ListingCard key={l.address} l={l} n={n} />
               ))}
             </ul>
           ))}
