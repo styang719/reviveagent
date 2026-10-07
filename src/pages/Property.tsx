@@ -32,8 +32,8 @@ export default function Property() {
           <ArrowLeft className="size-3.5" /> <Sparkles className="size-3.5" /> Back to your Revive AI conversation
         </Link>
       ) : (
-        <Link to="/" className="inline-flex items-center gap-1 text-[13px] text-muted hover:text-brand">
-          <ArrowLeft className="size-3.5" /> Home
+        <Link to="/properties" className="inline-flex items-center gap-1 text-[13px] text-muted hover:text-brand">
+          <ArrowLeft className="size-3.5" /> Properties
         </Link>
       )}
       <div className="mt-4 max-w-5xl">

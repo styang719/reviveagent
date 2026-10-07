@@ -32,6 +32,9 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
 - **AI hand-off**: a finished report or project opens on its property page (Overview · Revive AI report ·
   Project · Marketing) and the conversation docks in the corner so the agent can keep going. (Link and side-panel
   versions were explored and set aside; the code paths remain behind `handoff` in the demo store.)
+- **Properties** (`/properties`, was Projects): every home the agent is working on with Revive, in three
+  sections: Discussing with Revive (submitted projects), In construction, and Revive AI reports. Each opens its
+  property page.
 - **Conversations**: every CTA that opens Revive AI with context (a Home to-do, Ask Revive, Start a project on a
   property) starts a new conversation. Earlier ones are listed on the Revive AI page, ChatGPT style, named by
   what they're about (e.g. “Report · 55 Fair Oaks Ave”), and can be reopened or deleted. Kept for the browser

@@ -1,4 +1,4 @@
-import { ChevronRight, Hammer, Home, Inbox, Megaphone, PanelLeft, Sparkles, Target } from 'lucide-react'
+import { Building2, ChevronRight, Home, Inbox, Megaphone, PanelLeft, Sparkles, Target } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import avatar from '@/assets/avatar-michelle.jpg'
 import { AGENT } from '@/data/tiers'
@@ -9,7 +9,7 @@ import { QrCode } from './QrCode'
 const NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/opportunities', label: 'Opportunities', icon: Target },
-  { to: '/projects', label: 'Projects', icon: Hammer },
+  { to: '/properties', label: 'Properties', icon: Building2 },
   { to: '/marketing', label: 'Marketing', icon: Megaphone },
   { to: '/inbox', label: 'Inbox', icon: Inbox, badge: 8 },
 ]
