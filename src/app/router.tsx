@@ -9,6 +9,7 @@ import ReviveAI from '@/pages/ReviveAI'
 import Property from '@/pages/Property'
 import { Placeholder } from '@/pages/Placeholder'
 import { AppLayout } from './AppLayout'
+import { RouteError } from './RouteError'
 
 // The hosted preview build uses hash routing (no server rewrites there).
 const createRouter = import.meta.env.VITE_ROUTER === 'hash' ? createHashRouter : createBrowserRouter
@@ -16,6 +17,7 @@ const createRouter = import.meta.env.VITE_ROUTER === 'hash' ? createHashRouter :
 export const router = createRouter([
   {
     element: <AppLayout />,
+    errorElement: <RouteError />,
     children: [
       { path: '/ai', element: <ReviveAI /> },
       { path: '/', element: <Home /> },

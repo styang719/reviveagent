@@ -74,8 +74,11 @@ function ReportDetails() {
   )
 }
 
+const NO_PHOTOS: string[] = []
+
 function ReportPhotos() {
-  const photos = useUi((s) => s.flow?.report?.photos ?? [])
+  // a stable fallback: a fresh [] on every read makes the store subscription re-render forever
+  const photos = useUi((s) => s.flow?.report?.photos ?? NO_PHOTOS)
   const [list, setList] = useState(photos)
   const [on, setOn] = useState<Set<string>>(() => new Set(photos))
   const fileRef = useRef<HTMLInputElement>(null)
