@@ -59,29 +59,27 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
       {/* the two sources side by side; until one is connected it shows an example of what it brings in */}
       <div className="grid divide-y divide-line border-t border-line sm:grid-cols-2 sm:divide-x sm:divide-y-0">
         {sources.map((s) => (
-          <div key={s.key} className={cn('flex flex-col gap-4 p-5', s.done && 'bg-ok-soft/40')}>
-            {!s.done && (s.key === 'mls' ? <ListingExample /> : <ContactExample />)}
-            <div className="flex flex-1 gap-3">
+          <div key={s.key} className={cn('flex flex-col gap-3 p-5', s.done && 'bg-ok-soft/40')}>
+            <div className="flex gap-3">
               <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg', s.done ? 'bg-ok-soft text-ok' : 'bg-brand-soft text-brand')}>
                 <s.icon className="size-5" />
               </span>
-              <div className="flex min-w-0 flex-1 flex-col">
+              <div className="min-w-0 flex-1">
                 <p className="text-[15px] font-semibold text-ink">
                   {s.title} <span className="font-normal text-muted">{s.from}</span>
                 </p>
-                <p className="mt-0.5 flex-1 text-[13px] leading-5 text-ink-2">{s.body}</p>
-                <div className="mt-3">
-                  {s.done ? (
-                    <p className="flex items-center gap-1.5 text-sm font-medium text-[var(--green)]">
-                      <BadgeCheck className="size-4" /> {s.result}
-                    </p>
-                  ) : (
-                    <Button size="sm" onClick={s.onClick}>
-                      {s.cta}
-                    </Button>
-                  )}
-                </div>
+                <p className="mt-0.5 text-[13px] leading-5 text-ink-2">{s.body}</p>
               </div>
+            </div>
+            {!s.done && <div className="flex-1">{s.key === 'mls' ? <ListingExample /> : <ContactExample />}</div>}
+            <div>
+              {s.done ? (
+                <p className="flex items-center gap-1.5 text-sm font-medium text-[var(--green)]">
+                  <BadgeCheck className="size-4" /> {s.result}
+                </p>
+              ) : (
+                <Button onClick={s.onClick}>{s.cta}</Button>
+              )}
             </div>
           </div>
         ))}

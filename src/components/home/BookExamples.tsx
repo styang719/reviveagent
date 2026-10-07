@@ -1,4 +1,4 @@
-import { AlarmClock, AlertCircle, Clock, Phone, Sparkles, TrendingUp, TriangleAlert, Warehouse } from 'lucide-react'
+import { AlarmClock, Eye, AlertCircle, Clock, Phone, Sparkles, TrendingUp, TriangleAlert, Warehouse } from 'lucide-react'
 import { photoUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
 
@@ -9,12 +9,12 @@ function Frame({ label, children }: { label: string; children: React.ReactNode }
     <div
       role="img"
       aria-label={label}
-      className="relative rounded-xl border border-[var(--brand-primary-border-subtle)] bg-gradient-to-br from-[var(--brand-primary-subtle)] via-white to-[var(--brand-agent-subtle)]/60 p-3"
+      className="flex h-full flex-col rounded-xl border border-[var(--brand-primary-border-subtle)] bg-gradient-to-br from-[var(--brand-primary-subtle)] via-white to-[var(--brand-agent-subtle)]/60 p-3"
     >
-      <span className="absolute -top-2.5 right-3 z-10 rounded-full border border-[var(--brand-primary-border-subtle)] bg-white px-2 py-0.5 text-[10px] font-semibold tracking-wide text-muted uppercase shadow-sm">
-        Example
-      </span>
-      <div aria-hidden="true" className="pointer-events-none select-none">
+      <p className="mb-2 flex items-center gap-1.5 px-0.5 text-[11.5px] font-medium text-ink-2" aria-hidden="true">
+        <Eye className="size-3.5 text-brand" /> Example of what you’ll see
+      </p>
+      <div aria-hidden="true" className="pointer-events-none flex-1 select-none [&>*]:h-full">
         {children}
       </div>
     </div>
@@ -38,14 +38,14 @@ export function ListingExample() {
   return (
     <Frame label="Example: one of your listings, 47 days on market, valued at $1.18M now and $1.39M after a Revive project, a $210K upside with Renovate to Sell.">
       <div className="overflow-hidden rounded-lg border border-line bg-white shadow-card">
-        <div className="relative h-28">
-          <img src={photoUrl('comp-100-0')} alt="" className="absolute inset-0 size-full object-cover" />
-          <span className="absolute top-2 left-2 rounded-md bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-ink shadow-sm">From the MLS</span>
-        </div>
-        <div className="flex flex-col gap-2 p-3">
-          <div>
-            <p className="truncate text-[14px] font-semibold text-ink">123 Main St</p>
-            <p className="text-[11.5px] text-muted">South Pasadena · 3 bd · 2 ba</p>
+        <div className="flex h-full flex-col gap-2 p-3">
+          <div className="flex items-center gap-3">
+            <img src={photoUrl('comp-100-0')} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+            <div className="min-w-0">
+              <p className="truncate text-[14px] font-semibold text-ink">123 Main St</p>
+              <p className="truncate text-[11.5px] text-muted">South Pasadena · 3 bd · 2 ba</p>
+              <span className="mt-1 inline-block rounded bg-line-soft px-1.5 py-0.5 text-[10.5px] font-medium text-ink-2">Your listing · MLS</span>
+            </div>
           </div>
           <dl className="divide-y divide-line rounded-lg bg-head px-2.5">
             <Metric label="On market" value="47 days" className="text-hot" icon={Clock} />
@@ -58,6 +58,12 @@ export function ListingExample() {
             </span>
             <span className="mt-0.5 block">with Renovate to Sell, and could sell ~3 weeks faster</span>
           </p>
+          <div className="mt-auto flex items-center justify-between border-t border-line pt-2">
+            <span className="text-[11.5px] text-muted">1 price cut · Sep 28</span>
+            <span className="inline-flex items-center gap-1 rounded-md border border-[var(--brand-agent-border)] bg-[var(--brand-agent-subtle)] px-2 py-1 text-[12px] font-semibold text-[var(--brand-agent)]">
+              <Sparkles className="size-3" /> Propose Revive
+            </span>
+          </div>
         </div>
       </div>
     </Frame>
