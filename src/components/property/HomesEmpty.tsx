@@ -1,4 +1,4 @@
-import { ArrowRight, Check, FileText, Hammer, HousePlus, Sparkles, TrendingUp } from 'lucide-react'
+import { ArrowRight, Check, HousePlus, Sparkles, TrendingUp } from 'lucide-react'
 import { AiLink } from '@/components/ai/AiLink'
 import { Button } from '@/components/ui/button'
 import { StartWithRevive } from './StartWithRevive'
@@ -10,13 +10,10 @@ import { StartWithRevive } from './StartWithRevive'
 export function ProjectsEmpty() {
   return (
     <div className="flex flex-col rounded-2xl border border-[var(--brand-primary-border-subtle)] bg-[radial-gradient(120%_120%_at_100%_0%,var(--brand-primary-subtle)_0%,#fff_60%)] p-6 shadow-card">
-      <div className="flex items-start justify-between gap-3">
-        <span className="grid size-11 place-items-center rounded-xl bg-[var(--brand-primary)] text-white">
-          <Hammer className="size-5" />
-        </span>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <h3 className="text-lg font-semibold text-ink">Start your first project with Revive</h3>
         <span className="rounded-full bg-ok-soft px-2.5 py-1 text-[12px] font-semibold text-[var(--green)]">+$62K avg upside nearby</span>
       </div>
-      <h3 className="mt-4 text-lg font-semibold text-ink">Start your first project with Revive</h3>
       <p className="mt-1 text-[14px] leading-6 text-ink-2">Revive renovates before the home lists and is repaid at closing. Your seller pays nothing up front, and you list a home that sells for more.</p>
       <ol className="mt-5 grid gap-3 sm:grid-cols-3">
         {[
@@ -43,10 +40,7 @@ export function ProjectsEmpty() {
 export function ReportsEmpty() {
   return (
     <div className="flex flex-col rounded-2xl border border-[var(--brand-agent-border-subtle,#e0caf2)] bg-[radial-gradient(120%_120%_at_100%_0%,var(--brand-agent-subtle)_0%,#fff_60%)] p-6 shadow-card">
-      <span className="rv-ai-tile grid size-11 place-items-center rounded-xl text-white">
-        <FileText className="size-5" />
-      </span>
-      <h3 className="mt-4 text-lg font-semibold text-ink">Run your first Revive AI report</h3>
+      <h3 className="text-lg font-semibold text-ink">Run your first Revive AI report</h3>
       <p className="mt-1 text-[14px] leading-6 text-ink-2">Any address, about a minute. A branded report you can share with the homeowner to start the conversation.</p>
       {/* a peek at a report */}
       <div className="mt-5 rounded-xl bg-white p-4 shadow-sm ring-1 ring-line">

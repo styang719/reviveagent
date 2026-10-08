@@ -1,4 +1,4 @@
-import { ArrowRight, Calendar, FileText, Hammer, Search, Sparkles } from 'lucide-react'
+import { ArrowRight, Calendar, Search, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AiLink } from '@/components/ai/AiLink'
@@ -126,13 +126,10 @@ function ReportCard({ r }: { r: ReportRow }) {
   )
 }
 
-function Section({ icon: Icon, title, hint, count, children, empty, emptyNode }: { icon: typeof Hammer; title: string; hint: string; count: number; children: React.ReactNode; empty: { text: string; cta: string; to: string }; emptyNode?: React.ReactNode }) {
+function Section({ title, hint, count, children, empty, emptyNode }: { title: string; hint: string; count: number; children: React.ReactNode; empty: { text: string; cta: string; to: string }; emptyNode?: React.ReactNode }) {
   return (
     <section className="mt-10">
       <div className="flex items-center gap-2.5">
-        <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
-          <Icon className="size-4" />
-        </span>
         <h2 className="text-xl font-semibold text-ink">{title}</h2>
         <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{count}</span>
       </div>
@@ -255,7 +252,6 @@ export default function Properties() {
       ) : (
         <>
       <Section
-        icon={Hammer}
         title="Projects with Revive"
         hint="From review with Revive to construction to listing. Opens the project."
         count={projects.filter((p) => match(p.address, p.city, p.product)).length}
@@ -268,7 +264,6 @@ export default function Properties() {
       </Section>
 
       <Section
-        icon={FileText}
         title="Revive AI reports"
         hint="Homes you’ve run a report on. Share it with the homeowner, or turn it into a project."
         count={reportRows.filter((r) => match(r.address, r.city, r.product)).length}
