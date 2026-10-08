@@ -51,6 +51,8 @@ export function DockedChat() {
     if (!hereId) resumed.current = null
   }, [hereId])
 
+  // a guided flow (report, project) still waiting on the agent
+  const unfinished = useUi((s) => !!s.flow) && hasChat
   const aiRequest = useUi((s) => s.aiRequest)
   const clearAiRequest = useUi((s) => s.clearAiRequest)
 
@@ -93,18 +95,26 @@ export function DockedChat() {
       ]
     : STARTERS
 
-  if (!open)
+  if (!open) {
+    // minimized: just the Revive AI mark, so it never covers the page. A dot means a conversation is mid-way.
+    const label = hasChat ? `Revive AI · ${title ?? 'continue the conversation'}` : here ? `Ask Revive about ${here.label}` : 'Ask Revive AI'
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed right-4 bottom-4 z-[60] flex items-center gap-2 rounded-full bg-white py-2 pr-4 pl-2 text-sm font-medium text-ink shadow-xl ring-1 ring-line hover:ring-[var(--brand-agent-border)]"
+        aria-label={unfinished ? `${label} (in progress)` : label}
+        title={label}
+        className="group fixed right-5 bottom-5 z-[60] grid size-12 place-items-center rounded-full shadow-xl ring-4 ring-white transition-transform hover:scale-105"
       >
-        <span className="rv-ai-tile grid size-8 place-items-center rounded-full text-white">
-          <Sparkles className="size-4" />
+        <span className="rv-ai-tile grid size-12 place-items-center rounded-full text-white">
+          <Sparkles className="size-5" />
         </span>
-        <span className="max-w-64 truncate">{hasChat ? `Revive AI · ${title ?? 'continue the conversation'}` : (here ? `Ask Revive about ${here.label}` : 'Ask Revive AI')}</span>
+        {unfinished && <span className="absolute -top-0.5 -right-0.5 size-3.5 rounded-full border-2 border-white bg-hot" aria-hidden="true" />}
+        <span className="pointer-events-none absolute right-14 max-w-64 truncate rounded-lg bg-navy px-2.5 py-1.5 text-[12.5px] font-medium whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+          {label}
+        </span>
       </button>
     )
+  }
 
   return (
     <section
