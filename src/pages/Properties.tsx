@@ -1,4 +1,5 @@
-import { ArrowRight, Calendar, FileText, Hammer, Sparkles } from 'lucide-react'
+import { ArrowRight, Calendar, FileText, Hammer, Search, Sparkles } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AiLink } from '@/components/ai/AiLink'
 import { StartWithRevive } from '@/components/property/StartWithRevive'
@@ -160,6 +161,10 @@ export default function Properties() {
   const created = useDemo((s) => s.projects)
   const reports = useDemo((s) => s.reports)
   const opps = useOpportunities()
+  const [q, setQ] = useState('')
+  const needle = q.trim().toLowerCase()
+  const noMatch = <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No homes match “{q.trim()}”.</p>
+  const match = (...fields: (string | undefined)[]) => !needle || fields.some((f) => f?.toLowerCase().includes(needle))
 
   const projects: ProjectRow[] = [
     ...Object.values(created).map((p) => ({
@@ -220,26 +225,31 @@ export default function Properties() {
   return (
     <div className={PAGE}>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Homes</h1>
           <p className="mt-1 text-[15px] text-ink-2">Every home you’re working on with Revive. Each one has its own page with the report, project and marketing.</p>
         </div>
-        <Button asChild>
-          <AiLink to="/ai?flow=report">
-            <FileText /> New Revive AI report
-          </AiLink>
-        </Button>
+        <label className="relative w-full sm:w-72">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search homes"
+            aria-label="Search homes"
+            className="h-10 w-full rounded-lg border border-line bg-white pr-3 pl-9 text-[14px] outline-none focus:border-[var(--brand-primary-border)] focus:ring-2 focus:ring-[var(--brand-primary-subtle)]"
+          />
+        </label>
       </div>
 
       <Section
         icon={Hammer}
         title="Revive projects"
         hint="From review with Revive to construction to listing. Opens the project."
-        count={projects.length}
+        count={projects.filter((p) => match(p.address, p.city, p.product)).length}
         empty={{ text: 'No projects yet. Start one from any report.', cta: 'Start a project', to: '/ai?flow=project' }}
-        emptyNode={<StartWithRevive />}
+        emptyNode={needle ? noMatch : <StartWithRevive />}
       >
-        {projects.map((p) => (
+        {projects.filter((p) => match(p.address, p.city, p.product)).map((p) => (
           <ProjectCard key={p.id} p={p} />
         ))}
       </Section>
@@ -248,10 +258,11 @@ export default function Properties() {
         icon={FileText}
         title="Revive AI reports"
         hint="Homes you’ve run a report on. Share it with the homeowner, or turn it into a project."
-        count={reportRows.length}
+        count={reportRows.filter((r) => match(r.address, r.city, r.product)).length}
         empty={{ text: 'No reports yet. Any address works, nothing to connect first.', cta: 'Generate a report', to: '/ai?flow=report' }}
+        emptyNode={needle ? noMatch : undefined}
       >
-        {reportRows.map((r) => (
+        {reportRows.filter((r) => match(r.address, r.city, r.product)).map((r) => (
           <ReportCard key={r.id} r={r} />
         ))}
       </Section>

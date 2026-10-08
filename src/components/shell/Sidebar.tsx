@@ -1,4 +1,4 @@
-import { ChevronRight, Inbox, LayoutDashboard, MapPinHouse, Megaphone, PanelLeft, Sparkles, Target } from 'lucide-react'
+import { ChevronRight, Inbox, LayoutDashboard, MapPinHouse, Megaphone, PanelLeft, Sparkles, TrendingUp } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import avatar from '@/assets/avatar-michelle.jpg'
 import { AGENT } from '@/data/tiers'
@@ -9,7 +9,7 @@ import { QrCode } from './QrCode'
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/properties', label: 'Homes', icon: MapPinHouse, also: '/property/' }, // a property page lives under Homes
-  { to: '/opportunities', label: 'Opportunities', icon: Target },
+  { to: '/opportunities', label: 'Opportunities', icon: TrendingUp },
   { to: '/marketing', label: 'Marketing', icon: Megaphone },
   { to: '/inbox', label: 'Inbox', icon: Inbox, badge: 8 },
 ]
