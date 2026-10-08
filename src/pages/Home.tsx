@@ -106,7 +106,13 @@ export default function Home() {
     <div className={PAGE}>
       {greeting}
 
-      <div className="mt-6">
+      {/* the same Ask Revive search as a new agent sees, with the Revive status beside it */}
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <ReviveAiIntro />
+        <RevivePathCard tier={tier} opps={opps} />
+      </div>
+
+      <div className="mt-8">
         <StatCards tier={tier} opps={opps} />
       </div>
 
@@ -122,7 +128,6 @@ export default function Home() {
         </div>
 
         <aside className="flex flex-col gap-5" aria-label="At a glance">
-          <RevivePathCard tier={tier} opps={opps} />
           <NearbyMini opps={opps} />
           {tier === 'partner' && <ReferEarn />}
         </aside>
