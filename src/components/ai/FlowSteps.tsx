@@ -1,4 +1,4 @@
-import { ArrowRight, Check, ExternalLink, FileText, Hammer, ImagePlus, Loader2, PanelRight, Plus, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, ExternalLink, FileText, Hammer, ChevronDown, ImagePlus, Loader2, MapPin, PanelRight, Plus, Sparkles } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -137,22 +137,86 @@ function ReportPhotos() {
 function RvSource() {
   const opps = useOpportunities()
   const reports = useDemo((s) => s.reports)
+  const [q, setQ] = useState('')
+  const [open, setOpen] = useState(false)
+  const [active, setActive] = useState(0)
   const homes = [
-    ...Object.values(reports).map((r) => ({ id: r.id, label: r.address })),
-    ...opps.filter((o) => o.property.photo).map((o) => ({ id: o.id, label: o.property.address })),
-  ].filter((h, i, a) => a.findIndex((x) => x.id === h.id) === i).slice(0, 5)
+    ...Object.values(reports).map((r) => ({ id: r.id as string | undefined, line: r.address, area: r.city })),
+    ...opps.filter((o) => o.property.photo).map((o) => ({ id: o.id as string | undefined, line: o.property.address, area: o.property.city })),
+  ].filter((h, i, a) => a.findIndex((x) => x.id === h.id) === i)
+  const needle = q.trim().toLowerCase()
+  // one list: your homes that match, then any other address
+  const mine = homes.filter((h) => !needle || `${h.line} ${h.area}`.toLowerCase().includes(needle)).slice(0, 5)
+  const other = needle.length > 1 ? suggestAddresses(q, 4).filter((sg) => !mine.some((h) => h.line === sg.line)).map((sg) => ({ id: undefined, line: sg.line, area: sg.area, value: sg.value })) : []
+  const options = [...mine.map((h) => ({ ...h, value: `${h.line}, ${h.area}`, mine: true })), ...other.map((o) => ({ ...o, mine: false }))]
+  const pick = (o: (typeof options)[number]) => (o.id ? rvHome(o.id) : rvHome(undefined, o.value))
   return (
     <div className={card}>
-      <p className="text-[12px] font-medium text-muted">Your homes</p>
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {homes.map((h) => (
-          <button key={h.id} type="button" className={chip(false)} onClick={() => rvHome(h.id)}>
-            {h.label}
-          </button>
-        ))}
-      </div>
-      <p className="mt-3 text-[12px] text-muted">Or type any address below.</p>
-      <Button size="sm" variant="outline" className="mt-3" onClick={rvPhotosOnly}>
+      <form
+        className="relative"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (open && options[active]) return pick(options[active])
+          if (q.trim().length > 4) rvHome(undefined, q.trim())
+        }}
+      >
+        <label className="flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3 focus-within:border-[var(--brand-primary-border)] focus-within:ring-2 focus-within:ring-[var(--brand-primary-subtle)]">
+          <MapPin className="size-4 shrink-0 text-muted" />
+          <span className="sr-only">Home</span>
+          <input
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value)
+              setOpen(true)
+              setActive(0)
+            }}
+            onFocus={() => setOpen(true)}
+            onBlur={() => setTimeout(() => setOpen(false), 120)}
+            onKeyDown={(e) => {
+              if (!open || !options.length) return
+              if (e.key === 'ArrowDown') {
+                e.preventDefault()
+                setActive((a) => (a + 1) % options.length)
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault()
+                setActive((a) => (a - 1 + options.length) % options.length)
+              } else if (e.key === 'Escape') setOpen(false)
+            }}
+            role="combobox"
+            aria-expanded={open}
+            aria-autocomplete="list"
+            placeholder="Select one of your homes or type an address"
+            autoComplete="off"
+            className="h-full min-w-0 flex-1 bg-transparent text-[14px] text-ink outline-none placeholder:text-faint"
+          />
+          <ChevronDown className="size-4 shrink-0 text-muted" aria-hidden="true" />
+        </label>
+        {open && options.length > 0 && (
+          <ul role="listbox" className="absolute top-12 right-0 left-0 z-30 max-h-64 overflow-auto rounded-lg border border-line bg-white py-1 shadow-[0_16px_40px_rgba(28,46,88,0.16)]">
+            {options.map((o, i) => (
+              <li
+                key={o.value}
+                role="option"
+                aria-selected={i === active}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  pick(o)
+                }}
+                onMouseEnter={() => setActive(i)}
+                className={cn('flex cursor-pointer items-center gap-2.5 px-3 py-2', i === active && 'bg-[var(--brand-primary-subtle)]')}
+              >
+                <MapPin className={cn('size-4 shrink-0', o.mine ? 'text-brand' : 'text-muted')} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13.5px] font-medium text-ink">{o.line}</span>
+                  <span className="block truncate text-[11.5px] text-muted">{o.area}</span>
+                </span>
+                {o.mine && <span className="shrink-0 rounded-full bg-[var(--brand-primary-subtle)] px-2 py-0.5 text-[10.5px] font-semibold text-brand">Your home</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </form>
+      <Button size="sm" variant="ghost" className="mt-2 text-brand" onClick={rvPhotosOnly}>
         <ImagePlus /> Skip, just use photos
       </Button>
     </div>
