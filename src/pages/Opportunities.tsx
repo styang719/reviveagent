@@ -5,6 +5,7 @@ import { Marker, useMap } from 'react-leaflet'
 import { Link, useSearchParams } from 'react-router-dom'
 import { needsAttention, OppDrawer } from '@/components/home/TopOpportunities'
 import { OppTable } from '@/components/opportunity/OppTable'
+import { ValueDrawer } from '@/components/opportunity/ValueDrawer'
 import { BaseMap, TILE_BOUNDS } from '@/components/map/BaseMap'
 import { pinIcon, pinZ } from '@/components/map/pins'
 import { Button } from '@/components/ui/button'
@@ -104,6 +105,7 @@ export default function Opportunities() {
   const [q, setQ] = useState('')
   const [hover, setHover] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
+  const [valueOpen, setValueOpen] = useState(false)
   // pins are built once per home; hovering only toggles a class, so Leaflet never swaps the element under the cursor
   const icons = useRef(new Map<string, L.DivIcon>())
   const markers = useRef(new Map<string, { m: L.Marker; z: number }>())
@@ -235,10 +237,7 @@ export default function Opportunities() {
               size="sm"
               variant="outline"
               className="h-9 text-brand"
-              onClick={() => {
-                setFilter('all')
-                setSort('upside')
-              }}
+              onClick={() => setValueOpen(true)}
             >
               See the breakdown <ArrowRight />
             </Button>
@@ -356,6 +355,16 @@ export default function Opportunities() {
         </div>
       </div>
 
+      <ValueDrawer
+        opps={book}
+        open={valueOpen}
+        commission={COMMISSION}
+        onClose={() => setValueOpen(false)}
+        onOpenRow={(id) => {
+          setValueOpen(false)
+          setOpenId(id)
+        }}
+      />
       <OppDrawer o={open} onClose={() => setOpenId(null)} />
     </div>
   )
