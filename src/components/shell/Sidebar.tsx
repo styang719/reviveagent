@@ -11,7 +11,7 @@ const NAV = [
   { to: '/properties', label: 'Homes', icon: MapPinHouse, also: '/property/' }, // a property page lives under Homes
   { to: '/opportunities', label: 'Opportunities', icon: TrendingUp },
   { to: '/leads', label: 'Lead tracking', icon: UserCheck },
-  { to: '/marketing', label: 'Marketing', icon: Megaphone },
+  { to: '/marketing', label: 'Marketing center', icon: Megaphone },
   { to: '/inbox', label: 'Inbox', icon: Inbox, badge: 8 },
 ]
 

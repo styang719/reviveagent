@@ -26,7 +26,7 @@ export function MarketingCenter() {
         </div>
         <Button variant="ghost" className="h-10 shrink-0 px-3 text-[14px] text-brand" asChild>
           <Link to="/marketing">
-            Open Marketing <ArrowRight />
+            Open Marketing center <ArrowRight />
           </Link>
         </Button>
       </div>
