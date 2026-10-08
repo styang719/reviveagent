@@ -50,7 +50,7 @@ export default function Home() {
   // once both sources are in, the ranked list is the agent's book; the source panels would repeat it
   const bookDone = crm && mls && !importing
 
-  const whoToCall = feed.length > 0 && <TopOpportunities opps={feed.slice(0, FEED_SIZE)} total={actionableCount} />
+  const whoToCall = feed.length > 0 && <TopOpportunities opps={feed.slice(0, FEED_SIZE)} />
 
   const greeting = (
     <header className="flex flex-wrap items-start justify-between gap-4">
