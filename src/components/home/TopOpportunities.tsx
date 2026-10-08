@@ -1,9 +1,10 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { AlertTriangle, ArrowRight, Check, Hammer, HousePlus, SearchCheck, Signpost, X } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Check, Hammer, HousePlus, Mail, SearchCheck, Signpost, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { AiLink } from '@/components/ai/AiLink'
+import { MessageDialog } from '@/components/opportunity/MessageDialog'
 import { useCta } from '@/components/opportunity/useCta'
 import { Button, buttonVariants } from '@/components/ui/button'
 import type { Source } from '@/data/types'
@@ -37,7 +38,7 @@ const priorityOf = (o: Opportunity) => (o.score.score >= 65 || o.cta.kind === 'c
 function Priority({ o }: { o: Opportunity }) {
   const p = PRIORITY[priorityOf(o)]
   return (
-    <span className={cn('inline-flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-[12px] font-medium whitespace-nowrap', p.cls)}>
+    <span className={cn('inline-flex items-center gap-1 rounded-md border px-1.5 py-px text-[11px] font-medium whitespace-nowrap', p.cls)}>
       <span className={cn('size-1.5 rounded-full', p.dot)} aria-hidden="true" />
       {p.label}
     </span>
@@ -308,6 +309,7 @@ function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void 
 function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
   const done = !!useDemo((s) => s.checked[o.id])
   const toggle = useDemo((s) => s.toggleChecked)
+  const [msg, setMsg] = useState(false)
   return (
     <li>
       <div
@@ -318,7 +320,7 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
         aria-label={`Open ${o.property.address}`}
         className={cn(
           'group grid cursor-pointer grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md',
-          'lg:grid-cols-[auto_56px_minmax(0,1.15fr)_minmax(0,1.05fr)_minmax(0,0.75fr)_minmax(0,1fr)_76px] lg:gap-x-3.5',
+          'lg:grid-cols-[auto_56px_minmax(0,1.35fr)_minmax(0,0.95fr)_minmax(0,0.7fr)_minmax(0,1fr)_44px] lg:gap-x-3.5',
           done && 'opacity-55',
         )}
       >
@@ -341,11 +343,28 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
         <div className="min-w-0">
           <p className={cn('truncate text-[14.5px] font-semibold text-ink', done && 'line-through')}>{o.property.address}</p>
           <p className="truncate text-[13px] text-muted">{o.person?.name ?? o.property.city}</p>
-          <span className="mt-1.5 inline-block rounded-md bg-head px-1.5 py-0.5 text-[11px] font-medium text-ink-2">{SOURCE[o.property.source]}</span>
+          <div className="mt-1.5 flex items-center gap-1.5">
+            <span className="rounded-md bg-head px-1.5 py-0.5 text-[11px] font-medium text-ink-2">{SOURCE[o.property.source]}</span>
+            <Priority o={o} />
+          </div>
         </div>
-        <div className="flex items-center gap-2 lg:hidden">
-          <Priority o={o} />
-        </div>
+        {o.person ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              setMsg(true)
+            }}
+            onKeyDown={(e) => e.stopPropagation()}
+            aria-label={`Message ${o.person.name}`}
+            title={`Message ${firstName(o.person.name)}`}
+            className="grid size-11 place-items-center justify-self-end rounded-xl border border-line bg-white text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)] lg:order-last"
+          >
+            <Mail className="size-[18px]" />
+          </button>
+        ) : (
+          <span className="lg:order-last" />
+        )}
         {/* below lg the numbers wrap to a second row under the home */}
         <div className="col-span-4 flex flex-wrap items-center gap-x-6 gap-y-3 lg:contents">
           <ScoreCell o={o} />
@@ -353,14 +372,12 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
             <p className="text-[16px] font-bold text-ink tabular-nums">{money(o.property.valueNow)}</p>
             {o.gain > 0 && <p className="text-[13px] font-semibold text-[var(--green)] tabular-nums">{gain(o.gain)}</p>}
           </div>
-          <div className="flex min-w-0 flex-col items-start gap-1.5">
+          <div className="flex min-w-0 flex-row flex-wrap items-start gap-1.5 lg:flex-col">
             {tagsOf(o).length ? tagsOf(o).map((t) => <TagPill key={t} tag={t} />) : <span className="text-[13px] text-muted">{o.product ?? '—'}</span>}
           </div>
         </div>
-        <div className="hidden justify-self-end lg:block">
-          <Priority o={o} />
-        </div>
       </div>
+      {o.person && msg && <MessageDialog o={o} open={msg} onOpenChange={setMsg} />}
     </li>
   )
 }

@@ -38,6 +38,8 @@ interface DemoState {
   setTier: (tier: Tier) => void
   checked: Record<string, number> // Home checklist: opportunities ticked off this week -> when
   toggleChecked: (id: string) => void
+  /** an email sent from a template: logged on the home, and its to-do ticked off */
+  logMessage: (id: string, line: string) => void
   /** demo bar: a new agent with nothing connected, or with both MLS (license) and CRM connected */
   setNewAgent: (connected: boolean) => void
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
@@ -84,6 +86,7 @@ export const useDemo = create<DemoState>()(
     (set) => ({
       ...initial(),
       setTier: (tier) => set({ tier }),
+      logMessage: (id, line) => set((s) => ({ activity: withActivity(s, id, line), checked: { ...s.checked, [id]: s.checked[id] ?? Date.now() } })),
       toggleChecked: (id) =>
         set((s) => {
           const checked = { ...s.checked }
