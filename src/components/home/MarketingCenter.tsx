@@ -1,4 +1,4 @@
-import { ArrowRight, Megaphone, Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import openHouse from '@/assets/marketing/open-house.png'
@@ -18,12 +18,11 @@ const ITEMS = [
 export function MarketingCenter() {
   return (
     <section aria-labelledby="marketing-center">
-      <div className="mb-5 flex items-end justify-between gap-3">
+      <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h2 id="marketing-center" className="flex items-center gap-2 text-xl font-semibold text-ink">
-            <Megaphone className="size-5 text-brand" /> Marketing center
+          <h2 id="marketing-center" className="text-xl font-semibold text-ink">
+            Generate marketing materials branded for you
           </h2>
-          <p className="mt-1.5 text-[13px] text-muted">Generate marketing materials branded for you.</p>
         </div>
         <Button variant="ghost" className="h-10 shrink-0 px-3 text-[14px] text-brand" asChild>
           <Link to="/marketing">
