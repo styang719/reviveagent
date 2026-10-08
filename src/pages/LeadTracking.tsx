@@ -34,13 +34,16 @@ function statusOf(o: Opportunity, out: Outreach | undefined, logged: string[] | 
 }
 
 interface Action {
-  key: string
-  o: Opportunity
   tone: 'hot' | 'brand'
-  title: string
-  body: string
   cta: string
   run: () => void
+}
+
+/** One line in Lead activity: a referral or an engaged opportunity, and the quick action when it needs one. */
+interface Row {
+  o: Opportunity
+  st: Status
+  action?: Action
 }
 
 export default function LeadTracking() {
@@ -64,47 +67,49 @@ export default function LeadTracking() {
     .filter((x): x is { o: Opportunity; st: Status } => !!x.st)
     .sort((a, b) => (b.st.at ?? 0) - (a.st.at ?? 0))
 
-  // what can't wait: each with the one thing to do
-  const actions: Action[] = []
+  // one list: referrals that need something, and everyone engaging with reports and emails.
+  // Rows that need the agent are highlighted, carry their quick action and sort first.
+  const rows: Row[] = []
   for (const o of refs) {
     const r = o.referral!
     const first = o.person ? firstName(o.person.name) : 'the homeowner'
     if (r.status === 'new' && !r.claimedAt && r.expiresAt > now) {
       const hrs = Math.max(1, Math.round((r.expiresAt - now) / 3_600_000))
-      actions.push({
-        key: `claim-${o.id}`,
+      rows.push({
         o,
-        tone: 'hot',
-        title: `Claim ${o.property.address}`,
-        body: `New seller referral from Revive. ${hrs} hr${hrs === 1 ? '' : 's'} left before it goes to another agent.`,
-        cta: 'Claim lead',
-        run: () => {
-          claim(o.id)
-          toast.success('Lead claimed', { description: `Revive let ${first} know you’ll reach out today.` })
+        st: { label: 'New referral', icon: UserRound, cls: 'bg-hot-soft text-hot-ink', text: `Seller referral from Revive · ${hrs} hr${hrs === 1 ? '' : 's'} left to claim before it goes to another agent` },
+        action: {
+          tone: 'hot',
+          cta: 'Claim lead',
+          run: () => {
+            claim(o.id)
+            toast.success('Lead claimed', { description: `Revive let ${first} know you’ll reach out today.` })
+          },
         },
       })
-    } else if (r.needsUpdateNow) {
-      actions.push({
-        key: `upd-${o.id}`,
+    } else if (r.needsUpdateNow)
+      rows.push({
         o,
-        tone: 'brand',
-        title: `Update Revive on ${o.property.address}`,
-        body: r.status === 'contacted' ? `You met ${first}. Tell Revive how the home visit went.` : `Revive needs a status update on ${first} to keep sending you leads.`,
-        cta: 'Send update',
-        run: () => {
-          markUpdated(o.id)
-          toast.success('Update sent to Revive')
+        st: { label: 'Update due', icon: Clock, cls: 'bg-[var(--brand-primary-subtle)] text-brand', text: r.status === 'contacted' ? `You met ${first}. Tell Revive how the home visit went.` : `Revive needs a status update on ${first} to keep sending you leads.` },
+        action: {
+          tone: 'brand',
+          cta: 'Send update',
+          run: () => {
+            markUpdated(o.id)
+            toast.success('Update sent to Revive')
+          },
         },
       })
-    }
   }
   for (const { o, st } of engaged) {
     const first = o.person ? firstName(o.person.name) : 'the homeowner'
-    if (st.label === 'Replied')
-      actions.push({ key: `rep-${o.id}`, o, tone: 'hot', title: `${first} replied about ${o.property.address}`, body: st.text, cta: 'Reply with Revive’s draft', run: () => setMsgId(o.id) })
-    else if ((st.label === 'Engaged' || st.label === 'Opened report') && o.person)
-      actions.push({ key: `eng-${o.id}`, o, tone: 'brand', title: `Follow up with ${first}`, body: st.text, cta: `Email ${first}`, run: () => setMsgId(o.id) })
+    if (st.label === 'Replied') rows.push({ o, st, action: { tone: 'hot', cta: 'Reply with draft', run: () => setMsgId(o.id) } })
+    else if ((st.label === 'Engaged' || st.label === 'Opened report') && o.person) rows.push({ o, st, action: { tone: 'brand', cta: `Email ${first}`, run: () => setMsgId(o.id) } })
+    else rows.push({ o, st })
   }
+  const rank = (r: Row) => (r.action?.tone === 'hot' ? 2 : r.action ? 1 : 0)
+  rows.sort((a, b) => rank(b) - rank(a) || (b.st.at ?? 0) - (a.st.at ?? 0))
+  const todo = rows.filter((r) => r.action).length
 
   const open = opps.find((o) => o.id === openId) ?? null
   const msg = opps.find((o) => o.id === msgId)
@@ -127,41 +132,6 @@ export default function LeadTracking() {
           />
         </label>
       </header>
-
-      {actions.length > 0 && (
-        <section className="mt-8" aria-labelledby="do-now">
-          <div className="flex items-center gap-2.5">
-            <span className="grid size-8 place-items-center rounded-lg bg-hot-soft text-hot">
-              <Clock className="size-4" />
-            </span>
-            <h2 id="do-now" className="text-xl font-semibold text-ink">
-              Do this now
-            </h2>
-            <span className="rounded-full bg-hot-soft px-2 py-0.5 text-[12px] font-semibold text-hot-ink tabular-nums">{actions.length}</span>
-          </div>
-          <p className="mt-1.5 mb-4 text-[13px] text-muted">Leads waiting on you. Each one has the next step ready.</p>
-          <ul className="flex flex-col gap-3">
-            {actions.map((a) => (
-              <li
-                key={a.key}
-                className={cn(
-                  'flex flex-wrap items-center gap-4 rounded-xl border bg-white p-3 pr-4 shadow-card',
-                  a.tone === 'hot' ? 'border-hot-line ring-1 ring-hot-line' : 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]',
-                )}
-              >
-                <img src={img(a.o)} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
-                <button type="button" onClick={() => setOpenId(a.o.id)} className="min-w-0 flex-1 text-left">
-                  <p className="text-[14.5px] font-semibold text-ink">{a.title}</p>
-                  <p className="line-clamp-2 text-[13px] text-ink-2">{a.body}</p>
-                </button>
-                <Button className={cn('h-10 shrink-0', a.tone === 'hot' && 'bg-hot hover:bg-hot-ink')} onClick={a.run}>
-                  {a.cta} <ArrowRight />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {refs.length ? (
         <SellerReferrals opps={refs} />
@@ -191,18 +161,24 @@ export default function LeadTracking() {
           <h2 id="lead-activity-all" className="text-xl font-semibold text-ink">
             Lead activity
           </h2>
-          <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{engaged.length}</span>
+          {todo > 0 && <span className="rounded-full bg-hot-soft px-2 py-0.5 text-[12px] font-semibold text-hot-ink tabular-nums">{todo} need action</span>}
         </div>
-        <p className="mt-1.5 mb-4 text-[13px] text-muted">Homeowners engaging with your Revive AI reports and emails, from your opportunities.</p>
-        {engaged.length ? (
-          <ul className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
-            {engaged.map(({ o, st }, i) => {
+        <p className="mt-1.5 mb-4 text-[13px] text-muted">Seller referrals that need you, and homeowners engaging with your Revive AI reports and emails. What needs action is first.</p>
+        {rows.length ? (
+          <ul className="flex flex-col gap-2">
+            {rows.map(({ o, st, action }) => {
               const Icon = st.icon
               return (
-                <li key={o.id} className={cn(i > 0 && 'border-t border-line-soft')}>
-                  <button type="button" onClick={() => setOpenId(o.id)} className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-head/70">
+                <li
+                  key={o.id}
+                  className={cn(
+                    'flex items-center gap-4 rounded-xl border bg-white py-2.5 pr-3 pl-4',
+                    action?.tone === 'hot' ? 'border-hot-line bg-hot-soft/30 ring-1 ring-hot-line' : action ? 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]' : 'border-line',
+                  )}
+                >
+                  <button type="button" onClick={() => setOpenId(o.id)} className="flex min-w-0 flex-1 items-center gap-4 text-left">
                     <img src={img(o)} alt="" className="size-11 shrink-0 rounded-lg object-cover" />
-                    <span className="w-56 min-w-0 shrink-0">
+                    <span className="w-52 min-w-0 shrink-0">
                       <span className="block truncate text-[14.5px] font-semibold text-ink">{o.property.address}</span>
                       <span className="block truncate text-[13px] text-muted">{o.person?.name ?? o.property.city}</span>
                     </span>
@@ -210,8 +186,15 @@ export default function LeadTracking() {
                       <Icon className="size-3.5" /> {st.label}
                     </span>
                     <span className="hidden min-w-0 flex-1 truncate text-[13px] text-ink-2 md:block">{st.text}</span>
-                    {st.at && <span className="ml-auto shrink-0 text-[12.5px] text-muted">{ago(st.at, now)}</span>}
+                    {st.at && <span className="shrink-0 text-[12.5px] text-muted">{ago(st.at, now)}</span>}
                   </button>
+                  {action ? (
+                    <Button size="sm" className={cn('h-9 w-40 shrink-0', action.tone === 'hot' && 'bg-hot hover:bg-hot-ink')} onClick={action.run}>
+                      {action.cta} <ArrowRight />
+                    </Button>
+                  ) : (
+                    <span className="w-40 shrink-0" />
+                  )}
                 </li>
               )
             })}
