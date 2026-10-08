@@ -4,6 +4,8 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
 import { PropertyView, usePropertyModel, type PropertyTab } from '@/components/property/PropertyView'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { RvShareCard } from '@/components/ai/RvShareCard'
 import { STARTERS } from '@/lib/ai'
 import { rvHome, startProject, startHome, startRenovision, startReport } from '@/lib/flowEngine'
 import { cn } from '@/lib/utils'
@@ -116,8 +118,11 @@ function ThreadRow({ t, label, active, onOpen, onDelete }: { t: ChatThread; labe
 function RenoVisionFolder({ onOpen }: { onOpen: (threadId: string) => void }) {
   const all = useDemo((s) => s.renovisions)
   const threads = useUi((s) => s.threads)
+  const [view, setView] = useState<string | null>(null)
   const designs = Object.values(all).sort((a, b) => b.createdAt - a.createdAt)
   if (!designs.length) return null
+  const d = designs.find((x) => x.id === view)
+  const canOpen = !!d?.threadId && threads.some((t) => t.id === d.threadId)
   return (
     <section aria-label="RenoVision designs">
       <p className="flex items-center gap-1.5 px-2 pb-2 text-[13.5px] font-semibold text-ink">
@@ -125,23 +130,48 @@ function RenoVisionFolder({ onOpen }: { onOpen: (threadId: string) => void }) {
         <span className="ml-auto text-[12px] font-normal text-faint tabular-nums">{designs.length}</span>
       </p>
       <ul className="grid grid-cols-3 gap-1.5 px-1">
-        {designs.map((d) => {
-          const can = !!d.threadId && threads.some((t) => t.id === d.threadId)
-          return (
-            <li key={d.id}>
-              <button
-                type="button"
-                disabled={!can}
-                onClick={() => can && onOpen(d.threadId!)}
-                title={`${d.address ?? 'Photos'} · ${d.style}`}
-                className="block w-full overflow-hidden rounded-lg ring-1 ring-line transition hover:ring-[var(--brand-agent-border)] disabled:cursor-default"
-              >
-                <img src={d.pairs[0].after} alt={`${d.address ?? 'Design'}, ${d.style}`} className="aspect-square w-full object-cover" />
-              </button>
-            </li>
-          )
-        })}
+        {designs.map((x) => (
+          <li key={x.id}>
+            <button
+              type="button"
+              onClick={() => setView(x.id)}
+              title={`${x.address ?? 'Photos'} · ${x.style}`}
+              className="block w-full cursor-pointer overflow-hidden rounded-lg ring-1 ring-line transition hover:ring-2 hover:ring-[var(--brand-agent-border)]"
+            >
+              <img src={x.pairs[0].after} alt={`${x.address ?? 'Design'}, ${x.style}`} className="aspect-square w-full object-cover" />
+            </button>
+          </li>
+        ))}
       </ul>
+      <Dialog open={!!d} onOpenChange={(v) => !v && setView(null)}>
+        <DialogContent className="max-w-xl p-4">
+          <DialogTitle className="sr-only">RenoVision design</DialogTitle>
+          {d && (
+            <>
+              <RvShareCard id={d.id} />
+              <div className="mt-3 flex flex-wrap gap-2">
+                {canOpen && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setView(null)
+                      onOpen(d.threadId!)
+                    }}
+                  >
+                    <MessageSquare /> Open conversation
+                  </Button>
+                )}
+                {d.propertyId && (
+                  <Button size="sm" variant="outline" asChild>
+                    <Link to={`/property/${d.propertyId}?tab=report`}>Open {d.address}</Link>
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
