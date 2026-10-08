@@ -52,7 +52,7 @@ export function YourBook({ opps }: { opps: Opportunity[] }) {
       <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="book-title" className="text-xl font-semibold text-ink">
-            {connected === 1 ? 'Connect the rest of your book' : 'Your opportunities'}
+            Your opportunities
           </h2>
           <p className="mt-1.5 text-[13px] text-muted">{connected === 2 ? 'Both sources connected. Revive ranks who to call, and why.' : 'Revive pulls in two sources and ranks who to call, and why. Connect both to see everyone.'}</p>
         </div>
