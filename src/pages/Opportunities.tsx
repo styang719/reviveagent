@@ -22,16 +22,17 @@ import { useUi } from '@/store/ui'
 const COMMISSION = 0.025 // listing side
 const LIKELY = 80
 
-type Filter = 'all' | 'go' | 'seller' | 'reno' | 'adu' | 'listing' | 'check'
+type Filter = 'all' | 'go' | 'seller' | 'reno' | 'adu' | 'build'
 const FILTERS: { k: Filter; label: string }[] = [
   { k: 'all', label: 'All' },
   { k: 'go', label: 'Worth a conversation' },
   { k: 'seller', label: 'Likely seller' },
   { k: 'reno', label: 'Renovation' },
   { k: 'adu', label: 'ADU room' },
-  { k: 'listing', label: 'Listing issue' },
-  { k: 'check', label: 'Needs a data check' },
+  { k: 'build', label: 'Build' },
 ]
+/** Build: Revive would add new space, an ADU with upside or a Flip 360 rebuild. */
+const canBuild = (o: Opportunity) => o.property.scenarios.some((s) => (s.gain ?? 0) > 0 && (s.product.includes('ADU') || s.product.startsWith('Flip')))
 const worth = (o: Opportunity) => o.urgency === 'now' || o.urgency === 'soon'
 const passes = (o: Opportunity, f: Filter) =>
   f === 'all' ||
@@ -39,8 +40,7 @@ const passes = (o: Opportunity, f: Filter) =>
   (f === 'seller' && (o.person?.sellScore ?? 0) >= LIKELY) ||
   (f === 'reno' && o.tags.includes('Renovation')) ||
   (f === 'adu' && o.tags.includes('ADU room')) ||
-  (f === 'listing' && o.tags.includes('Listing issue')) ||
-  (f === 'check' && o.tags.includes('Data check'))
+  (f === 'build' && canBuild(o))
 
 type Sort = 'recommended' | 'score' | 'value' | 'upside'
 const SORTS: { k: Sort; label: string }[] = [
