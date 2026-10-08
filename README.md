@@ -67,6 +67,7 @@ The demo bar has four scenarios: **New agent · 0 deals** (nothing connected), *
 | `src/lib/opportunities.ts` | Builds the opportunity list for the current tier: stage, urgency, tags, contextual CTA |
 | `src/store/demo.ts` | The only state: tier, stage overrides, claimed referrals, referral updates, activity |
 | `src/components/opportunity/OpportunityCard.tsx` | The one card used everywhere |
+| `src/components/home/TopOpportunities.tsx` | Home's “Top opportunities this week” checklist: source label (MLS listing / Contact / …), state, one line of why, one next action worded for the relationship; ticks persist in `demo.checked` |
 | `src/styles/tokens.css` | Revive tokens mapped onto the shadcn theme variables |
 
 ## Build phases

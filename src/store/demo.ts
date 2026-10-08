@@ -36,6 +36,8 @@ interface DemoState {
   addProject: (p: CreatedProject) => void
   setHandoff: (h: Handoff) => void
   setTier: (tier: Tier) => void
+  checked: Record<string, number> // Home checklist: opportunities ticked off this week -> when
+  toggleChecked: (id: string) => void
   /** demo bar: a new agent with nothing connected, or with both MLS (license) and CRM connected */
   setNewAgent: (connected: boolean) => void
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
@@ -51,6 +53,7 @@ const initial = () => ({
   tier: 'new' as Tier,
   stageOverrides: {},
   claimed: {},
+  checked: {} as Record<string, number>,
   updated: {},
   activity: {},
   referralClockStart: Date.now(),
@@ -81,6 +84,13 @@ export const useDemo = create<DemoState>()(
     (set) => ({
       ...initial(),
       setTier: (tier) => set({ tier }),
+      toggleChecked: (id) =>
+        set((s) => {
+          const checked = { ...s.checked }
+          if (checked[id]) delete checked[id]
+          else checked[id] = Date.now()
+          return { checked }
+        }),
       setNewAgent: (connected) => set({ tier: 'new', license: connected ? DEMO_LICENSE : null, crmConnected: connected }),
       setStage: (id, stage, line) =>
         set((s) => ({ stageOverrides: { ...s.stageOverrides, [id]: stage }, activity: withActivity(s, id, line) })),
@@ -142,6 +152,6 @@ export const useDemo = create<DemoState>()(
       connectLicense: (license) => set({ license }),
       reset: () => set((s) => ({ ...initial(), tier: s.tier, handoff: s.handoff })),
     }),
-    { name: 'revive-demo', version: 10, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, news: [], ...(s as object), handoff: 'dock' }) as unknown as DemoState },
+    { name: 'revive-demo', version: 10, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, news: [], checked: {}, ...(s as object), handoff: 'dock' }) as unknown as DemoState },
   ),
 )

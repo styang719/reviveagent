@@ -1,5 +1,3 @@
-import { ArrowRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { DiscussProperty } from '@/components/home/DiscussProperty'
 import { NearbyMini } from '@/components/home/NearbyMini'
 import { ProjectPulse } from '@/components/home/ProjectPulse'
@@ -12,11 +10,10 @@ import { StatCards } from '@/components/home/StatCards'
 import { CaseStudies, ReviveAiIntro } from '@/components/home/NewAgentIntro'
 import { WhatChanged } from '@/components/home/WhatChanged'
 import { YourBook } from '@/components/home/YourBook'
-import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
+import { TopOpportunities } from '@/components/home/TopOpportunities'
 import { AGENT, TIERS } from '@/data/tiers'
 import { useNow } from '@/hooks/useNow'
 import { isActionable, useConnections, useOpportunities } from '@/lib/opportunities'
-import { gain } from '@/lib/format'
 import { useUi } from '@/store/ui'
 import { PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
@@ -50,38 +47,10 @@ export default function Home() {
 
   const isNew = tier === 'new'
 
-  const feedGain = feed.slice(0, FEED_SIZE).reduce((n, o) => n + (o.gain || 0), 0)
   // once both sources are in, the ranked list is the agent's book; the source panels would repeat it
   const bookDone = crm && mls && !importing
 
-  const whoToCall = feed.length > 0 && (
-    <section aria-labelledby="who-to-call">
-      <div className="mb-6 flex items-end justify-between gap-3">
-        <div>
-          <h2 id="who-to-call" className="text-xl font-semibold text-ink">
-            Who to call this week
-          </h2>
-          <p className="mt-1.5 text-[13px] text-muted">
-            {feedGain > 0 ? (
-              <>
-                <span className="font-semibold text-[var(--green)]">{gain(feedGain)}</span> potential with Revive across these {Math.min(feed.length, FEED_SIZE)} homes. Ranked by why now.
-              </>
-            ) : (
-              'Ranked by why now: timing, relationship and what Revive can add.'
-            )}
-          </p>
-        </div>
-        <Link to="/opportunities" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-          See all {actionableCount} <ArrowRight className="size-3.5" />
-        </Link>
-      </div>
-      <div className="flex flex-col gap-3">
-        {feed.slice(0, FEED_SIZE).map((o) => (
-          <OpportunityCard key={o.id} o={o} />
-        ))}
-      </div>
-    </section>
-  )
+  const whoToCall = feed.length > 0 && <TopOpportunities opps={feed.slice(0, FEED_SIZE)} total={actionableCount} />
 
   const greeting = (
     <header className="flex flex-wrap items-start justify-between gap-4">
