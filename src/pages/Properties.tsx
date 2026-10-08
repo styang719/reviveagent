@@ -97,9 +97,6 @@ function ReportCard({ r }: { r: ReportRow }) {
     >
       <div className="relative h-36 overflow-hidden bg-line-soft">
         {r.photo && <img src={img(r.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-        <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-[var(--brand-agent)] shadow-sm">
-          <Sparkles className="size-3" /> Revive AI report
-        </span>
       </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div>

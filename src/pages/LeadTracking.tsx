@@ -1,115 +1,120 @@
-import { ArrowRight, Clock, Eye, FileText, Mail, MailCheck, Reply, Search, Send, UserRound } from 'lucide-react'
+import { Eye, FileText, Mail, MailCheck, Reply, Search, Send, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { img, leadSignal, OppDrawer } from '@/components/home/TopOpportunities'
 import { MessageDialog } from '@/components/opportunity/MessageDialog'
 import { SellerReferrals } from '@/components/property/SellerReferrals'
 import { Button } from '@/components/ui/button'
+import { AGENT } from '@/data/tiers'
 import { useNow } from '@/hooks/useNow'
 import { ago, firstName } from '@/lib/format'
 import { useOpportunities, type Opportunity } from '@/lib/opportunities'
 import { cn, PAGE } from '@/lib/utils'
 import { useDemo, type Outreach } from '@/store/demo'
 
-// Lead tracking: every homeowner who is engaging with the agent, in one place. What needs doing now
-// comes first (claim a referral, update Revive, answer a reply, follow up on a report they opened),
-// then the seller referrals from Revive, then everyone else's activity on reports and outreach.
+// Lead tracking: seller referrals from Revive (their actions live on the cards), then Lead activity:
+// every opportunity homeowner engaging with the agent, from Revive (emails sent from Opportunities, shared
+// reports, the lead form) and synced from the CRM. Built to stay usable when it's long: filter by what
+// happened, highlight replies waiting on the agent, and select many to send a quick follow-up at once.
 
-type Status = { label: string; icon: typeof Mail; cls: string; at?: number; text: string }
+type Kind = 'reply' | 'opened' | 'engaged' | 'sent' | 'answered'
+interface Row {
+  o: Opportunity
+  kind: Kind
+  label: string
+  icon: typeof Mail
+  text: string
+  when: string
+  at: number // for sorting; 0 when only a date label is known
+  source: 'Revive' | 'Follow Up Boss'
+}
 
-/** Where a lead stands with the agent's report and emails, newest signal first. */
-function statusOf(o: Opportunity, out: Outreach | undefined, logged: string[] | undefined): Status | null {
+const DAY = 86_400_000
+const PILL: Record<Kind, string> = {
+  reply: 'bg-[var(--brand-primary)] text-white',
+  opened: 'bg-[var(--brand-primary-subtle)] text-brand',
+  engaged: 'bg-ok-soft text-[var(--green)]',
+  sent: 'bg-head text-ink-2',
+  answered: 'bg-ok-soft text-[var(--green)]',
+}
+
+/** The latest thing a homeowner did, from Revive first and then what the CRM synced. */
+function rowOf(o: Opportunity, out: Outreach | undefined, logged: string[] | undefined, now: number): Row | null {
   const first = o.person ? firstName(o.person.name) : 'The homeowner'
-  if (out?.reply && !out.answeredAt) return { label: 'Replied', icon: Reply, cls: 'bg-[var(--brand-primary)] text-white', at: out.reply.at, text: `“${out.reply.text}”` }
-  if (out?.answeredAt) return { label: 'You replied', icon: MailCheck, cls: 'bg-ok-soft text-[var(--green)]', at: out.answeredAt, text: `Waiting on ${first}` }
-  if (out?.openedAt) return { label: 'Opened email', icon: Eye, cls: 'bg-[var(--brand-primary-subtle)] text-brand', at: out.openedAt, text: `“${out.subject}”` }
-  if (out) return { label: 'Emailed', icon: Mail, cls: 'bg-head text-ink-2', at: out.sentAt, text: `“${out.subject}” · not opened yet` }
+  const base = { o, source: 'Revive' as const }
+  if (out?.reply && !out.answeredAt) return { ...base, kind: 'reply', label: 'Replied', icon: Reply, text: `“${out.reply.text}”`, when: ago(out.reply.at, now), at: out.reply.at }
+  if (out?.answeredAt) return { ...base, kind: 'answered', label: 'You replied', icon: MailCheck, text: `Waiting on ${first}`, when: ago(out.answeredAt, now), at: out.answeredAt }
+  if (out?.openedAt) return { ...base, kind: 'opened', label: 'Opened email', icon: Eye, text: `“${out.subject}”`, when: ago(out.openedAt, now), at: out.openedAt }
+  if (out) return { ...base, kind: 'sent', label: 'Emailed', icon: Mail, text: `“${out.subject}” · not opened yet`, when: ago(out.sentAt, now), at: out.sentAt }
   const opened = logged?.find((l) => /opened the report/.test(l))
-  if (opened) return { label: 'Opened report', icon: Eye, cls: 'bg-[var(--brand-primary-subtle)] text-brand', text: `${first} opened the Revive AI report you shared · ${opened.split(' · ').pop()}` }
+  if (opened) return { ...base, kind: 'opened', label: 'Opened report', icon: Eye, text: 'Opened the Revive AI report you shared', when: opened.split(' · ').pop() ?? '', at: now - DAY / 2 }
   const shared = logged?.find((l) => /shared the Revive AI report/.test(l))
-  if (shared) return { label: 'Report shared', icon: Send, cls: 'bg-head text-ink-2', text: `Shared ${shared.split(' · ').pop()} · not opened yet` }
+  if (shared) return { ...base, kind: 'sent', label: 'Report shared', icon: Send, text: 'Revive AI report shared · not opened yet', when: shared.split(' · ').pop() ?? '', at: now - DAY }
   const signal = leadSignal(o, logged)
-  if (signal) return { label: 'Engaged', icon: FileText, cls: 'bg-ok-soft text-[var(--green)]', text: signal }
+  if (signal) return { ...base, kind: 'engaged', label: 'Ran a report', icon: FileText, text: (() => { const t = signal.replace(new RegExp(`^${first} `), ''); return t.charAt(0).toUpperCase() + t.slice(1) })(), when: `${o.property.facts.leadFormDaysAgo ?? 2} days ago`, at: now - (o.property.facts.leadFormDaysAgo ?? 2) * DAY }
+  // synced from the CRM: a recent reply or an email they opened
+  const h = o.person?.history?.find((x) => x.daysAgo <= 90 && (x.inbound || (x.kind === 'email' && x.tag && /^Opened/.test(x.tag))))
+  if (h) {
+    const when = h.daysAgo < 14 ? `${h.daysAgo} days ago` : `${Math.round(h.daysAgo / 7)} weeks ago`
+    return h.inbound
+      ? { o, source: 'Follow Up Boss', kind: 'reply', label: 'Replied', icon: Reply, text: `“${(h.body ?? '').replace(/^"|"$/g, '')}”`, when, at: now - h.daysAgo * DAY }
+      : { o, source: 'Follow Up Boss', kind: 'opened', label: /twice/.test(h.tag!) ? 'Opened 2×' : /(\d+) times/.test(h.tag!) ? `Opened ${/(\d+) times/.exec(h.tag!)![1]}×` : 'Opened email', icon: Eye, text: h.title.replace(/^Emailed: /, '“') + '”', when, at: now - h.daysAgo * DAY }
+  }
   return null
 }
 
-interface Action {
-  tone: 'hot' | 'brand'
-  cta: string
-  run: () => void
-}
-
-/** One line in Lead activity: a referral or an engaged opportunity, and the quick action when it needs one. */
-interface Row {
-  o: Opportunity
-  st: Status
-  action?: Action
-}
+const FILTERS: { k: 'all' | Kind; label: string }[] = [
+  { k: 'all', label: 'All' },
+  { k: 'reply', label: 'Replied' },
+  { k: 'opened', label: 'Opened' },
+  { k: 'engaged', label: 'Ran a report' },
+  { k: 'sent', label: 'Waiting to open' },
+]
+const SHOW = 8
 
 export default function LeadTracking() {
   const opps = useOpportunities()
   const tier = useDemo((s) => s.tier)
   const outreach = useDemo((s) => s.outreach)
   const activity = useDemo((s) => s.activity)
-  const claim = useDemo((s) => s.claimReferral)
-  const markUpdated = useDemo((s) => s.markReferralUpdated)
+  const send = useDemo((s) => s.sendOutreach)
   const now = useNow(20_000)
   const [q, setQ] = useState('')
+  const [filter, setFilter] = useState<'all' | Kind>('all')
+  const [picked, setPicked] = useState<Set<string>>(new Set())
+  const [all, setAll] = useState(false)
   const [openId, setOpenId] = useState<string | null>(null)
   const [msgId, setMsgId] = useState<string | null>(null)
 
   const needle = q.trim().toLowerCase()
   const match = (o: Opportunity) => !needle || [o.property.address, o.property.city, o.person?.name].some((f) => f?.toLowerCase().includes(needle))
   const refs = opps.filter((o) => o.referral && match(o))
-  const engaged = opps
+  const rows = opps
     .filter((o) => !o.referral && match(o))
-    .map((o) => ({ o, st: statusOf(o, outreach[o.id], activity[o.id]) }))
-    .filter((x): x is { o: Opportunity; st: Status } => !!x.st)
-    .sort((a, b) => (b.st.at ?? 0) - (a.st.at ?? 0))
+    .map((o) => rowOf(o, outreach[o.id], activity[o.id], now))
+    .filter((r): r is Row => !!r)
+    // a reply waiting on you first, then newest
+    .sort((a, b) => Number(b.kind === 'reply') - Number(a.kind === 'reply') || b.at - a.at)
+  const shown = rows.filter((r) => filter === 'all' || r.kind === filter)
+  const visible = all ? shown : shown.slice(0, SHOW)
+  // who a quick follow-up makes sense for: they engaged and haven't been emailed from here yet
+  const followable = (r: Row) => !!r.o.person && (r.kind === 'opened' || r.kind === 'engaged' || (r.kind === 'reply' && r.source === 'Follow Up Boss'))
+  const sel = shown.filter((r) => picked.has(r.o.id))
+  const waiting = rows.filter((r) => r.kind === 'reply').length
 
-  // one list: referrals that need something, and everyone engaging with reports and emails.
-  // Rows that need the agent are highlighted, carry their quick action and sort first.
-  const rows: Row[] = []
-  for (const o of refs) {
-    const r = o.referral!
-    const first = o.person ? firstName(o.person.name) : 'the homeowner'
-    if (r.status === 'new' && !r.claimedAt && r.expiresAt > now) {
-      const hrs = Math.max(1, Math.round((r.expiresAt - now) / 3_600_000))
-      rows.push({
-        o,
-        st: { label: 'New referral', icon: UserRound, cls: 'bg-[var(--teal-soft)] text-[var(--green)]', text: `Seller referral from Revive · ${hrs} hr${hrs === 1 ? '' : 's'} left to claim before it goes to another agent` },
-        action: {
-          tone: 'hot',
-          cta: 'Claim lead',
-          run: () => {
-            claim(o.id)
-            toast.success('Lead claimed', { description: `Revive let ${first} know you’ll reach out today.` })
-          },
-        },
-      })
-    } else if (r.needsUpdateNow)
-      rows.push({
-        o,
-        st: { label: 'Update due', icon: Clock, cls: 'bg-[var(--brand-primary-subtle)] text-brand', text: r.status === 'contacted' ? `You met ${first}. Tell Revive how the home visit went.` : `Revive needs a status update on ${first} to keep sending you leads.` },
-        action: {
-          tone: 'brand',
-          cta: 'Send update',
-          run: () => {
-            markUpdated(o.id)
-            toast.success('Update sent to Revive')
-          },
-        },
-      })
+  const toggle = (id: string) =>
+    setPicked((p) => {
+      const n = new Set(p)
+      if (n.has(id)) n.delete(id)
+      else n.add(id)
+      return n
+    })
+  const followUp = () => {
+    for (const r of sel)
+      send({ id: r.o.id, address: r.o.property.address, name: r.o.person!.name, subject: `Following up on ${r.o.property.address.split(' ').slice(1).join(' ')}`, template: 'renovation', agent: AGENT.firstName })
+    toast.success(`Follow-up sent to ${sel.length} homeowner${sel.length === 1 ? '' : 's'}`, { description: 'A short note with their Revive AI report. You’ll see here when they open or reply.' })
+    setPicked(new Set())
   }
-  for (const { o, st } of engaged) {
-    const first = o.person ? firstName(o.person.name) : 'the homeowner'
-    if (st.label === 'Replied') rows.push({ o, st, action: { tone: 'hot', cta: 'Reply with draft', run: () => setMsgId(o.id) } })
-    else if ((st.label === 'Engaged' || st.label === 'Opened report') && o.person) rows.push({ o, st, action: { tone: 'brand', cta: `Email ${first}`, run: () => setMsgId(o.id) } })
-    else rows.push({ o, st })
-  }
-  const rank = (r: Row) => (r.action?.tone === 'hot' ? 2 : r.action ? 1 : 0)
-  rows.sort((a, b) => rank(b) - rank(a) || (b.st.at ?? 0) - (a.st.at ?? 0))
-  const todo = rows.filter((r) => r.action).length
 
   const open = opps.find((o) => o.id === openId) ?? null
   const msg = opps.find((o) => o.id === msgId)
@@ -119,7 +124,7 @@ export default function LeadTracking() {
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Lead tracking</h1>
-          <p className="mt-1 text-[15px] text-ink-2">Every homeowner engaging with you: seller referrals from Revive, and who’s opening your reports and emails.</p>
+          <p className="mt-1 text-[15px] text-ink-2">Seller referrals from Revive, and every homeowner opening your reports and emails.</p>
         </div>
         <label className="relative w-full sm:w-72">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
@@ -161,46 +166,98 @@ export default function LeadTracking() {
           <h2 id="lead-activity-all" className="text-xl font-semibold text-ink">
             Lead activity
           </h2>
-          {todo > 0 && <span className="rounded-full bg-[var(--brand-primary-subtle)] px-2 py-0.5 text-[12px] font-semibold text-brand tabular-nums">{todo} need action</span>}
+          <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{rows.length}</span>
+          {waiting > 0 && <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white tabular-nums">{waiting} waiting on you</span>}
         </div>
-        <p className="mt-1.5 mb-4 text-[13px] text-muted">Seller referrals that need you, and homeowners engaging with your Revive AI reports and emails. What needs action is first.</p>
-        {rows.length ? (
-          <ul className="flex flex-col gap-2">
-            {rows.map(({ o, st, action }) => {
-              const Icon = st.icon
+        <p className="mt-1.5 text-[13px] text-muted">From your opportunities: emails and reports you sent with Revive, the lead form, and activity synced from Follow Up Boss.</p>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Filter lead activity">
+            {FILTERS.map((f) => {
+              const n = f.k === 'all' ? rows.length : rows.filter((r) => r.kind === f.k).length
+              if (!n && f.k !== 'all') return null
+              const on = filter === f.k
               return (
-                <li
-                  key={o.id}
-                  className={cn(
-                    'flex items-center gap-4 rounded-xl border bg-white py-2.5 pr-3 pl-4',
-                    action?.tone === 'hot' ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-subtle)] ring-1 ring-[var(--brand-primary)]' : action ? 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]' : 'border-line',
-                  )}
+                <button
+                  key={f.k}
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => setFilter(f.k)}
+                  className={cn('inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium', on ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-line bg-white text-ink hover:border-[var(--brand-primary-border)]')}
                 >
-                  <button type="button" onClick={() => setOpenId(o.id)} className="flex min-w-0 flex-1 items-center gap-4 text-left">
-                    <img src={img(o)} alt="" className="size-11 shrink-0 rounded-lg object-cover" />
-                    <span className="w-52 min-w-0 shrink-0">
-                      <span className="block truncate text-[14.5px] font-semibold text-ink">{o.property.address}</span>
-                      <span className="block truncate text-[13px] text-muted">{o.person?.name ?? o.property.city}</span>
-                    </span>
-                    <span className={cn('inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-semibold', st.cls)}>
-                      <Icon className="size-3.5" /> {st.label}
-                    </span>
-                    <span className="hidden min-w-0 flex-1 truncate text-[13px] text-ink-2 md:block">{st.text}</span>
-                    {st.at && <span className="shrink-0 text-[12.5px] text-muted">{ago(st.at, now)}</span>}
-                  </button>
-                  {action ? (
-                    <Button size="sm" className="h-9 w-40 shrink-0" onClick={action.run}>
-                      {action.cta} <ArrowRight />
-                    </Button>
-                  ) : (
-                    <span className="w-40 shrink-0" />
-                  )}
-                </li>
+                  {f.label} <span className={cn('text-[12px] tabular-nums', on ? 'text-white/85' : 'text-muted')}>{n}</span>
+                </button>
               )
             })}
-          </ul>
+          </div>
+          {sel.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] text-ink-2">{sel.length} selected</span>
+              <Button size="sm" className="h-9" onClick={followUp}>
+                <Send /> Send a quick follow-up
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {shown.length ? (
+          <div className="mt-3 overflow-hidden rounded-xl border border-line bg-white shadow-card">
+            <ul>
+              {visible.map((r, i) => {
+                const Icon = r.icon
+                const can = followable(r)
+                const reply = r.kind === 'reply'
+                return (
+                  <li key={r.o.id} className={cn('relative flex items-center gap-3 px-3 py-2.5', i > 0 && 'border-t border-line-soft', reply && 'bg-[var(--brand-primary-subtle)]')}>
+                    {reply && <span className="absolute top-0 bottom-0 left-0 w-[3px] bg-[var(--brand-primary)]" aria-hidden="true" />}
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${r.o.property.address}`}
+                      disabled={!can}
+                      checked={picked.has(r.o.id)}
+                      onChange={() => toggle(r.o.id)}
+                      className={cn('size-4 shrink-0 accent-[var(--brand-primary)]', !can && 'invisible')}
+                    />
+                    <button type="button" onClick={() => setOpenId(r.o.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                      <img src={img(r.o)} alt="" className="size-9 shrink-0 rounded-md object-cover" />
+                      <span className="w-48 min-w-0 shrink-0">
+                        <span className="block truncate text-[14px] font-semibold text-ink">{r.o.property.address}</span>
+                        <span className="block truncate text-[12.5px] text-muted">{r.o.person?.name ?? r.o.property.city}</span>
+                      </span>
+                      <span className={cn('inline-flex w-[128px] shrink-0 items-center gap-1.5 truncate rounded-md px-2 py-1 text-[12px] font-semibold', PILL[r.kind])}>
+                        <Icon className="size-3.5 shrink-0" /> <span className="truncate">{r.label}</span>
+                      </span>
+                      <span className="hidden min-w-0 flex-1 truncate text-[13px] text-ink-2 md:block">{r.text}</span>
+                      <span className="hidden w-[112px] shrink-0 text-right text-[12px] text-muted lg:block">
+                        {r.when}
+                        <span className="block text-[11px] text-faint">{r.source}</span>
+                      </span>
+                    </button>
+                    {r.o.person ? (
+                      reply && r.source === 'Revive' ? (
+                        <Button size="sm" className="h-8 w-[104px] shrink-0" onClick={() => setMsgId(r.o.id)}>
+                          <Reply /> Reply
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" className="h-8 w-[104px] shrink-0 text-brand" onClick={() => setMsgId(r.o.id)}>
+                          <Mail /> {reply ? 'Reply' : 'Follow up'}
+                        </Button>
+                      )
+                    ) : (
+                      <span className="w-[104px] shrink-0" />
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+            {shown.length > SHOW && (
+              <button type="button" onClick={() => setAll((v) => !v)} className="w-full border-t border-line-soft py-2.5 text-[13px] font-medium text-brand hover:bg-head">
+                {all ? 'Show less' : `Show all ${shown.length}`}
+              </button>
+            )}
+          </div>
         ) : (
-          <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">
+          <p className="mt-3 rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">
             {needle ? `No leads match “${q.trim()}”.` : 'Share a Revive AI report or email a homeowner from Opportunities, and you’ll see here when they open or reply.'}
           </p>
         )}

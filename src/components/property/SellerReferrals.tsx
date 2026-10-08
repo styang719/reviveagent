@@ -1,5 +1,9 @@
 import { ArrowRight, CalendarClock, CircleDot, Clock, Signpost, UserRound } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { useNow } from '@/hooks/useNow'
+import { useDemo } from '@/store/demo'
 import type { Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 
@@ -21,6 +25,9 @@ const when = (o: Opportunity) => {
 }
 
 export function SellerReferrals({ opps }: { opps: Opportunity[] }) {
+  const claim = useDemo((s) => s.claimReferral)
+  const markUpdated = useDemo((s) => s.markReferralUpdated)
+  const now = useNow(30_000)
   if (!opps.length) return null
   return (
     <section className="mt-8" aria-labelledby="referrals-title">
@@ -36,7 +43,16 @@ export function SellerReferrals({ opps }: { opps: Opportunity[] }) {
       <p className="mt-1.5 mb-5 text-[13px] text-muted">Homeowners nearby who are ready to sell, sent to you first. Keep their status current to keep them coming.</p>
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {opps.map((o) => {
-          const st = STATUS[o.referral!.status]
+          const r = o.referral!
+          const st = STATUS[r.status]
+          const first = o.person?.name.split(' ')[0] ?? 'the homeowner'
+          // the one thing this referral needs, right on the card
+          const act =
+            r.status === 'new' && !r.claimedAt && r.expiresAt > now
+              ? { label: `Claim lead · ${Math.max(1, Math.round((r.expiresAt - now) / 3_600_000))} hrs left`, run: () => (claim(o.id), toast.success('Lead claimed', { description: `Revive let ${first} know you’ll reach out today.` })) }
+              : r.needsUpdateNow
+                ? { label: 'Send Revive an update', run: () => (markUpdated(o.id), toast.success('Update sent to Revive')) }
+                : null
           const Icon = st.icon
           const initials = (o.person?.name ?? o.property.address)
             .split(' ')
@@ -47,7 +63,7 @@ export function SellerReferrals({ opps }: { opps: Opportunity[] }) {
             <Link
               key={o.id}
               to={`/property/${o.id}`}
-              className="group flex flex-col rounded-2xl border border-[var(--brand-primary-border-subtle)] bg-white p-5 shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
+              className={cn('group flex flex-col rounded-2xl border bg-white p-5 shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]', act ? 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]' : 'border-[var(--brand-primary-border-subtle)]')}
             >
               <div className="flex items-start justify-between gap-3">
                 <span className="grid size-12 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-[14px] font-medium text-ink">{initials}</span>
@@ -60,6 +76,18 @@ export function SellerReferrals({ opps }: { opps: Opportunity[] }) {
                 {o.person?.name} · {o.property.city}
               </p>
               <p className="mt-3 text-[14px] leading-6 text-ink-2">{st.body}</p>
+              {act && (
+                <Button
+                  className="mt-4 h-10 self-start"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    act.run()
+                  }}
+                >
+                  {act.label}
+                </Button>
+              )}
               <div className="mt-auto flex items-center justify-between gap-2 pt-5 text-[13.5px]">
                 <span className="text-muted">{when(o)}</span>
                 <span className="flex items-center gap-1 font-medium text-brand">
