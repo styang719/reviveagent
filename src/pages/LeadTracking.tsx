@@ -81,7 +81,6 @@ export default function LeadTracking() {
   const now = useNow(20_000)
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<'all' | Kind>('all')
-  const [picked, setPicked] = useState<Set<string>>(new Set())
   const [all, setAll] = useState(false)
   const [openId, setOpenId] = useState<string | null>(null)
   const [msgId, setMsgId] = useState<string | null>(null)
@@ -99,21 +98,14 @@ export default function LeadTracking() {
   const visible = all ? shown : shown.slice(0, SHOW)
   // who a quick follow-up makes sense for: they engaged and haven't been emailed from here yet
   const followable = (r: Row) => !!r.o.person && (r.kind === 'opened' || r.kind === 'engaged' || (r.kind === 'reply' && r.source === 'Follow Up Boss'))
-  const sel = shown.filter((r) => picked.has(r.o.id))
+  // everyone in the current view a follow-up makes sense for: one click instead of one email each
+  const sel = shown.filter(followable)
   const waiting = rows.filter((r) => r.kind === 'reply').length
 
-  const toggle = (id: string) =>
-    setPicked((p) => {
-      const n = new Set(p)
-      if (n.has(id)) n.delete(id)
-      else n.add(id)
-      return n
-    })
   const followUp = () => {
     for (const r of sel)
       send({ id: r.o.id, address: r.o.property.address, name: r.o.person!.name, subject: `Following up on ${r.o.property.address.split(' ').slice(1).join(' ')}`, template: 'renovation', agent: AGENT.firstName })
     toast.success(`Follow-up sent to ${sel.length} homeowner${sel.length === 1 ? '' : 's'}`, { description: 'A short note with their Revive AI report. You’ll see here when they open or reply.' })
-    setPicked(new Set())
   }
 
   const open = opps.find((o) => o.id === openId) ?? null
@@ -190,13 +182,10 @@ export default function LeadTracking() {
               )
             })}
           </div>
-          {sel.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-[13px] text-ink-2">{sel.length} selected</span>
-              <Button size="sm" className="h-9" onClick={followUp}>
-                <Send /> Send a quick follow-up
-              </Button>
-            </div>
+          {sel.length > 1 && (
+            <Button size="sm" variant="outline" className="h-9 text-brand" onClick={followUp}>
+              <Send /> Follow up with all {sel.length}
+            </Button>
           )}
         </div>
 
@@ -205,19 +194,10 @@ export default function LeadTracking() {
             <ul>
               {visible.map((r, i) => {
                 const Icon = r.icon
-                const can = followable(r)
                 const reply = r.kind === 'reply'
                 return (
-                  <li key={r.o.id} className={cn('relative flex items-center gap-3 px-3 py-2.5', i > 0 && 'border-t border-line-soft', reply && 'bg-[var(--brand-primary-subtle)]')}>
+                  <li key={r.o.id} className={cn('relative flex items-center gap-3 py-2.5 pr-3 pl-4', i > 0 && 'border-t border-line-soft', reply && 'bg-[var(--brand-primary-subtle)]')}>
                     {reply && <span className="absolute top-0 bottom-0 left-0 w-[3px] bg-[var(--brand-primary)]" aria-hidden="true" />}
-                    <input
-                      type="checkbox"
-                      aria-label={`Select ${r.o.property.address}`}
-                      disabled={!can}
-                      checked={picked.has(r.o.id)}
-                      onChange={() => toggle(r.o.id)}
-                      className={cn('size-4 shrink-0 accent-[var(--brand-primary)]', !can && 'invisible')}
-                    />
                     <button type="button" onClick={() => setOpenId(r.o.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
                       <img src={img(r.o)} alt="" className="size-9 shrink-0 rounded-md object-cover" />
                       <span className="w-48 min-w-0 shrink-0">
