@@ -14,6 +14,8 @@ export interface NewsItem {
   at: number
 }
 
+export const DEMO_LICENSE = '02134589'
+
 interface DemoState {
   tier: Tier
   stageOverrides: Record<string, Stage>
@@ -34,6 +36,8 @@ interface DemoState {
   addProject: (p: CreatedProject) => void
   setHandoff: (h: Handoff) => void
   setTier: (tier: Tier) => void
+  /** demo bar: a new agent with nothing connected, or with both MLS (license) and CRM connected */
+  setNewAgent: (connected: boolean) => void
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
   claimReferral: (propertyId: string) => void
   markReferralUpdated: (propertyId: string) => void
@@ -77,6 +81,7 @@ export const useDemo = create<DemoState>()(
     (set) => ({
       ...initial(),
       setTier: (tier) => set({ tier }),
+      setNewAgent: (connected) => set({ tier: 'new', license: connected ? DEMO_LICENSE : null, crmConnected: connected }),
       setStage: (id, stage, line) =>
         set((s) => ({ stageOverrides: { ...s.stageOverrides, [id]: stage }, activity: withActivity(s, id, line) })),
       claimReferral: (id) =>
