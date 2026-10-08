@@ -24,6 +24,8 @@ export interface ChatThread {
   flow: FlowState | null
   hereId?: string | null // the property page it was started on, if any
   hereLabel?: string // that property's street address, for the title
+  aboutId?: string // the home a report or project flow was for, kept after the flow ends
+  aboutLabel?: string // its street address
 }
 
 const newId = () => `t-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
@@ -32,10 +34,10 @@ const newId = () => `t-${Date.now().toString(36)}-${Math.random().toString(36).s
  * A conversation is named after what it's about: "Report · 55 Fair Oaks Ave" for a guided flow
  * once the address is known, otherwise the first thing the agent asked.
  */
-function titleOf(chat: ChatMessage[], flow: FlowState | null, prev?: string) {
+function titleOf(chat: ChatMessage[], flow: FlowState | null, prev?: string, about?: string) {
   const asked = chat.filter((m) => m.role === 'user' && m.text).map((m) => m.text!.trim())
   const first = asked[0] ?? 'New chat'
-  const address = flow?.report?.address ?? flow?.project?.address ?? asked[1]
+  const address = flow?.report?.address ?? flow?.project?.address ?? about ?? asked[1]
   const kind = /^generate a revive ai report/i.test(first) ? 'Report' : /^start a revive project/i.test(first) ? 'Project' : null
   let title = kind && address ? `${kind} · ${address.split(',')[0]}` : first
   if (kind && !address && prev && prev !== first) title = prev // keep the specific name once it has one
@@ -49,7 +51,11 @@ function saveActive(s: Pick<UiState, 'threads' | 'activeId' | 'chat' | 'flow' | 
   const prev = s.threads.find((t) => t.id === s.activeId)
   const changed = !prev || prev.chat.length !== s.chat.length
   const hereLabel = s.activeHere && s.here?.id === s.activeHere ? s.here.address : prev?.hereLabel
-  return [{ id: s.activeId, title: hereLabel && !/^(Report|Project) · /.test(titleOf(s.chat, s.flow, prev?.title)) ? `${hereLabel} · ${titleOf(s.chat, s.flow)}` : titleOf(s.chat, s.flow, prev?.title), updatedAt: changed ? Date.now() : prev.updatedAt, chat: s.chat, flow: s.flow, hereId: s.activeHere, hereLabel }, ...rest]
+  const draft = s.flow?.report ?? s.flow?.project
+  const aboutId = draft?.propertyId ?? prev?.aboutId
+  const aboutLabel = draft?.address?.split(',')[0] || prev?.aboutLabel
+  const title = titleOf(s.chat, s.flow, prev?.title, aboutLabel)
+  return [{ id: s.activeId, title: hereLabel && !/^(Report|Project) · /.test(title) ? `${hereLabel} · ${titleOf(s.chat, s.flow, undefined, aboutLabel)}` : title, updatedAt: changed ? Date.now() : prev.updatedAt, chat: s.chat, flow: s.flow, hereId: s.activeHere, hereLabel, aboutId, aboutLabel }, ...rest]
 }
 
 interface UiState {
@@ -116,11 +122,15 @@ export const useUi = create<UiState>()(
       activeHere: null,
       openThread: (id) =>
         set((s) => {
-          if (id === s.activeId) return {}
+          // already the active one: just tie it to its home so the property page's dock shows it
+          if (id === s.activeId) {
+            const t = s.threads.find((x) => x.id === id)
+            return { activeHere: t?.hereId ?? t?.aboutId ?? s.activeHere }
+          }
           const threads = saveActive(s)
           const t = threads.find((x) => x.id === id)
           if (!t) return {}
-          return { threads, activeId: id, activeHere: t.hereId ?? null, chat: t.chat, flow: t.flow, panel: null, pendingNav: null }
+          return { threads, activeId: id, activeHere: t.hereId ?? t.aboutId ?? null, chat: t.chat, flow: t.flow, panel: null, pendingNav: null }
         }),
       deleteThread: (id) =>
         set((s) =>

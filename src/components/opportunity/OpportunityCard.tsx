@@ -4,7 +4,9 @@ import { PropertyPhoto } from '@/components/property/PropertyPhoto'
 import { Button } from '@/components/ui/button'
 import { gain, money } from '@/lib/format'
 import { AiLink } from '@/components/ai/AiLink'
-import { useIsProperty, type Opportunity } from '@/lib/opportunities'
+import { useIsProperty, useProgress, type Opportunity } from '@/lib/opportunities'
+import { useDemo } from '@/store/demo'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { SourceTag, StageTag, UrgencyTag } from './Tags'
 import { useCta } from './useCta'
@@ -59,6 +61,9 @@ export function OpportunityCard({ o, size = 'feed', className }: { o: Opportunit
   const runCta = useCta()
   const compact = size === 'compact'
   const isProperty = useIsProperty()
+  const progress = useProgress()(o)
+  const share = useDemo((s) => s.shareReport)
+  const needsReport = !isProperty(o) && ['share', 'verify', 'propose', 'activity'].includes(o.cta.kind)
   return (
     <article className={cn('rounded-xl border border-line bg-white p-4 shadow-card transition-shadow hover:shadow-md', className)}>
       <div className="flex gap-4">
@@ -103,17 +108,46 @@ export function OpportunityCard({ o, size = 'feed', className }: { o: Opportunit
               <Estimate o={o} align="left" />
             </div>
           )}
+          {progress && (
+            <p className="mt-3 flex items-center gap-1.5 text-[12.5px] text-ink-2">
+              <span className="size-1.5 rounded-full bg-[var(--brand-agent)]" aria-hidden="true" />
+              <span className="font-semibold text-ink">{progress.label}</span> · Next: {progress.next}
+            </p>
+          )}
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button size="sm" variant={o.cta.kind === 'claim' ? 'warn' : 'default'} onClick={() => runCta(o)}>
-              {o.cta.label}
-            </Button>
+            {progress?.kind === 'share' ? (
+              <Button
+                size="sm"
+                onClick={() => {
+                  share(o.id, o.property.address, o.person?.name)
+                  toast.success(`Report shared with ${o.person?.name ?? 'the homeowner'}`, { description: 'You’ll see on Home when it’s opened.' })
+                }}
+              >
+                {progress.next}
+              </Button>
+            ) : progress?.kind === 'project' ? (
+              <Button size="sm" asChild>
+                <AiLink to={`/ai?flow=project&property=${o.id}`}>{progress.next}</AiLink>
+              </Button>
+            ) : needsReport ? (
+              // nothing to share or propose until there's a report: running it is the next step
+              <Button size="sm" asChild>
+                <AiLink to={`/ai?flow=report&property=${o.id}`}>
+                  <Sparkles /> Run a Revive AI report
+                </AiLink>
+              </Button>
+            ) : (
+              <Button size="sm" variant={o.cta.kind === 'claim' ? 'warn' : 'default'} onClick={() => runCta(o)}>
+                {progress?.next ?? o.cta.label}
+              </Button>
+            )}
             {isProperty(o) ? (
               <Button size="sm" variant="ghost" asChild>
                 <Link to={`/property/${o.id}`}>
                   View property <ArrowRight />
                 </Link>
               </Button>
-            ) : (
+            ) : needsReport ? null : (
               // not a property yet: the report is what makes it one
               <Button size="sm" variant="ghost" asChild>
                 <AiLink to={`/ai?flow=report&property=${o.id}`}>

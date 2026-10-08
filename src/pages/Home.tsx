@@ -10,6 +10,7 @@ import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { SetupTodo } from '@/components/home/ConnectBook'
 import { StatCards } from '@/components/home/StatCards'
 import { CaseStudies, ReviveAiIntro } from '@/components/home/NewAgentIntro'
+import { WhatChanged } from '@/components/home/WhatChanged'
 import { YourBook } from '@/components/home/YourBook'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
 import { AGENT, TIERS } from '@/data/tiers'
@@ -87,6 +88,7 @@ export default function Home() {
           <ReviveAiIntro />
           <RevivePathCard tier={tier} opps={opps} />
           <div className="flex min-w-0 flex-col gap-12">
+            <WhatChanged />
             <YourBook opps={opps} />
             {whoToCall}
             <CaseStudies />
@@ -111,6 +113,7 @@ export default function Home() {
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex min-w-0 flex-col gap-5">
           {newReferral && <ReferralHero o={newReferral} />}
+          <WhatChanged />
           {tier === 'partner' && <ReferralUpdates waiting={waiting} />}
           {projects.map((o) => (
             <ProjectPulse key={o.id} o={o} />

@@ -46,6 +46,13 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
   “Connect Follow Up Boss” (adds 12 contacts).
 - Deep links: `/?tier=partner` pins a tier; `?demo=0` hides the demo bar for screenshots (`?demo=1` brings it back).
 
+## Where a home's updates live
+
+- **Opportunities** is the to-do list: who to call, and the one next step. A home isn't clickable until it has a Revive AI report or a project. Once it has a report, its card shows where it stands and what's next (`Report ready · Share with David` → `Report shared · Start a project`), from `useProgress()` in `src/lib/opportunities.ts`. A home leaves the list once a project is submitted; a "N homes in Revive projects →" link points to Properties.
+- **Properties** is the record. Each home's page holds the report, project, marketing, its activity, and "Conversations about this home": every Revive AI chat started on that page or for that home (threads carry `hereId` / `aboutId`). Opening one continues it in the docked chat.
+- **Revive AI** is the tool. Its results save to the home, never only to the chat.
+- **Home → What changed** announces updates (report ready, report shared, homeowner opened it, project moved a step) from `demo.news`, each linking to the property page. The demo simulates "opened" ~8s after sharing and a project review step ~12s after submitting.
+
 ## Where things live
 
 | Path | What |

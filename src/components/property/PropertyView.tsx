@@ -81,6 +81,23 @@ const TABS: { id: PropertyTab; label: string }[] = [
 const aiPath = (flow: 'report' | 'project', m: Model) =>
   `/ai?flow=${flow}&${m.isPreview ? `address=${encodeURIComponent(`${m.address}, ${m.city}`)}` : `property=${m.id}`}`
 
+function ShareButton({ m }: { m: Model }) {
+  const share = useDemo((s) => s.shareReport)
+  const to = m.opp?.person?.name
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={() => {
+        share(m.id, m.address, to)
+        toast.success(to ? `Report shared with ${to}` : 'Report link copied', { description: 'Branded with your name. You’ll see here when it’s opened.' })
+      }}
+    >
+      <Share2 /> Share report
+    </Button>
+  )
+}
+
 export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab: PropertyTab; onTab: (t: PropertyTab) => void; compact?: boolean }) {
   const hasProject = !!m.created || !!m.builtIn
   return (
@@ -119,9 +136,7 @@ export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab
                 </AiLink>
               </Button>
             )}
-            <Button size="sm" variant="outline" onClick={() => toast.success('Report link copied', { description: 'Branded with your name. You’ll see when it’s opened.' })}>
-              <Share2 /> Share report
-            </Button>
+            <ShareButton m={m} />
           </div>
         </div>
       </header>

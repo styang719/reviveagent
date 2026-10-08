@@ -32,3 +32,14 @@ export function countdown(ms: number) {
   const sec = s % 60
   return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
 }
+
+/** "just now", "5 min ago", "3 hrs ago", "2 days ago" */
+export function ago(ts: number, now = Date.now()) {
+  const m = Math.round((now - ts) / 60000)
+  if (m < 1) return 'just now'
+  if (m < 60) return `${m} min ago`
+  const h = Math.round(m / 60)
+  if (h < 24) return `${h} hr${h === 1 ? '' : 's'} ago`
+  const d = Math.round(h / 24)
+  return `${d} day${d === 1 ? '' : 's'} ago`
+}

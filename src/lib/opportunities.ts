@@ -187,3 +187,20 @@ export function useIsProperty() {
   const projects = useDemo((s) => s.projects)
   return (o: Opportunity) => !!(o.property.reportRun || o.property.project || reports[o.id] || projects[o.id] || o.stage === 'project')
 }
+
+/**
+ * Where a home stands once it's a property, and the one thing to do next. Opportunities shows this
+ * instead of the generic CTA, so the list says what's left without opening the home.
+ */
+export type NextStep = { label: string; next: string; kind: 'share' | 'project' | 'open' }
+export function useProgress() {
+  const reports = useDemo((s) => s.reports)
+  const projects = useDemo((s) => s.projects)
+  return (o: Opportunity): NextStep | null => {
+    const who = o.person ? o.person.name.split(' ')[0] : 'the homeowner'
+    if (projects[o.id] || o.stage === 'project') return { label: 'In a Revive project', next: 'Open project', kind: 'open' }
+    if (o.stage === 'shared' || o.stage === 'interested') return { label: o.stage === 'interested' ? 'Homeowner interested' : 'Report shared', next: 'Start a project', kind: 'project' }
+    if (reports[o.id] || o.property.reportRun) return { label: 'Report ready', next: `Share with ${who}`, kind: 'share' }
+    return null
+  }
+}
