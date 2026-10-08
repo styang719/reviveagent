@@ -33,7 +33,6 @@ function ScoreCompact({ o }: { o: Opportunity }) {
     </span>
   )
 }
-const BAR: Record<string, string> = { now: 'bg-[var(--brand-primary)]', soon: 'bg-navy' }
 const WHY: Record<string, string> = { now: 'text-brand', soon: 'text-navy' }
 
 function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => void; active: boolean; onHover: (on: boolean) => void }) {
@@ -53,7 +52,6 @@ function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => voi
         active && 'bg-[var(--brand-primary-subtle)]/60',
       )}
     >
-      <span className={cn('absolute top-2 bottom-2 left-0 w-[3px] rounded-full', BAR[o.urgency] ?? 'bg-line')} aria-hidden="true" />
       <div
         role="button"
         tabIndex={0}

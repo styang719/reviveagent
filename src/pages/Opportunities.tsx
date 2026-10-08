@@ -114,7 +114,6 @@ export default function Opportunities() {
   }
   useEffect(() => {
     for (const [id, { m, z }] of markers.current) {
-      m.getElement()?.querySelector('.rv-fpin, .rv-pill, .rv-dot')?.classList.toggle('on', id === hover)
       m.setZIndexOffset(id === hover ? 3000 : z)
     }
   }, [hover])

@@ -7,6 +7,7 @@ import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { SetupTodo } from '@/components/home/ConnectBook'
 import { CaseStudies, ReviveAiIntro } from '@/components/home/NewAgentIntro'
+import { MarketingCenter } from '@/components/home/MarketingCenter'
 import { YourBook } from '@/components/home/YourBook'
 import { TopOpportunities } from '@/components/home/TopOpportunities'
 import { AGENT, TIERS } from '@/data/tiers'
@@ -77,7 +78,7 @@ export default function Home() {
                 {whoToCall}
               </>
             )}
-            <CaseStudies />
+            {bookDone ? <MarketingCenter /> : <CaseStudies />}
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">
             <RevivePathCard tier={tier} opps={opps} />
