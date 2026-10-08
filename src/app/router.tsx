@@ -1,6 +1,7 @@
 import { Navigate, createBrowserRouter, createHashRouter } from 'react-router-dom'
 import Home from '@/pages/Home'
 import Inbox from '@/pages/Inbox'
+import LeadTracking from '@/pages/LeadTracking'
 import Marketing from '@/pages/Marketing'
 import Opportunities from '@/pages/Opportunities'
 import Person from '@/pages/Person'
@@ -24,6 +25,7 @@ export const router = createRouter([
       { path: '/', element: <Home /> },
       { path: '/opportunities', element: <Opportunities /> },
       { path: '/properties', element: <Properties /> },
+      { path: '/leads', element: <LeadTracking /> },
       { path: '/projects', element: <Navigate to="/properties" replace /> },
       { path: '/case-studies', element: <CaseStudies /> },
       { path: '/marketing', element: <Marketing /> },

@@ -2,7 +2,6 @@ import { ArrowRight, Calendar, FileText, Hammer, Search, Sparkles } from 'lucide
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AiLink } from '@/components/ai/AiLink'
-import { SellerReferrals } from '@/components/property/SellerReferrals'
 import { StartWithRevive } from '@/components/property/StartWithRevive'
 import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
@@ -241,8 +240,6 @@ export default function Properties() {
           />
         </label>
       </div>
-
-      <SellerReferrals opps={opps.filter((o) => o.referral && match(o.property.address, o.property.city, o.person?.name))} />
 
       <Section
         icon={Hammer}

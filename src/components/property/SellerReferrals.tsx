@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import type { Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 
-// Homes > Your seller referrals from Revive: homeowners Revive sent this agent. Each card leads with the
+// Lead tracking > Your seller referrals from Revive: homeowners Revive sent this agent. Each card leads with the
 // address (this is the Homes page), then the homeowner, where the referral stands and the one thing to do.
 
 const STATUS = {
@@ -23,7 +23,7 @@ const when = (o: Opportunity) => {
 export function SellerReferrals({ opps }: { opps: Opportunity[] }) {
   if (!opps.length) return null
   return (
-    <section className="mt-10" aria-labelledby="referrals-title">
+    <section className="mt-8" aria-labelledby="referrals-title">
       <div className="flex items-center gap-2.5">
         <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
           <UserRound className="size-4" />
