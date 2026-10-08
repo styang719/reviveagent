@@ -1,4 +1,4 @@
-import { Building2, ChevronRight, Home, Inbox, Megaphone, PanelLeft, Sparkles, Target } from 'lucide-react'
+import { ChevronRight, Home, Inbox, LayoutDashboard, Megaphone, PanelLeft, Sparkles, Target } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import avatar from '@/assets/avatar-michelle.jpg'
 import { AGENT } from '@/data/tiers'
@@ -7,8 +7,8 @@ import { ReviveLogo } from './Logo'
 import { QrCode } from './QrCode'
 
 const NAV = [
-  { to: '/', label: 'Your Dashboard', icon: Home, end: true },
-  { to: '/properties', label: 'Homes', icon: Building2, also: '/property/' }, // a property page lives under Homes
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/properties', label: 'Homes', icon: Home, also: '/property/' }, // a property page lives under Homes
   { to: '/opportunities', label: 'Opportunities', icon: Target },
   { to: '/marketing', label: 'Marketing', icon: Megaphone },
   { to: '/inbox', label: 'Inbox', icon: Inbox, badge: 8 },
