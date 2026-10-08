@@ -33,8 +33,8 @@ function ScoreCompact({ o }: { o: Opportunity }) {
     </span>
   )
 }
-const BAR: Record<string, string> = { now: 'bg-hot', soon: 'bg-navy' }
-const WHY: Record<string, string> = { now: 'text-hot', soon: 'text-navy' }
+const BAR: Record<string, string> = { now: 'bg-[var(--brand-primary)]', soon: 'bg-navy' }
+const WHY: Record<string, string> = { now: 'text-brand', soon: 'text-navy' }
 
 function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => void; active: boolean; onHover: (on: boolean) => void }) {
   const out = useDemo((s) => s.outreach[o.id])

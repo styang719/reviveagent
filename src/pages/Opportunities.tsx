@@ -345,7 +345,7 @@ export default function Opportunities() {
           </BaseMap>
           <div className="pointer-events-none absolute inset-x-3 bottom-6 z-[500] flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-white/95 px-3 py-2 text-[12px] text-ink-2 shadow-card">
             <span className="flex items-center gap-1.5">
-              <span className="size-3 rounded-[3px] bg-hot" /> Call this week
+              <span className="size-3 rounded-[3px] bg-[var(--brand-primary)]" /> Call this week
             </span>
             <span className="flex items-center gap-1.5">
               <span className="h-3 w-5 rounded-full bg-navy" /> This month

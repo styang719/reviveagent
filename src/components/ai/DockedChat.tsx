@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDemo } from '@/store/demo'
 import { isAbout, useUi } from '@/store/ui'
-import { startHome, startProject, startReport } from '@/lib/flowEngine'
+import { startDiscuss, startHome, startProject, startReport } from '@/lib/flowEngine'
 import { STARTERS } from '@/lib/ai'
 import { Composer, Thread, useAsk, useHereCtx } from './Chat'
 
@@ -66,7 +66,8 @@ export function DockedChat() {
     const flow = params.get('flow')
     const property = params.get('property') ?? undefined
     const address = params.get('address') ?? undefined
-    if (flow === 'home' && address) startHome(address)
+    if (flow === 'discuss') startDiscuss()
+    else if (flow === 'home' && address) startHome(address)
     else if (flow === 'report') startReport({ propertyId: property, address })
     else if (flow === 'project') startProject({ propertyId: property })
     else if (params.get('q')) ask(params.get('q')!)

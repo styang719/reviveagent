@@ -23,7 +23,6 @@ export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[]
   // a Partner gets the membership card instead of the path to Partner
   if (partner) return <PartnerStatusCard opps={opps} />
   const pct = Math.min(1, deals / DEALS_TO_PARTNER)
-  const listing = opps.find((o) => o.cta.kind === 'propose')
   const newLeads = opps.filter((o) => o.referral?.status === 'new' && !o.referral.claimedAt).length
   const left = DEALS_TO_PARTNER - deals
 
@@ -36,12 +35,10 @@ export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[]
       }`
   const cta: { label: string; to?: string; onClick?: () => void } | null = partner
     ? { label: 'See your seller leads', to: '/opportunities?filter=revive' }
-    : listing
-      ? { label: `Propose Revive on ${listing.property.address}`, to: `/property/${listing.id}?tab=project` }
-      : {
-          label: 'Book a call',
-          onClick: () => toast('Call requested', { description: 'A Revive partner manager will reach out within one business day to pick a time.' }),
-        }
+    : {
+        label: 'Book a call',
+        onClick: () => toast('Call requested', { description: 'A Revive partner manager will reach out within one business day to pick a time.' }),
+      }
 
   return (
     <section aria-labelledby="status-title" className="overflow-hidden rounded-xl border border-line bg-white shadow-card">

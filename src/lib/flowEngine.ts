@@ -90,6 +90,14 @@ export function startHome(address: string) {
   reportAddress(address, true, 'home')
 }
 
+/** "Discuss a property": ask which home, then the same steps as the Home search (details, photos, what can I help with). */
+export function startDiscuss() {
+  ui().setPanel(null)
+  user('Discuss a property')
+  ui().setFlow({ kind: 'report', awaiting: 'address', entry: 'home' })
+  ui().addChat(say('Happy to talk it through. Which home is it? Type the address and I’ll pull it up.'))
+}
+
 export const INTENTS = [
   { key: 'sell', label: 'Sell the house', body: 'Renovate or prep before listing, so it sells for more.' },
   { key: 'flip', label: 'Flip the house', body: 'Revive buys, renovates and resells; the owner shares the upside.' },
@@ -259,7 +267,7 @@ export function flowInput(text: string) {
   const f = ui().flow
   if (!f) return false
   if (f.kind === 'report' && f.awaiting === 'address') {
-    reportAddress(text)
+    reportAddress(text, false, f.entry)
     return true
   }
   if (f.kind === 'project' && f.awaiting === 'address') {
