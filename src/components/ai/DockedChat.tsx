@@ -1,8 +1,8 @@
-import { MapPin, Maximize2, Minus, Sparkles } from 'lucide-react'
-import { useEffect } from 'react'
+import { MapPin, Maximize2, Minus, Sparkles, SquarePen } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDemo } from '@/store/demo'
-import { useUi } from '@/store/ui'
+import { isAbout, useUi } from '@/store/ui'
 import { startProject, startReport } from '@/lib/flowEngine'
 import { Composer, Thread, useAsk, useHereCtx } from './Chat'
 
@@ -32,6 +32,24 @@ export function DockedChat() {
     }
     ask(q)
   }
+  // arriving on a home's page: pick up the last conversation about it, once per visit
+  const resumed = useRef<string | null>(null)
+  const hereId = here?.id
+  const hereLabel = here?.label
+  useEffect(() => {
+    if (!hereId || !hereLabel || resumed.current === hereId) return
+    resumed.current = hereId
+    const ui = useUi.getState()
+    if (ui.activeHere === hereId && ui.chat.length) return
+    const last = ui.threads.filter((t) => isAbout(t, hereId, hereLabel)).sort((a, b) => b.updatedAt - a.updatedAt)[0]
+    if (!last) return
+    ui.openThread(last.id)
+    useUi.setState({ activeHere: hereId })
+  }, [hereId, hereLabel])
+  useEffect(() => {
+    if (!hereId) resumed.current = null
+  }, [hereId])
+
   const aiRequest = useUi((s) => s.aiRequest)
   const clearAiRequest = useUi((s) => s.clearAiRequest)
 
@@ -98,6 +116,19 @@ export function DockedChat() {
           <span className="truncate">{hasChat ? (title ?? 'Revive AI') : `Revive AI · ${here?.label}`}</span>
         </p>
         <div className="flex items-center gap-1">
+          {here && hasChat && (
+            <button
+              onClick={() => {
+                useUi.getState().clearChat()
+                setOpen(true)
+              }}
+              className="grid size-8 place-items-center rounded-md text-muted hover:bg-white"
+              aria-label={`New conversation about ${here.label}`}
+              title="New conversation"
+            >
+              <SquarePen className="size-4" />
+            </button>
+          )}
           <Link to="/ai" className="grid size-8 place-items-center rounded-md text-muted hover:bg-white" aria-label="Open in Revive AI, with all your conversations">
             <Maximize2 className="size-4" />
           </Link>

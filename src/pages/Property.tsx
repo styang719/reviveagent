@@ -2,7 +2,6 @@ import { ArrowLeft, Sparkles } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { PropertyView, usePropertyModel, type PropertyTab } from '@/components/property/PropertyView'
-import { HomeConversations } from '@/components/property/HomeConversations'
 import { PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
@@ -59,7 +58,6 @@ export default function Property() {
           }}
         />
       </div>
-      <HomeConversations id={m.id} address={m.address} />
     </div>
   )
 }

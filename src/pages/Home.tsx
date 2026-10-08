@@ -1,5 +1,5 @@
 import { DiscussProperty } from '@/components/home/DiscussProperty'
-import { NearbyMini } from '@/components/home/NearbyMini'
+import { AdvisorCard } from '@/components/home/AdvisorCard'
 import { ProjectPulse } from '@/components/home/ProjectPulse'
 import { ReferEarn } from '@/components/home/ReferralCards'
 import { ReferralHero } from '@/components/home/ReferralHero'
@@ -8,7 +8,6 @@ import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { SetupTodo } from '@/components/home/ConnectBook'
 import { StatCards } from '@/components/home/StatCards'
 import { CaseStudies, ReviveAiIntro } from '@/components/home/NewAgentIntro'
-import { WhatChanged } from '@/components/home/WhatChanged'
 import { YourBook } from '@/components/home/YourBook'
 import { TopOpportunities } from '@/components/home/TopOpportunities'
 import { AGENT, TIERS } from '@/data/tiers'
@@ -73,7 +72,6 @@ export default function Home() {
           <ReviveAiIntro />
           <RevivePathCard tier={tier} opps={opps} />
           <div className="flex min-w-0 flex-col gap-12">
-            <WhatChanged />
             {bookDone ? whoToCall : (
               <>
                 <YourBook opps={opps} />
@@ -84,7 +82,7 @@ export default function Home() {
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">
             <SetupTodo opps={opps} />
-            {opps.length > 0 && <NearbyMini opps={opps} />}
+            <AdvisorCard />
           </aside>
         </div>
       </div>
@@ -108,7 +106,6 @@ export default function Home() {
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex min-w-0 flex-col gap-5">
           {newReferral && <ReferralHero o={newReferral} />}
-          <WhatChanged />
           {tier === 'partner' && <ReferralUpdates waiting={waiting} />}
           {projects.map((o) => (
             <ProjectPulse key={o.id} o={o} />
@@ -117,7 +114,7 @@ export default function Home() {
         </div>
 
         <aside className="flex flex-col gap-5" aria-label="At a glance">
-          <NearbyMini opps={opps} />
+          <AdvisorCard />
           {tier === 'partner' && <ReferEarn />}
         </aside>
       </div>

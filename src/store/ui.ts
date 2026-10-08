@@ -30,6 +30,17 @@ export interface ChatThread {
   aboutLabel?: string // its street address
 }
 
+/** The home a conversation is about, if any: the property page it started on, or the home its flow was for. */
+export const threadHome = (t: ChatThread) => {
+  const label = t.hereLabel ?? t.aboutLabel
+  return label ? { id: t.hereId ?? t.aboutId ?? null, label } : null
+}
+/** Is this conversation about that home? Matched by id, or by street address when ids differ. */
+export const isAbout = (t: ChatThread, id: string, address: string) => {
+  const h = threadHome(t)
+  return !!h && (h.id === id || h.label.toLowerCase() === address.toLowerCase())
+}
+
 const newId = () => `t-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 
 /**

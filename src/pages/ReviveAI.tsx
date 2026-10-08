@@ -1,4 +1,4 @@
-import { ExternalLink, FileText, Hammer, MessageSquare, PanelLeft, Sparkles, SquarePen, Trash2, Users, X } from 'lucide-react'
+import { ExternalLink, FileText, Hammer, MapPin, MessageSquare, PanelLeft, Sparkles, SquarePen, Trash2, Users, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
@@ -8,7 +8,7 @@ import { STARTERS } from '@/lib/ai'
 import { startProject, startHome, startReport } from '@/lib/flowEngine'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
-import { useUi } from '@/store/ui'
+import { threadHome, useUi, type ChatThread } from '@/store/ui'
 
 // Revive AI as its own page. Free questions get answers; "Generate a report" and "Start a project"
 // are guided conversations. Where the finished result opens depends on the hand-off version:
@@ -60,6 +60,58 @@ function ago(t: number) {
 }
 
 /** ChatGPT-style list of conversations: start a new one, or reopen an earlier one. */
+/** Conversations grouped by the home they're about (newest home first), then everything else. */
+function groupThreads(threads: ChatThread[]) {
+  const groups = new Map<string, { key: string; label: string | null; threads: ChatThread[]; at: number }>()
+  for (const t of threads) {
+    const h = threadHome(t)
+    const key = h ? h.label.toLowerCase() : '__other'
+    const g = groups.get(key) ?? { key, label: h?.label ?? null, threads: [], at: 0 }
+    g.threads.push(t)
+    g.at = Math.max(g.at, t.updatedAt)
+    groups.set(key, g)
+  }
+  return [...groups.values()].sort((a, b) => (a.label === null ? 1 : b.label === null ? -1 : b.at - a.at))
+}
+
+/** Inside a home's group the address is already said: "Report · 33 S Orange Grove Blvd" → "Report". */
+function shortTitle(t: ChatThread, home: string | null) {
+  if (!home) return t.title
+  const h = home.toLowerCase()
+  const rest = t.title
+    .split(' · ')
+    .filter((part) => !part.toLowerCase().startsWith(h))
+    .join(' · ')
+  return rest || (t.chat.some((m) => m.blocks?.some((b) => b.kind === 'flow' && b.step === 'home-intent')) ? 'Home search' : 'Conversation')
+}
+
+function ThreadRow({ t, label, active, onOpen, onDelete }: { t: ChatThread; label: string; active: boolean; onOpen: () => void; onDelete: () => void }) {
+  const steps = t.chat.flatMap((m) => m.blocks ?? []).filter((b) => b.kind === 'flow').map((b) => (b.kind === 'flow' ? b.step : ''))
+  const Icon = t.flow?.kind === 'project' || steps.some((x) => x.startsWith('project')) ? Hammer : t.flow?.kind === 'report' || steps.some((x) => x.startsWith('report')) ? FileText : MessageSquare
+  return (
+    <li className="group relative">
+      <button
+        onClick={onOpen}
+        aria-current={active ? 'true' : undefined}
+        className={cn('flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 pr-8 text-left transition-colors', active ? 'bg-[var(--brand-primary-subtle)] text-ink' : 'text-ink-2 hover:bg-line-soft')}
+      >
+        <Icon className={cn('mt-0.5 size-4 shrink-0', active ? 'text-brand' : 'text-muted')} />
+        <span className="min-w-0">
+          <span className="block truncate text-[13px] font-medium">{label}</span>
+          <span className="block text-[11.5px] text-muted">{ago(t.updatedAt)}</span>
+        </span>
+      </button>
+      <button
+        onClick={onDelete}
+        className="absolute top-2 right-1.5 grid size-6 place-items-center rounded-md text-muted opacity-0 group-hover:opacity-100 hover:bg-line focus-visible:opacity-100"
+        aria-label={`Delete “${t.title}”`}
+      >
+        <Trash2 className="size-3.5" />
+      </button>
+    </li>
+  )
+}
+
 function History({ onPick }: { onPick?: () => void }) {
   const threads = useUi((s) => s.threads)
   const activeId = useUi((s) => s.activeId)
@@ -79,48 +131,26 @@ function History({ onPick }: { onPick?: () => void }) {
       >
         <SquarePen /> New chat
       </Button>
-      <p className="px-2 pt-2 text-[11px] font-semibold tracking-wide text-muted uppercase">Recent</p>
+      <p className="px-2 pt-2 text-[11px] font-semibold tracking-wide text-muted uppercase">By home</p>
       {threads.length === 0 ? (
         <p className="px-2 text-[13px] text-muted">Your conversations will show up here.</p>
       ) : (
-        <ul className="-mx-1 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-1">
-          {threads.map((t) => {
-            const Icon = t.flow?.kind === 'report' || t.chat.some((m) => m.blocks?.some((b) => b.kind === 'flow' && b.step.startsWith('report')))
-              ? FileText
-              : t.flow?.kind === 'project' || t.chat.some((m) => m.blocks?.some((b) => b.kind === 'flow' && b.step.startsWith('project')))
-                ? Hammer
-                : MessageSquare
-            const active = t.id === activeId
-            return (
-              <li key={t.id} className="group relative">
-                <button
-                  onClick={() => {
-                    openThread(t.id)
-                    onPick?.()
-                  }}
-                  aria-current={active ? 'true' : undefined}
-                  className={cn(
-                    'flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 pr-8 text-left transition-colors',
-                    active ? 'bg-[var(--brand-primary-subtle)] text-ink' : 'text-ink-2 hover:bg-line-soft',
-                  )}
-                >
-                  <Icon className={cn('mt-0.5 size-4 shrink-0', active ? 'text-brand' : 'text-muted')} />
-                  <span className="min-w-0">
-                    <span className="block truncate text-[13px] font-medium">{t.title}</span>
-                    <span className="block text-[11.5px] text-muted">{ago(t.updatedAt)}</span>
-                  </span>
-                </button>
-                <button
-                  onClick={() => deleteThread(t.id)}
-                  className="absolute top-2 right-1.5 grid size-6 place-items-center rounded-md text-muted opacity-0 group-hover:opacity-100 hover:bg-line focus-visible:opacity-100"
-                  aria-label={`Delete “${t.title}”`}
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
-              </li>
-            )
-          })}
-        </ul>
+        <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1">
+          {groupThreads(threads).map((g) => (
+            <section key={g.key} aria-label={g.label ?? 'Other conversations'}>
+              <p className="flex items-center gap-1.5 px-2 pb-1 text-[11.5px] font-semibold text-ink-2">
+                {g.label ? <MapPin className="size-3.5 text-[var(--brand-agent)]" /> : null}
+                <span className="truncate">{g.label ?? 'Other conversations'}</span>
+                <span className="ml-auto font-normal text-faint tabular-nums">{g.threads.length}</span>
+              </p>
+              <ul className="flex flex-col gap-0.5">
+                {g.threads.map((t) => (
+                  <ThreadRow key={t.id} t={t} label={shortTitle(t, g.label)} active={t.id === activeId} onOpen={() => (openThread(t.id), onPick?.())} onDelete={() => deleteThread(t.id)} />
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
       )}
     </nav>
   )
