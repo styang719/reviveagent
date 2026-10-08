@@ -50,7 +50,7 @@ export function ReviveAiIntro() {
         </span>
         <div className="min-w-0 flex-1">
           <h2 id="ai-intro" className="text-lg font-semibold text-ink sm:text-xl">
-            Ask Revive about any property
+            Ask Revive about any home
           </h2>
           <p className="mt-0.5 text-sm text-ink-2">
             See any home’s value today, what it could sell for after a Revive project, and if there’s room for an ADU.
