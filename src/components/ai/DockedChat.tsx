@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDemo } from '@/store/demo'
 import { isAbout, useUi } from '@/store/ui'
-import { startProject, startReport } from '@/lib/flowEngine'
+import { startHome, startProject, startReport } from '@/lib/flowEngine'
 import { Composer, Thread, useAsk, useHereCtx } from './Chat'
 
 // The conversation follows the agent: when Revive AI opens a result page, the chat docks in the
@@ -63,7 +63,8 @@ export function DockedChat() {
     const flow = params.get('flow')
     const property = params.get('property') ?? undefined
     const address = params.get('address') ?? undefined
-    if (flow === 'report') startReport({ propertyId: property, address })
+    if (flow === 'home' && address) startHome(address)
+    else if (flow === 'report') startReport({ propertyId: property, address })
     else if (flow === 'project') startProject({ propertyId: property })
     else if (params.get('q')) ask(params.get('q')!)
     setOpen(true)

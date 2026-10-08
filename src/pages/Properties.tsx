@@ -1,6 +1,7 @@
 import { ArrowRight, Calendar, FileText, Hammer, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AiLink } from '@/components/ai/AiLink'
+import { StartWithRevive } from '@/components/property/StartWithRevive'
 import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
@@ -126,7 +127,7 @@ function ReportCard({ r }: { r: ReportRow }) {
   )
 }
 
-function Section({ icon: Icon, title, hint, count, children, empty }: { icon: typeof Hammer; title: string; hint: string; count: number; children: React.ReactNode; empty: { text: string; cta: string; to: string } }) {
+function Section({ icon: Icon, title, hint, count, children, empty, emptyNode }: { icon: typeof Hammer; title: string; hint: string; count: number; children: React.ReactNode; empty: { text: string; cta: string; to: string }; emptyNode?: React.ReactNode }) {
   return (
     <section className="mt-10">
       <div className="flex items-center gap-2.5">
@@ -139,6 +140,8 @@ function Section({ icon: Icon, title, hint, count, children, empty }: { icon: ty
       <p className="mt-1.5 mb-5 text-[13px] text-muted">{hint}</p>
       {count ? (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">{children}</div>
+      ) : emptyNode ? (
+        emptyNode
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-line px-5 py-4">
           <p className="text-[13.5px] text-ink-2">{empty.text}</p>
@@ -234,6 +237,7 @@ export default function Properties() {
         hint="From review with Revive to construction to listing. Opens the project."
         count={projects.length}
         empty={{ text: 'No projects yet. Start one from any report.', cta: 'Start a project', to: '/ai?flow=project' }}
+        emptyNode={<StartWithRevive />}
       >
         {projects.map((p) => (
           <ProjectCard key={p.id} p={p} />
