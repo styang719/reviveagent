@@ -8,7 +8,7 @@ export const ADVISOR = { name: 'Philip Philipson', first: 'Philip' }
 
 export function AdvisorCard() {
   return (
-    <section aria-labelledby="advisor-title" className="rounded-2xl border border-[var(--brand-primary-border-subtle)] bg-white p-5 shadow-card">
+    <section aria-labelledby="advisor-title" className="rounded-xl border border-line bg-white p-5 shadow-card">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[12px] font-semibold tracking-wide text-brand uppercase">Your Revive advisor</p>
