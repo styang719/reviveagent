@@ -67,10 +67,10 @@ export default function Home() {
     return (
       <div className={PAGE}>
         {greeting}
+        {/* two columns that flow independently, so the Ask Revive box keeps its own height */}
         <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-10 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <ReviveAiIntro />
-          <RevivePathCard tier={tier} opps={opps} />
           <div className="flex min-w-0 flex-col gap-12">
+            <ReviveAiIntro />
             {bookDone ? whoToCall : (
               <>
                 <YourBook opps={opps} />
@@ -80,6 +80,7 @@ export default function Home() {
             <CaseStudies />
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">
+            <RevivePathCard tier={tier} opps={opps} />
             <SetupTodo opps={opps} />
             <AdvisorCard />
           </aside>
@@ -92,15 +93,10 @@ export default function Home() {
     <div className={PAGE}>
       {greeting}
 
-      {/* the same Ask Revive search as a new agent sees, with the Revive status beside it */}
+      {/* the same Ask Revive search as a new agent sees; the Revive status leads the right column */}
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <ReviveAiIntro />
-        <RevivePathCard tier={tier} opps={opps} />
-      </div>
-
-
-      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex min-w-0 flex-col gap-5">
+        <div className="flex min-w-0 flex-col gap-6">
+          <ReviveAiIntro />
           {newReferral && <ReferralHero o={newReferral} />}
           {tier === 'partner' && <ReferralUpdates waiting={waiting} />}
           {projects.map((o) => (
@@ -110,6 +106,7 @@ export default function Home() {
         </div>
 
         <aside className="flex flex-col gap-5" aria-label="At a glance">
+          <RevivePathCard tier={tier} opps={opps} />
           <AdvisorCard />
           {tier === 'partner' && <ReferEarn />}
         </aside>

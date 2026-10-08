@@ -43,7 +43,7 @@ export function ReviveAiIntro() {
     setQ('')
   }
   return (
-    <section aria-labelledby="ai-intro" className="rv-ai-card h-full rounded-2xl p-6 shadow-card sm:p-7">
+    <section aria-labelledby="ai-intro" className="rv-ai-card self-start rounded-2xl p-6 shadow-card sm:p-7">
       <div className="flex items-start gap-4">
         <span className="rv-ai-tile grid size-11 shrink-0 place-items-center rounded-xl text-white" aria-hidden="true">
           <Sparkles className="size-5" />
