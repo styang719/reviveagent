@@ -8,4 +8,4 @@ export function cn(...inputs: ClassValue[]) {
 
 
 /** Page content container: wide, with the same padding on every side. */
-export const PAGE = 'mx-auto w-full max-w-[1600px] p-4 sm:px-8 sm:py-8'
+export const PAGE = 'mx-auto w-full max-w-[1600px] p-4 sm:p-12'
