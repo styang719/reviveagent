@@ -47,7 +47,9 @@ function Priority({ o }: { o: Opportunity }) {
 /** Listed: days on market. Not listed: how likely they are to sell. */
 function status(o: Opportunity): { main: string; sub?: string; hot?: boolean } {
   const dom = o.property.facts.daysOnMarket
-  if (o.property.source === 'listings' && dom !== undefined) return { main: `Listed · ${dom} DOM`, sub: o.property.facts.priceCutDaysAgo !== undefined ? 'Price cut' : undefined, hot: dom > 30 }
+  if (o.property.source === 'listings' && dom !== undefined) {
+    return { main: 'Listed', sub: `${dom} DOM`, hot: dom > 30 }
+  }
   const score = o.person?.sellScore
   if (score !== undefined) return { main: score >= 80 ? 'Likely seller' : score >= 70 ? 'Could sell' : 'Not listed', sub: `Selling score ${score}`, hot: score >= 80 }
   return { main: 'Not listed', sub: o.reasons[0] }
@@ -262,7 +264,7 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
         aria-label={`Open ${o.property.address}`}
         className={cn(
           'group grid cursor-pointer grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md',
-          'lg:grid-cols-[auto_56px_minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,0.95fr)_minmax(0,1.15fr)_auto] lg:gap-x-3.5',
+          'lg:grid-cols-[auto_56px_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1.15fr)_76px] lg:gap-x-3.5',
           done && 'opacity-55',
         )}
       >
@@ -298,14 +300,14 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
           </Cell>
           <Cell label="Value">
             {money(o.property.valueNow)}
-            {o.gain > 0 && <span className="block truncate text-[12px] font-normal text-muted">{money(o.property.valueNow + o.gain)} potential</span>}
+            {o.gain > 0 && <span className="block truncate text-[12px] font-normal text-muted">→ {money(o.property.valueNow + o.gain)}</span>}
           </Cell>
           <Cell label="Opportunity">
             {o.product ?? '—'}
             {o.gain > 0 && <span className="block text-[12px] font-medium text-[var(--green)]">{gain(o.gain)}</span>}
           </Cell>
         </div>
-        <div className="hidden lg:block">
+        <div className="hidden justify-self-end lg:block">
           <Priority o={o} />
         </div>
       </div>

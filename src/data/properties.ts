@@ -68,17 +68,17 @@ const briefProperties: Property[] = [
       { name: 'List price', value: 1179000 },
     ],
     signals: [
-      '45 days on market, 1 price cut',
+      '45 days on market, price cut this week',
       'Renovated comps nearby sold in ~12 days',
       'Kitchen and baths are original (1955)',
     ],
-    facts: { daysOnMarket: 45, priceCutDaysAgo: 16 },
+    facts: { daysOnMarket: 45, priceCutDaysAgo: 4 },
     scenarios: [
       { product: 'Renovate to Sell', note: 'Kitchen, baths and paint; relist in about 6 weeks', gain: 62000 },
       { product: 'Sell 360', note: 'Staging and light prep, no construction', gain: 28000 },
       { product: 'Renovate to Stay + ADU', note: 'Not eligible: lot too small for a detached ADU', gain: null },
     ],
-    activity: ['Your listing, imported from MLS · Aug 22', 'Price cut $20K · Sep 20'],
+    activity: ['Your listing, imported from MLS · Aug 22', 'Price cut $20K · Oct 4'],
   },
   {
     id: 'elm',
