@@ -221,7 +221,7 @@ export default function Properties() {
     <div className={PAGE}>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Properties</h1>
+          <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Homes</h1>
           <p className="mt-1 text-[15px] text-ink-2">Every home you’re working on with Revive. Each one has its own page with the report, project and marketing.</p>
         </div>
         <Button asChild>

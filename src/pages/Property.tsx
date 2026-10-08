@@ -44,7 +44,7 @@ export default function Property() {
         </Link>
       ) : (
         <Link to="/properties" className="inline-flex items-center gap-1 text-[13px] text-muted hover:text-brand">
-          <ArrowLeft className="size-3.5" /> Properties
+          <ArrowLeft className="size-3.5" /> Homes
         </Link>
       )}
       <div className="mt-4">

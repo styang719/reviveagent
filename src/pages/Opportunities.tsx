@@ -154,7 +154,7 @@ export default function Opportunities() {
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-line px-5 py-4">
           <p className="text-[14px] text-ink-2">Connect your MLS listings or your CRM and Revive ranks who to call first.</p>
           <Button asChild>
-            <Link to="/">Connect on Home</Link>
+            <Link to="/">Connect on your dashboard</Link>
           </Button>
         </div>
       </div>

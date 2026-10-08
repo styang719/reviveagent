@@ -14,7 +14,7 @@ export function Placeholder({ title, intro, phase, children }: { title: string; 
         {children}
         <Button variant="outline" size="sm" className="mt-4" asChild>
           <Link to="/">
-            <ArrowLeft /> Back to Home
+            <ArrowLeft /> Back to your dashboard
           </Link>
         </Button>
       </div>

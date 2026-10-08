@@ -7,8 +7,8 @@ import { ReviveLogo } from './Logo'
 import { QrCode } from './QrCode'
 
 const NAV = [
-  { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/properties', label: 'Properties', icon: Building2, also: '/property/' }, // a property page lives under Properties
+  { to: '/', label: 'Your Dashboard', icon: Home, end: true },
+  { to: '/properties', label: 'Homes', icon: Building2, also: '/property/' }, // a property page lives under Homes
   { to: '/opportunities', label: 'Opportunities', icon: Target },
   { to: '/marketing', label: 'Marketing', icon: Megaphone },
   { to: '/inbox', label: 'Inbox', icon: Inbox, badge: 8 },

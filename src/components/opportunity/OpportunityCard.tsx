@@ -120,7 +120,7 @@ export function OpportunityCard({ o, size = 'feed', className }: { o: Opportunit
                 size="sm"
                 onClick={() => {
                   share(o.id, o.property.address, o.person?.name)
-                  toast.success(`Report shared with ${o.person?.name ?? 'the homeowner'}`, { description: 'You’ll see on Home when it’s opened.' })
+                  toast.success(`Report shared with ${o.person?.name ?? 'the homeowner'}`, { description: 'You’ll see on your dashboard when it’s opened.' })
                 }}
               >
                 {progress.next}
