@@ -288,8 +288,8 @@ export function rvHome(propertyId?: string, typed?: string) {
   const address = known?.address ?? rep?.address ?? draft?.address ?? typed ?? ''
   const city = known?.city ?? rep?.city ?? draft?.city ?? ''
   const photos = rep?.photos.length ? rep.photos : known ? mlsPhotos(known.address, known.photo) : (draft?.photos ?? [])
-  // a new address becomes a home on record, so its designs have a page to live on
-  if (draft && id && !demo().reports[id]) demo().addReport(buildReport(draft), true)
+  // the home needs a record so its designs have a page to live on (and it shows on Homes)
+  if (id) ensureHome(id, typed ?? `${address}, ${city}`)
   user(typed ?? `${address}, ${city}`)
   ui().setFlow({ kind: 'renovision', rv: { propertyId: id, address, city, photos } })
   ui().addChat(say(`I found photos of ${address}. Pick the ones to redesign, or add your own.`, 'rv-photos'))
@@ -329,6 +329,7 @@ export function rvStyle(style: string) {
           style: d.style,
           pairs: d.picked.map((before, i) => ({ before, after: AFTERS[(Math.max(0, k) + i) % AFTERS.length] })),
           createdAt: Date.now(),
+          threadId: ui().activeId,
         }
         demo().addRenovision(design)
         ui().setFlow(null)
@@ -342,6 +343,48 @@ export function rvStyle(style: string) {
       }),
     3200,
   )
+}
+
+/** After a design: a branded before & after the agent can download and send to their client. */
+export function rvShare(designId: string) {
+  user('Create a before & after to share with my client')
+  ui().addChat(say('Here’s a branded before & after. Drag the slider to compare, then download it to text, email or post.', 'rv-share', designId))
+}
+
+/** A home with designs belongs on Homes; make sure it has a record (quietly, no report announced). */
+function ensureHome(id: string, address: string) {
+  if (demo().reports[id]) return
+  const d = draftFromAddress(address)
+  demo().addReport({ ...buildReport(d), id }, true)
+}
+
+/** Attach loose designs to a home; a new address becomes a home on record first. Returns the home's id. */
+export function rvAttach(designId: string, home: { id?: string; address: string }) {
+  let id = home.id
+  let label = home.address.split(',')[0]
+  if (!id) {
+    const known = matchProperty(home.address)
+    if (known) {
+      id = known.id
+      label = known.address
+      ensureHome(known.id, `${known.address}, ${known.city}`)
+    } else {
+      const draft = draftFromAddress(home.address)
+      id = reportIdFor(`${draft.address}, ${draft.city}`)
+      label = draft.address
+      if (!demo().reports[id]) demo().addReport(buildReport(draft), true)
+    }
+  }
+  else ensureHome(id, home.address)
+  demo().attachRenovision(designId, id, label)
+  // file the conversation under that home too
+  const tid = demo().renovisions[designId]?.threadId
+  if (tid)
+    useUi.setState((u) => ({
+      threads: u.threads.map((t) => (t.id === tid ? { ...t, aboutId: id, aboutLabel: label, title: `RenoVision · ${label}` } : t)),
+      ...(u.activeId === tid ? { activeHere: u.activeHere } : {}),
+    }))
+  return id
 }
 
 /** Photos the agent already has in Revive: their listings and reports, for the photos-only path. */

@@ -1,4 +1,4 @@
-import { ExternalLink, FileText, Hammer, MapPin, MessageSquare, PanelLeft, Sparkles, SquarePen, Trash2, Users, X } from 'lucide-react'
+import { ExternalLink, FileText, Hammer, Image as ImageIcon, MapPin, MessageSquare, PanelLeft, Sparkles, SquarePen, Trash2, Users, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
@@ -112,6 +112,40 @@ function ThreadRow({ t, label, active, onOpen, onDelete }: { t: ChatThread; labe
   )
 }
 
+/** Every RenoVision design, as a folder of thumbnails; each opens the conversation it was made in. */
+function RenoVisionFolder({ onOpen }: { onOpen: (threadId: string) => void }) {
+  const all = useDemo((s) => s.renovisions)
+  const threads = useUi((s) => s.threads)
+  const designs = Object.values(all).sort((a, b) => b.createdAt - a.createdAt)
+  if (!designs.length) return null
+  return (
+    <section aria-label="RenoVision designs">
+      <p className="flex items-center gap-1.5 px-2 pb-2 text-[13.5px] font-semibold text-ink">
+        <ImageIcon className="size-4 text-[var(--brand-agent)]" /> RenoVision
+        <span className="ml-auto text-[12px] font-normal text-faint tabular-nums">{designs.length}</span>
+      </p>
+      <ul className="grid grid-cols-3 gap-1.5 px-1">
+        {designs.map((d) => {
+          const can = !!d.threadId && threads.some((t) => t.id === d.threadId)
+          return (
+            <li key={d.id}>
+              <button
+                type="button"
+                disabled={!can}
+                onClick={() => can && onOpen(d.threadId!)}
+                title={`${d.address ?? 'Photos'} · ${d.style}`}
+                className="block w-full overflow-hidden rounded-lg ring-1 ring-line transition hover:ring-[var(--brand-agent-border)] disabled:cursor-default"
+              >
+                <img src={d.pairs[0].after} alt={`${d.address ?? 'Design'}, ${d.style}`} className="aspect-square w-full object-cover" />
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
 function History({ onPick }: { onPick?: () => void }) {
   const threads = useUi((s) => s.threads)
   const activeId = useUi((s) => s.activeId)
@@ -131,15 +165,15 @@ function History({ onPick }: { onPick?: () => void }) {
       >
         <SquarePen /> New chat
       </Button>
-      <p className="px-2 pt-2 text-[11px] font-semibold tracking-wide text-muted uppercase">By home</p>
       {threads.length === 0 ? (
         <p className="px-2 text-[13px] text-muted">Your conversations will show up here.</p>
       ) : (
-        <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1">
+        <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-1">
+          <RenoVisionFolder onOpen={(tid) => (openThread(tid), onPick?.())} />
           {groupThreads(threads).map((g) => (
             <section key={g.key} aria-label={g.label ?? 'Other conversations'}>
-              <p className="flex items-center gap-1.5 px-2 pb-1 text-[11.5px] font-semibold text-ink-2">
-                {g.label ? <MapPin className="size-3.5 text-[var(--brand-agent)]" /> : null}
+              <p className="flex items-center gap-1.5 px-2 pb-1.5 text-[13.5px] font-semibold text-ink">
+                {g.label ? <MapPin className="size-4 text-[var(--brand-agent)]" /> : <MessageSquare className="size-4 text-muted" />}
                 <span className="truncate">{g.label ?? 'Other conversations'}</span>
                 <span className="ml-auto font-normal text-faint tabular-nums">{g.threads.length}</span>
               </p>

@@ -128,6 +128,7 @@ export interface RenoVisionDesign {
   style: string
   pairs: { before: string; after: string }[]
   createdAt: number
+  threadId?: string // the Revive AI conversation it was made in
 }
 export const RV_STYLES = [
   { name: 'Modern farmhouse', body: 'White board-and-batten, black accents, warm wood' },

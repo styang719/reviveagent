@@ -42,6 +42,7 @@ export type FlowStep =
   | 'rv-style'
   | 'rv-progress'
   | 'rv-ready'
+  | 'rv-share'
   | 'report-progress'
   | 'report-ready'
   | 'project-property'

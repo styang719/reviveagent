@@ -1,15 +1,16 @@
-import { ArrowRight, Check, ExternalLink, FileText, Hammer, ImagePlus, Loader2, PanelRight, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, ExternalLink, FileText, Hammer, ImagePlus, Loader2, PanelRight, Plus, Sparkles } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import type { FlowStep } from '@/lib/ai'
-import { answerQuestions, chooseIntent, libraryPhotos, rvHome, rvPhotos, rvPhotosOnly, rvStyle, chooseProduct, INTENTS, confirmDetails, confirmPhotos, projectDetails, projectProperty, startProject, submitProject } from '@/lib/flowEngine'
-import { GOALS, OCCUPANCY, PRODUCTS, RV_STYLES, PROJECT_STEPS, recommendProduct, SELLING, TIMELINES } from '@/lib/flows'
+import { answerQuestions, chooseIntent, libraryPhotos, rvAttach, rvHome, rvShare, rvPhotos, rvPhotosOnly, rvStyle, chooseProduct, INTENTS, confirmDetails, confirmPhotos, projectDetails, projectProperty, startProject, submitProject } from '@/lib/flowEngine'
+import { GOALS, OCCUPANCY, PRODUCTS, RV_STYLES, suggestAddresses, PROJECT_STEPS, recommendProduct, SELLING, TIMELINES } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
 import { useOpportunities } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
+import { RvShareCard } from './RvShareCard'
 
 // The interactive cards inside a guided Revive AI conversation. Once a step is answered its card
 // goes away (the agent's answer stays in the thread as their message).
@@ -238,19 +239,63 @@ function RvStyle() {
 function RvAttach({ id }: { id: string }) {
   const opps = useOpportunities()
   const reports = useDemo((s) => s.reports)
-  const attach = useDemo((s) => s.attachRenovision)
+  const [adding, setAdding] = useState(false)
+  const [q, setQ] = useState('')
   const homes = [
     ...Object.values(reports).map((r) => ({ id: r.id, label: r.address })),
     ...opps.filter((o) => o.property.photo).map((o) => ({ id: o.id, label: o.property.address })),
   ].filter((h, i, a) => a.findIndex((x) => x.id === h.id) === i).slice(0, 4)
+  const sugg = q.trim().length > 1 ? suggestAddresses(q, 4) : []
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-[12.5px] text-muted">Add to a home:</span>
-      {homes.map((h) => (
-        <button key={h.id} type="button" className={chip(false)} onClick={() => attach(id, h.id, h.label)}>
-          {h.label}
+    <div className="flex w-full flex-col gap-2.5">
+      <p className="text-[12.5px] font-medium text-ink">Save these to a home</p>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {homes.map((h) => (
+          <button key={h.id} type="button" className={chip(false)} onClick={() => rvAttach(id, { id: h.id, address: h.label })}>
+            {h.label}
+          </button>
+        ))}
+        <button type="button" className={cn(chip(adding), 'inline-flex items-center gap-1')} onClick={() => setAdding((v) => !v)}>
+          <Plus className="size-3.5" /> New home
         </button>
-      ))}
+      </div>
+      {adding && (
+        <form
+          className="relative"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const v = sugg[0]?.value ?? q.trim()
+            if (v.length > 4) rvAttach(id, { address: v })
+          }}
+        >
+          <div className="flex gap-2">
+            <input
+              autoFocus
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Type the home’s address"
+              aria-label="New home address"
+              className="h-9 min-w-0 flex-1 rounded-lg border border-line px-3 text-[13.5px] outline-none focus:border-[var(--brand-primary-border)] focus:ring-2 focus:ring-[var(--brand-primary-subtle)]"
+            />
+            <Button size="sm" type="submit" className="h-9" disabled={q.trim().length < 5}>
+              Save
+            </Button>
+          </div>
+          {sugg.length > 0 && (
+            <ul className="mt-1 overflow-hidden rounded-lg border border-line bg-white">
+              {sugg.map((sg) => (
+                <li key={sg.value}>
+                  <button type="button" onClick={() => rvAttach(id, { address: sg.value })} className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[13px] hover:bg-[var(--brand-primary-subtle)]">
+                    <span className="truncate font-medium text-ink">{sg.line}</span>
+                    <span className="shrink-0 text-[11.5px] text-muted">{sg.area}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-1.5 text-[11.5px] text-muted">The home is added to Homes, with these designs on its page.</p>
+        </form>
+      )}
     </div>
   )
 }
@@ -258,8 +303,10 @@ function RvAttach({ id }: { id: string }) {
 /** RenoVision result: before and after for each photo, and where it's saved. */
 function RvReady({ id }: { id: string }) {
   const d = useDemo((s) => s.renovisions[id])
+  const shared = useUi((s) => s.chat.some((m) => m.blocks?.some((b) => b.kind === 'flow' && b.step === 'rv-share' && b.refId === id)))
   if (!d) return null
   return (
+    <div className="flex flex-col gap-2">
     <div className="overflow-hidden rounded-xl border border-line bg-white">
       <div className="flex flex-col gap-2 p-2">
         {d.pairs.map((p, i) => (
@@ -277,15 +324,30 @@ function RvReady({ id }: { id: string }) {
       </div>
       <div className="flex flex-wrap items-center gap-2 border-t border-line p-3">
         {d.propertyId ? (
-          <Button size="sm" variant="outline" asChild>
+          <>
+          <span className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[var(--green)]">
+            <Check className="size-3.5" /> Saved to {d.address}
+          </span>
+          <Button size="sm" variant="outline" className="ml-auto" asChild>
             <Link to={`/property/${d.propertyId}?tab=report`}>
-              Open {d.address} <ArrowRight />
+              Open home <ArrowRight />
             </Link>
           </Button>
+          </>
         ) : (
           <RvAttach id={d.id} />
         )}
       </div>
+    </div>
+    {!shared && (
+      <button
+        type="button"
+        onClick={() => rvShare(id)}
+        className="flex items-center gap-2 self-start rounded-full border border-[var(--brand-agent-border)] bg-[var(--brand-agent-subtle)] px-3.5 py-2 text-[13px] font-medium text-[var(--brand-agent)] hover:brightness-95"
+      >
+        <Sparkles className="size-4" /> Create a before & after to share with your client
+      </button>
+    )}
     </div>
   )
 }
@@ -612,6 +674,7 @@ export function FlowStepView({ step, refId, answered }: { step: FlowStep; refId?
   if (step === 'rv-photos') return <RvPhotos />
   if (step === 'rv-style') return <RvStyle />
   if (step === 'rv-ready' && refId) return <RvReady id={refId} />
+  if (step === 'rv-share' && refId) return <RvShareCard id={refId} />
   if (step === 'project-property') return <ProjectProperty />
   if (step === 'project-product') return <ProjectProduct />
   if (step === 'project-details') return <ProjectDetails />

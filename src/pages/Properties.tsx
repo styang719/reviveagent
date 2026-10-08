@@ -39,6 +39,7 @@ interface ReportRow {
   upside?: number
   product?: string
   when?: string
+  designs?: number // RenoVision designs saved on this home
 }
 
 function ProjectCard({ p }: { p: ProjectRow }) {
@@ -97,6 +98,11 @@ function ReportCard({ r }: { r: ReportRow }) {
     >
       <div className="relative h-36 overflow-hidden bg-line-soft">
         {r.photo && <img src={img(r.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+        {r.designs ? (
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-brand shadow-sm">
+            <Sparkles className="size-3" /> {r.designs} RenoVision design{r.designs === 1 ? '' : 's'}
+          </span>
+        ) : null}
       </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div>
@@ -154,6 +160,8 @@ function Section({ title, hint, count, children, empty, emptyNode }: { title: st
 export default function Properties() {
   const created = useDemo((s) => s.projects)
   const reports = useDemo((s) => s.reports)
+  const renovisions = useDemo((s) => s.renovisions)
+  const designsOn = (id: string) => Object.values(renovisions).filter((d) => d.propertyId === id).reduce((n, d) => n + d.pairs.length, 0)
   const opps = useOpportunities()
   const [q, setQ] = useState('')
   const needle = q.trim().toLowerCase()
@@ -209,11 +217,12 @@ export default function Properties() {
           upside: best?.gain ?? undefined,
           product: best?.gain ? best.product : undefined,
           when: `Generated ${new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+          designs: designsOn(r.id),
         }
       }),
     ...opps
       .filter((o) => o.property.reportRun && !reports[o.id] && !inProject.has(o.id))
-      .map((o) => ({ id: o.id, address: o.property.address, city: o.property.city, photo: o.property.photo, valueNow: o.property.valueNow, upside: o.gain || undefined, product: o.product })),
+      .map((o) => ({ id: o.id, address: o.property.address, city: o.property.city, photo: o.property.photo, valueNow: o.property.valueNow, upside: o.gain || undefined, product: o.product, designs: designsOn(o.id) })),
   ]
 
   const firstVisit = !needle && projects.length === 0 && reportRows.length === 0
