@@ -1,6 +1,7 @@
 import { House, MapPin, Sparkles } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { suggestAddresses } from '@/lib/flows'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useUi } from '@/store/ui'
 
@@ -35,7 +36,7 @@ export function StartWithRevive() {
           go(q.trim())
         }}
       >
-        <label className="relative flex h-12 min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-line bg-white px-4 focus-within:border-[var(--brand-agent-border)] focus-within:ring-2 focus-within:ring-[var(--brand-agent-subtle)]">
+        <label className="relative flex h-12 min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-line bg-white px-4 focus-within:border-[var(--brand-primary-border)] focus-within:ring-2 focus-within:ring-[var(--brand-primary-border-subtle)]">
           <House className="size-[18px] shrink-0 text-muted" aria-hidden="true" />
           <span className="sr-only">Property address</span>
           <input
@@ -72,7 +73,7 @@ export function StartWithRevive() {
             id="start-revive-list"
             role="listbox"
             aria-label="Address suggestions"
-            className="absolute top-[3.25rem] left-0 z-30 w-full overflow-hidden rounded-xl border border-line bg-white py-1.5 shadow-[0_16px_40px_rgba(28,46,88,0.16)] sm:w-[calc(100%-11.25rem)]"
+            className="absolute top-[3.25rem] left-0 z-30 w-full overflow-hidden rounded-xl border border-line bg-white py-1.5 shadow-[0_16px_40px_rgba(28,46,88,0.16)] sm:w-[calc(100%-10.5rem)]"
           >
             {suggestions.map((sg, i) => (
               <li
@@ -95,9 +96,9 @@ export function StartWithRevive() {
             ))}
           </ul>
         )}
-        <button type="submit" className="rv-ai-btn flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl px-5 text-[15px] font-semibold text-white">
-          <Sparkles className="size-4" /> Ask Revive AI
-        </button>
+        <Button type="submit" className="h-12 shrink-0 rounded-xl px-5 text-[15px]">
+          <Sparkles /> Start project
+        </Button>
       </form>
     </div>
   )
