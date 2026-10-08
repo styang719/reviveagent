@@ -1,11 +1,9 @@
 import { Eye, FileText, Mail, MailCheck, Reply, Search, Send, UserRound } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { img, leadSignal, OppDrawer } from '@/components/home/TopOpportunities'
 import { MessageDialog } from '@/components/opportunity/MessageDialog'
 import { SellerReferrals } from '@/components/property/SellerReferrals'
 import { Button } from '@/components/ui/button'
-import { AGENT } from '@/data/tiers'
 import { useNow } from '@/hooks/useNow'
 import { ago, firstName } from '@/lib/format'
 import { useOpportunities, type Opportunity } from '@/lib/opportunities'
@@ -77,7 +75,6 @@ export default function LeadTracking() {
   const tier = useDemo((s) => s.tier)
   const outreach = useDemo((s) => s.outreach)
   const activity = useDemo((s) => s.activity)
-  const send = useDemo((s) => s.sendOutreach)
   const now = useNow(20_000)
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<'all' | Kind>('all')
@@ -96,17 +93,8 @@ export default function LeadTracking() {
     .sort((a, b) => Number(b.kind === 'reply') - Number(a.kind === 'reply') || b.at - a.at)
   const shown = rows.filter((r) => filter === 'all' || r.kind === filter)
   const visible = all ? shown : shown.slice(0, SHOW)
-  // who a quick follow-up makes sense for: they engaged and haven't been emailed from here yet
-  const followable = (r: Row) => !!r.o.person && (r.kind === 'opened' || r.kind === 'engaged' || (r.kind === 'reply' && r.source === 'Follow Up Boss'))
-  // everyone in the current view a follow-up makes sense for: one click instead of one email each
-  const sel = shown.filter(followable)
   const waiting = rows.filter((r) => r.kind === 'reply').length
 
-  const followUp = () => {
-    for (const r of sel)
-      send({ id: r.o.id, address: r.o.property.address, name: r.o.person!.name, subject: `Following up on ${r.o.property.address.split(' ').slice(1).join(' ')}`, template: 'renovation', agent: AGENT.firstName })
-    toast.success(`Follow-up sent to ${sel.length} homeowner${sel.length === 1 ? '' : 's'}`, { description: 'A short note with their Revive AI report. You’ll see here when they open or reply.' })
-  }
 
   const open = opps.find((o) => o.id === openId) ?? null
   const msg = opps.find((o) => o.id === msgId)
@@ -182,11 +170,6 @@ export default function LeadTracking() {
               )
             })}
           </div>
-          {sel.length > 1 && (
-            <Button size="sm" variant="outline" className="h-9 text-brand" onClick={followUp}>
-              <Send /> Follow up with all {sel.length}
-            </Button>
-          )}
         </div>
 
         {shown.length ? (
