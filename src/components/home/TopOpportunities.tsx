@@ -1,5 +1,5 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { AlertTriangle, ArrowRight, Check, CheckCheck, Eye, Hammer, HousePlus, Mail, MailCheck, Reply, SearchCheck, Signpost, Sparkles, X } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Check, CheckCheck, Eye, FileText, Hammer, HousePlus, Mail, MailCheck, Phone, Reply, SearchCheck, Signpost, Sparkles, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -7,8 +7,7 @@ import { AiLink } from '@/components/ai/AiLink'
 import { ADVISOR } from '@/components/home/AdvisorCard'
 import { ContactTimeline } from '@/components/opportunity/ContactTimeline'
 import { MessageDialog } from '@/components/opportunity/MessageDialog'
-import { useCta } from '@/components/opportunity/useCta'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import type { Source } from '@/data/types'
 import { photoUrl } from '@/lib/assets'
 import { ago, firstName, gain, money } from '@/lib/format'
@@ -125,60 +124,6 @@ const tagsOf = (o: Opportunity) => [...o.tags].sort((a, b) => ORDER.indexOf(a) -
 
 const img = (o: Opportunity) => o.photo ?? photoUrl(o.property.photo)
 
-/** The one thing to do next, worded for the relationship: your seller vs. someone you're winning. */
-function NextAction({ o, onDone }: { o: Opportunity; onDone?: () => void }) {
-  const runCta = useCta()
-  const share = useDemo((s) => s.shareReport)
-  const progress = useProgress()(o)
-  const isProperty = useIsProperty()
-  const name = o.person ? firstName(o.person.name) : 'the homeowner'
-  const cls = cn(buttonVariants(), 'h-10 flex-1')
-  const arrow = <ArrowRight />
-
-  if (progress?.kind === 'share')
-    return (
-      <button
-        className={cls}
-        onClick={() => {
-          share(o.id, o.property.address, o.person?.name)
-          toast.success(`Report shared with ${o.person?.name ?? 'the homeowner'}`, { description: 'You’ll see on Home when it’s opened.' })
-          onDone?.()
-        }}
-      >
-        {progress.next} {arrow}
-      </button>
-    )
-  if (progress?.kind === 'project')
-    return (
-      <AiLink to={`/ai?flow=project&property=${o.id}`} className={cls} onClick={onDone}>
-        Propose a Revive project {arrow}
-      </AiLink>
-    )
-  if (progress?.kind === 'open')
-    return (
-      <Link to={`/property/${o.id}?tab=project`} className={cls}>
-        Open project {arrow}
-      </Link>
-    )
-  if (o.cta.kind === 'claim' || o.cta.kind === 'followup' || isProperty(o))
-    return (
-      <button
-        className={cls}
-        onClick={() => {
-          runCta(o)
-          onDone?.()
-        }}
-      >
-        {o.cta.label} {arrow}
-      </button>
-    )
-  return (
-    <AiLink to={`/ai?flow=report&property=${o.id}`} className={cls} onClick={onDone}>
-      {o.property.source === 'listings' ? `Show ${name} what Revive adds` : `Send ${name} their home’s value`} {arrow}
-    </AiLink>
-  )
-}
-
 export function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void }) {
   const progress = useProgress()
   const isProperty = useIsProperty()
@@ -286,14 +231,35 @@ export function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () =
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 border-t border-line bg-white p-4">
-                <NextAction o={o} onDone={onClose} />
-                {isProperty(o) && (
+                <Button
+                  className="h-10 flex-1"
+                  onClick={() =>
+                    toast.success(`Call request sent to ${ADVISOR.first} at Revive`, { description: `He’ll reach out within one business day to discuss ${o.property.address} with you.` })
+                  }
+                >
+                  <Phone /> Book a call to discuss
+                </Button>
+                {isProperty(o) ? (
                   <Button variant="outline" className="h-10" asChild>
-                    <Link to={`/property/${o.id}`}>View property</Link>
+                    <Link to={`/property/${o.id}?tab=report`}>
+                      <FileText /> Revive AI report
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button variant="outline" className="h-10" asChild>
+                    <AiLink to={`/ai?flow=report&property=${o.id}`} onClick={onClose}>
+                      <FileText /> Revive AI report
+                    </AiLink>
                   </Button>
                 )}
-                <Button variant="ghost" className="h-10" onClick={() => toggle(o.id)}>
-                  <Check /> {checked[o.id] ? 'Done' : 'Mark done'}
+                <Button
+                  variant="outline"
+                  className={cn('size-10 px-0', checked[o.id] && 'border-[var(--green)] bg-ok-soft text-[var(--green)]')}
+                  onClick={() => toggle(o.id)}
+                  aria-label={checked[o.id] ? 'Done' : 'Mark done'}
+                  title={checked[o.id] ? 'Done' : 'Mark done'}
+                >
+                  <Check />
                 </Button>
               </div>
             </>
