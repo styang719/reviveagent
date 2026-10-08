@@ -18,7 +18,7 @@ const STARTER_CARDS = [
   { icon: FileText, label: 'Generate a Revive AI report', run: () => startReport() },
   { icon: Hammer, label: 'Start a Revive project', run: () => startProject() },
   { icon: Users, label: STARTERS[1] },
-  { icon: Sparkles, label: STARTERS[2] },
+  { icon: Sparkles, label: 'See 412 Oak Ave renovated with RenoVision' },
 ]
 
 /** B · the finished report or project, open beside the conversation. */

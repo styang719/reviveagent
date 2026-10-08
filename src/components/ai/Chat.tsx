@@ -1,3 +1,4 @@
+import reno from '@/assets/cases/case-2.jpg'
 import { ArrowRight, ArrowUp, Copy, MapPin } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -157,6 +158,21 @@ function Blocks({ blocks, onAsk, answered }: { blocks: Block[]; onAsk: (q: strin
   return (
     <div className="flex flex-col gap-3">
       {blocks.map((b, i) => {
+        if (b.kind === 'renovision')
+          return (
+            <div key={i} className="overflow-hidden rounded-xl border border-line bg-white">
+              <div className="grid grid-cols-2">
+                <span className="relative">
+                  <img src={photoUrl(b.before) ?? reno} alt={`${b.address} today`} className="aspect-[4/3] w-full object-cover" />
+                  <span className="absolute bottom-2 left-2 rounded-md bg-black/60 px-1.5 py-0.5 text-[11px] font-semibold text-white">Before</span>
+                </span>
+                <span className="relative">
+                  <img src={reno} alt={`${b.address} after a Revive refresh`} className="aspect-[4/3] w-full object-cover" />
+                  <span className="absolute bottom-2 left-2 rounded-md bg-[var(--brand-primary)] px-1.5 py-0.5 text-[11px] font-semibold text-white">After · RenoVision</span>
+                </span>
+              </div>
+            </div>
+          )
         if (b.kind === 'text') return <p key={i} className="text-[15px] leading-6 whitespace-pre-line text-ink">{b.text}</p>
         if (b.kind === 'property') return <PropertyBlock key={i} b={b} />
         if (b.kind === 'opps') return <OppsBlock key={i} ids={b.ids} />
