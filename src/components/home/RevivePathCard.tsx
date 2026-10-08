@@ -2,6 +2,7 @@ import { Check, Hammer, Sparkles, UserRoundPlus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import mark from '@/assets/revive-mark.svg'
 import { Button } from '@/components/ui/button'
+import { PartnerStatusCard } from './PartnerStatusCard'
 import { DEALS_TO_PARTNER, TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { plural } from '@/lib/format'
@@ -19,6 +20,8 @@ const STEPS = [
 export function RevivePathCard({ tier, opps }: { tier: Tier; opps: Opportunity[] }) {
   const deals = TIERS[tier].deals
   const partner = deals >= DEALS_TO_PARTNER
+  // a Partner gets the membership card instead of the path to Partner
+  if (partner) return <PartnerStatusCard opps={opps} />
   const pct = Math.min(1, deals / DEALS_TO_PARTNER)
   const listing = opps.find((o) => o.cta.kind === 'propose')
   const newLeads = opps.filter((o) => o.referral?.status === 'new' && !o.referral.claimedAt).length
