@@ -62,6 +62,8 @@ interface DemoState {
   /** send a template email; in the demo the homeowner opens it, then replies, a few seconds later */
   sendOutreach: (p: { id: string; address: string; name: string; subject: string; template: string; agent: string }) => void
   answerReply: (id: string, line: string) => void
+  addActivity: (id: string, line: string) => void // a logged call or note
+  logged: Record<string, { at: number; kind: 'call' | 'note'; text: string }[]> // calls and notes, with times, for the contact timeline
   /** demo bar: a new agent with nothing connected, or with both MLS (license) and CRM connected */
   setNewAgent: (connected: boolean) => void
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
@@ -79,6 +81,7 @@ const initial = () => ({
   claimed: {},
   checked: {} as Record<string, number>,
   outreach: {} as Record<string, Outreach>,
+  logged: {} as DemoState['logged'],
   updated: {},
   activity: {},
   referralClockStart: Date.now(),
@@ -129,6 +132,11 @@ export const useDemo = create<DemoState>()(
           set((s) => ({ activity: withActivity(s, id, `${first} replied: “${r.text.slice(0, 60)}…”`) }))
         }, 11000)
       },
+      addActivity: (id, line) =>
+        set((s) => ({
+          activity: withActivity(s, id, line),
+          logged: { ...s.logged, [id]: [{ at: Date.now(), kind: /^Note: /.test(line) ? 'note' : 'call', text: line.replace(/^Note: /, '') }, ...(s.logged[id] ?? [])] },
+        })),
       answerReply: (id, line) =>
         set((s) => ({
           outreach: s.outreach[id] ? { ...s.outreach, [id]: { ...s.outreach[id], answeredAt: Date.now() } } : s.outreach,
@@ -202,6 +210,6 @@ export const useDemo = create<DemoState>()(
       connectLicense: (license) => set({ license }),
       reset: () => set((s) => ({ ...initial(), tier: s.tier, handoff: s.handoff })),
     }),
-    { name: 'revive-demo', version: 10, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, news: [], checked: {}, outreach: {}, ...(s as object), handoff: 'dock' }) as unknown as DemoState },
+    { name: 'revive-demo', version: 10, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, news: [], checked: {}, outreach: {}, logged: {}, ...(s as object), handoff: 'dock' }) as unknown as DemoState },
   ),
 )

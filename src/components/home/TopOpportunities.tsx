@@ -1,9 +1,10 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { AlertTriangle, ArrowRight, Check, CheckCheck, Eye, Hammer, HousePlus, Mail, MailCheck, Reply, SearchCheck, Signpost, X } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Check, CheckCheck, Eye, Hammer, HousePlus, Mail, MailCheck, Reply, SearchCheck, Signpost, Sparkles, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { AiLink } from '@/components/ai/AiLink'
+import { ContactTimeline } from '@/components/opportunity/ContactTimeline'
 import { MessageDialog } from '@/components/opportunity/MessageDialog'
 import { useCta } from '@/components/opportunity/useCta'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -182,7 +183,7 @@ function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void 
   const isProperty = useIsProperty()
   const checked = useDemo((s) => s.checked)
   const toggle = useDemo((s) => s.toggleChecked)
-  const out = useDemo((s) => (o ? s.outreach[o.id] : undefined))
+  const [msg, setMsg] = useState(false)
   return (
     <DialogPrimitive.Root open={!!o} onOpenChange={(v) => !v && onClose()}>
       <DialogPrimitive.Portal>
@@ -212,6 +213,25 @@ function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void 
                     </p>
                   </div>
 
+                  {o.property.scenarios.length > 0 && (
+                    <section className="rounded-2xl border border-[var(--brand-agent-border-subtle,#e0caf2)] bg-[var(--brand-agent-subtle)] p-4">
+                      <h3 className="flex items-center gap-1.5 text-[14px] font-semibold text-[var(--brand-agent)]">
+                        <Sparkles className="size-4" /> Revive insights
+                      </h3>
+                      <ul className="mt-3 flex flex-col gap-2.5">
+                        {o.property.scenarios.map((s) => (
+                          <li key={s.product} className="flex items-baseline justify-between gap-3 rounded-xl bg-white px-3.5 py-2.5 text-[13.5px]">
+                            <span className="min-w-0">
+                              <span className="font-semibold text-ink">{s.product}</span>
+                              <span className="block text-[12.5px] text-muted">{s.note}</span>
+                            </span>
+                            <span className={cn('shrink-0 font-semibold tabular-nums', s.gain ? 'text-[var(--green)]' : 'text-faint')}>{s.gain ? gain(s.gain) : 'Not eligible'}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  )}
+
                   {o.person && (
                     <div className="flex items-center gap-3 rounded-xl bg-head px-4 py-3">
                       <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-[13px] font-semibold text-brand">
@@ -231,27 +251,6 @@ function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void 
                         Contact
                       </Link>
                     </div>
-                  )}
-
-                  {out && (
-                    <section>
-                      <h3 className="text-[14px] font-semibold text-ink">Email</h3>
-                      <ol className="mt-2 flex flex-col gap-2 text-[13px]">
-                        <li className="rounded-xl bg-head px-3.5 py-2.5">
-                          <span className="font-medium text-ink">You</span> <span className="text-muted">· “{out.subject}”</span>
-                        </li>
-                        {out.reply && (
-                          <li className="rounded-xl bg-[var(--brand-agent-subtle)] px-3.5 py-2.5 text-ink-2">
-                            <span className="font-medium text-ink">{o.person ? firstName(o.person.name) : 'Homeowner'}</span> · “{out.reply.text}”
-                          </li>
-                        )}
-                        {out.answeredAt && (
-                          <li className="rounded-xl bg-head px-3.5 py-2.5">
-                            <span className="font-medium text-ink">You</span> <span className="text-muted">· replied</span>
-                          </li>
-                        )}
-                      </ol>
-                    </section>
                   )}
 
                   <dl className="grid grid-cols-2 gap-3">
@@ -281,33 +280,8 @@ function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void 
                     </ul>
                   </section>
 
-                  {o.property.scenarios.length > 0 && (
-                    <section>
-                      <h3 className="text-[14px] font-semibold text-ink">What Revive could add</h3>
-                      <ul className="mt-2 flex flex-col gap-2">
-                        {o.property.scenarios.map((s) => (
-                          <li key={s.product} className="flex items-baseline justify-between gap-3 text-[13.5px]">
-                            <span className="min-w-0">
-                              <span className="font-medium text-ink">{s.product}</span>
-                              <span className="block truncate text-[12px] text-muted">{s.note}</span>
-                            </span>
-                            <span className={cn('shrink-0 font-semibold tabular-nums', s.gain ? 'text-[var(--green)]' : 'text-faint')}>{s.gain ? gain(s.gain) : 'Not eligible'}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  )}
 
-                  {o.activity.length > 0 && (
-                    <section>
-                      <h3 className="text-[14px] font-semibold text-ink">Activity</h3>
-                      <ul className="mt-2 flex flex-col gap-1 text-[13px] text-ink-2">
-                        {o.activity.slice(0, 4).map((a) => (
-                          <li key={a}>{a}</li>
-                        ))}
-                      </ul>
-                    </section>
-                  )}
+                  <ContactTimeline o={o} onMessage={() => setMsg(true)} />
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 border-t border-line bg-white p-4">
@@ -325,6 +299,7 @@ function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void 
           )}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
+      {o?.person && msg && <MessageDialog o={o} open={msg} onOpenChange={setMsg} />}
     </DialogPrimitive.Root>
   )
 }
