@@ -79,10 +79,10 @@ function Fit({ pts, k }: { pts: [number, number][]; k: string }) {
 
 function Stat({ icon: Icon, label, hot, children }: { icon: typeof Clock; label: string; hot?: boolean; children: React.ReactNode }) {
   return (
-    <div className={cn('flex flex-col rounded-xl border p-4 shadow-card', hot ? 'border-hot-line bg-hot-soft/50' : 'border-line bg-white')}>
+    <div className={cn('flex flex-col rounded-xl border p-4 shadow-card', hot ? 'border-[var(--brand-primary-border)] bg-[var(--brand-primary-subtle)]' : 'border-line bg-white')}>
       <div className="flex items-start justify-between gap-2">
-        <p className={cn('text-[12px] font-semibold tracking-wide uppercase', hot ? 'text-hot' : 'text-brand')}>{label}</p>
-        <Icon className={cn('size-4', hot ? 'text-hot' : 'text-brand')} />
+        <p className={cn('text-[12px] font-semibold tracking-wide uppercase', 'text-brand')}>{label}</p>
+        <Icon className="size-4 text-brand" />
       </div>
       {children}
     </div>
@@ -209,7 +209,7 @@ export default function Opportunities() {
             </div>
           )}
           <div className={cta}>
-            <Button size="sm" className="h-9 bg-hot hover:bg-hot-ink" onClick={() => setFilter('go')}>
+            <Button size="sm" className="h-9" onClick={() => setFilter('go')}>
               See all {stats.worth} worth a call <ArrowRight />
             </Button>
           </div>
@@ -272,7 +272,7 @@ export default function Opportunities() {
                 onClick={() => setFilter(f.k)}
                 className={cn(
                   'inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13.5px] font-medium transition-colors',
-                  on ? 'border-hot bg-hot text-white' : 'border-line bg-white text-ink hover:border-[var(--brand-primary-border)]',
+                  on ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-line bg-white text-ink hover:border-[var(--brand-primary-border)]',
                 )}
               >
                 {on && f.k === 'go' && <span className="size-1.5 rounded-full bg-white" aria-hidden="true" />}

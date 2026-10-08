@@ -77,7 +77,7 @@ export default function LeadTracking() {
       const hrs = Math.max(1, Math.round((r.expiresAt - now) / 3_600_000))
       rows.push({
         o,
-        st: { label: 'New referral', icon: UserRound, cls: 'bg-hot-soft text-hot-ink', text: `Seller referral from Revive · ${hrs} hr${hrs === 1 ? '' : 's'} left to claim before it goes to another agent` },
+        st: { label: 'New referral', icon: UserRound, cls: 'bg-[var(--teal-soft)] text-[var(--green)]', text: `Seller referral from Revive · ${hrs} hr${hrs === 1 ? '' : 's'} left to claim before it goes to another agent` },
         action: {
           tone: 'hot',
           cta: 'Claim lead',
@@ -161,7 +161,7 @@ export default function LeadTracking() {
           <h2 id="lead-activity-all" className="text-xl font-semibold text-ink">
             Lead activity
           </h2>
-          {todo > 0 && <span className="rounded-full bg-hot-soft px-2 py-0.5 text-[12px] font-semibold text-hot-ink tabular-nums">{todo} need action</span>}
+          {todo > 0 && <span className="rounded-full bg-[var(--brand-primary-subtle)] px-2 py-0.5 text-[12px] font-semibold text-brand tabular-nums">{todo} need action</span>}
         </div>
         <p className="mt-1.5 mb-4 text-[13px] text-muted">Seller referrals that need you, and homeowners engaging with your Revive AI reports and emails. What needs action is first.</p>
         {rows.length ? (
@@ -173,7 +173,7 @@ export default function LeadTracking() {
                   key={o.id}
                   className={cn(
                     'flex items-center gap-4 rounded-xl border bg-white py-2.5 pr-3 pl-4',
-                    action?.tone === 'hot' ? 'border-hot-line bg-hot-soft/30 ring-1 ring-hot-line' : action ? 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]' : 'border-line',
+                    action?.tone === 'hot' ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-subtle)] ring-1 ring-[var(--brand-primary)]' : action ? 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]' : 'border-line',
                   )}
                 >
                   <button type="button" onClick={() => setOpenId(o.id)} className="flex min-w-0 flex-1 items-center gap-4 text-left">
@@ -189,7 +189,7 @@ export default function LeadTracking() {
                     {st.at && <span className="shrink-0 text-[12.5px] text-muted">{ago(st.at, now)}</span>}
                   </button>
                   {action ? (
-                    <Button size="sm" className={cn('h-9 w-40 shrink-0', action.tone === 'hot' && 'bg-hot hover:bg-hot-ink')} onClick={action.run}>
+                    <Button size="sm" className="h-9 w-40 shrink-0" onClick={action.run}>
                       {action.cta} <ArrowRight />
                     </Button>
                   ) : (
