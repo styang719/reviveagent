@@ -207,7 +207,8 @@
   font: 600 11px/1 var(--font-sans); color: var(--navy); background: #fff; padding: 4px 8px 4px 5px;
   border-radius: 999px; border: 1.5px solid var(--blue); box-shadow: 0 1px 3px rgba(16, 24, 40, 0.25);
 }
-.leaflet-container { font-family: var(--font-sans); }
+/* Leaflet panes use z-index 400+; keep them inside the map so they never cover the docked chat or dialogs */
+.leaflet-container { font-family: var(--font-sans); isolation: isolate; z-index: 0; }
 .leaflet-control-attribution { font-size: 10px; }
 .rv-office {
   display: block; width: 14px; height: 14px; transform: translate(-50%, -50%); border-radius: 50%;
