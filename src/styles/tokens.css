@@ -362,3 +362,10 @@
 .rv-marquee-x:hover .rv-marquee-x-track { animation-play-state: paused; }
 @keyframes rv-marquee-x { to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .rv-marquee-x-track { animation: none; } }
+
+/* Scrollbars: thin, light gray from the design system, on every scrolling area */
+* { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+*::-webkit-scrollbar-thumb:hover { background-color: #c4c9d2; }

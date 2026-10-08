@@ -59,7 +59,7 @@ function status(o: Opportunity): { main: string; sub?: string; hot?: boolean } {
 }
 
 /** A small ring gauge: the number in the middle, the ring filled to pct. */
-function Ring({ value, pct, color }: { value: number; pct: number; color: string }) {
+export function Ring({ value, pct, color }: { value: number; pct: number; color: string }) {
   const r = 15
   const c = 2 * Math.PI * r
   return (
@@ -74,7 +74,7 @@ function Ring({ value, pct, color }: { value: number; pct: number; color: string
 }
 
 /** Not listed: the selling score as a ring. Your listing: a Listed badge with days on market. */
-function ScoreCell({ o }: { o: Opportunity }) {
+export function ScoreCell({ o }: { o: Opportunity }) {
   const dom = o.property.facts.daysOnMarket
   // already on the market: a selling score means nothing here, so show where the listing stands
   if (o.property.source === 'listings' && dom !== undefined)
@@ -108,7 +108,7 @@ const TAG: Record<Tag, { icon: typeof Hammer; cls: string }> = {
   'Data check': { icon: SearchCheck, cls: 'bg-head text-ink-2' },
 }
 
-function TagPill({ tag }: { tag: Tag }) {
+export function TagPill({ tag }: { tag: Tag }) {
   const t = TAG[tag]
   const Icon = t.icon
   return (
@@ -120,9 +120,9 @@ function TagPill({ tag }: { tag: Tag }) {
 
 /** What Revive spots on the home: listing issue first (it's the reason to call), then ADU room, then renovation. */
 const ORDER: Tag[] = ['Listing issue', 'ADU room', 'Renovation', 'Data check']
-const tagsOf = (o: Opportunity) => [...o.tags].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b)).slice(0, 2)
+export const tagsOf = (o: Opportunity) => [...o.tags].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b)).slice(0, 2)
 
-const img = (o: Opportunity) => o.photo ?? photoUrl(o.property.photo)
+export const img = (o: Opportunity) => o.photo ?? photoUrl(o.property.photo)
 
 export function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void }) {
   const progress = useProgress()
@@ -301,7 +301,7 @@ function Steps({ out }: { out: Outreach }) {
  * What happened after the agent emailed: waiting, opened, a reply (with what Revive reads in it and the
  * next steps), or answered. Replaces crossing the card out: the to-do isn't done until there's an outcome.
  */
-function OutreachStrip({ o, out, onReply }: { o: Opportunity; out: Outreach; onReply: () => void }) {
+export function OutreachStrip({ o, out, onReply }: { o: Opportunity; out: Outreach; onReply: () => void }) {
   const now = useNow(20_000)
   const toggle = useDemo((s) => s.toggleChecked)
   const answer = useDemo((s) => s.answerReply)

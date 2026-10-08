@@ -3,7 +3,8 @@ import type L from 'leaflet'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Marker, useMap } from 'react-leaflet'
 import { Link, useSearchParams } from 'react-router-dom'
-import { OppDrawer, OppRow } from '@/components/home/TopOpportunities'
+import { OppDrawer } from '@/components/home/TopOpportunities'
+import { OppTable } from '@/components/opportunity/OppTable'
 import { BaseMap, TILE_BOUNDS } from '@/components/map/BaseMap'
 import { pinIcon, pinZ } from '@/components/map/pins'
 import { Button } from '@/components/ui/button'
@@ -162,7 +163,7 @@ export default function Opportunities() {
 
   return (
     // wide screens: the page itself doesn't scroll; the list scrolls and the map stays put beside it
-    <div className={cn(PAGE, 'xl:flex xl:h-[calc(100dvh-var(--demo-h,0px))] xl:flex-col xl:overflow-hidden xl:pb-6')}>
+    <div className={cn(PAGE, 'max-w-none sm:px-6 xl:flex xl:h-[calc(100dvh-var(--demo-h,0px))] xl:flex-col xl:overflow-hidden xl:pb-6')}>
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
@@ -294,7 +295,7 @@ export default function Opportunities() {
         </label>
       </div>
 
-      <div className="mt-5 grid gap-5 xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.55fr)]">
+      <div className="mt-5 grid gap-5 xl:min-h-0 xl:flex-1 xl:grid-cols-2">
         <div className="min-w-0 xl:flex xl:min-h-0 xl:flex-col">
           <div className="mb-3 flex items-center justify-between gap-2 text-[13px]">
             <span className="text-muted">{plural(shown.length, 'opportunity', 'opportunities')}</span>
@@ -304,13 +305,9 @@ export default function Opportunities() {
               </Link>
             )}
           </div>
-          <div className="xl:-mx-1 xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:px-1 xl:pb-1">
+          <div className="xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
           {shown.length ? (
-            <ul className="@container flex flex-col gap-3">
-              {shown.map((o) => (
-                <OppRow key={o.id} o={o} onOpen={() => setOpenId(o.id)} active={hover === o.id} onHover={(on) => setHover(on ? o.id : null)} />
-              ))}
-            </ul>
+            <OppTable opps={shown} onOpen={setOpenId} hover={hover} onHover={setHover} />
           ) : (
             <p className="rounded-xl border border-dashed border-line px-5 py-6 text-[14px] text-muted">Nothing matches. Try another filter or search.</p>
           )}
