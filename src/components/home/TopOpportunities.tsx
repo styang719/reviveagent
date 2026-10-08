@@ -179,7 +179,7 @@ function NextAction({ o, onDone }: { o: Opportunity; onDone?: () => void }) {
   )
 }
 
-function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void }) {
+export function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void }) {
   const progress = useProgress()
   const isProperty = useIsProperty()
   const checked = useDemo((s) => s.checked)
@@ -404,25 +404,28 @@ function OutreachStrip({ o, out, onReply }: { o: Opportunity; out: Outreach; onR
   )
 }
 
-function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
+export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => void; active?: boolean; onHover?: (on: boolean) => void }) {
   const done = !!useDemo((s) => s.checked[o.id])
   const toggle = useDemo((s) => s.toggleChecked)
   const [msg, setMsg] = useState(false)
   const out = useDemo((s) => s.outreach[o.id])
   const waiting = !!out?.reply && !out.answeredAt
   return (
-    <li>
+    <li id={`opp-${o.id}`}>
       <div
         role="button"
         tabIndex={0}
         onClick={onOpen}
         onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onOpen())}
         aria-label={`Open ${o.property.address}`}
+        onMouseEnter={() => onHover?.(true)}
+        onMouseLeave={() => onHover?.(false)}
         className={cn(
           'group grid cursor-pointer grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md',
-          'lg:grid-cols-[auto_56px_minmax(0,1.35fr)_minmax(0,0.95fr)_minmax(0,0.7fr)_minmax(0,1fr)_44px] lg:gap-x-3.5',
+          '@[600px]:grid-cols-[auto_56px_minmax(0,1.35fr)_minmax(124px,0.95fr)_minmax(76px,0.7fr)_minmax(118px,1fr)_44px] @[600px]:gap-x-3.5',
           waiting && 'border-[var(--brand-agent-border)] ring-1 ring-[var(--brand-agent-border)]',
           done && 'bg-head shadow-none',
+          active && 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]',
         )}
       >
         <button
@@ -445,7 +448,7 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
           <p className="truncate text-[14.5px] font-semibold text-ink">{o.property.address}</p>
           <p className="truncate text-[13px] text-muted">{o.person?.name ?? o.property.city}</p>
           <div className="mt-1.5 flex items-center gap-1.5">
-            <span className="rounded-md bg-head px-1.5 py-0.5 text-[11px] font-medium text-ink-2">{SOURCE[o.property.source]}</span>
+            <span className="rounded-md bg-head px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-ink-2">{SOURCE[o.property.source]}</span>
             <Priority o={o} />
           </div>
         </div>
@@ -459,27 +462,27 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
             onKeyDown={(e) => e.stopPropagation()}
             aria-label={`Message ${o.person.name}`}
             title={`Message ${firstName(o.person.name)}`}
-            className="relative grid size-11 place-items-center justify-self-end rounded-xl border border-line bg-white text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)] lg:order-last"
+            className="relative grid size-11 place-items-center justify-self-end rounded-xl border border-line bg-white text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)] @[600px]:order-last"
           >
             {out ? <MailCheck className="size-[18px]" /> : <Mail className="size-[18px]" />}
             {waiting && <span className="absolute -top-1 -right-1 size-3 rounded-full border-2 border-white bg-[var(--brand-agent)]" aria-label="New reply" />}
           </button>
         ) : (
-          <span className="lg:order-last" />
+          <span className="@[600px]:order-last" />
         )}
         {/* below lg the numbers wrap to a second row under the home */}
-        <div className="col-span-4 flex flex-wrap items-center gap-x-6 gap-y-3 lg:contents">
+        <div className="col-span-4 flex flex-wrap items-center gap-x-6 gap-y-3 @[600px]:contents">
           <ScoreCell o={o} />
           <div className="min-w-0">
             <p className="text-[16px] font-bold text-ink tabular-nums">{money(o.property.valueNow)}</p>
             {o.gain > 0 && <p className="text-[13px] font-semibold text-[var(--green)] tabular-nums">{gain(o.gain)}</p>}
           </div>
-          <div className="flex min-w-0 flex-row flex-wrap items-start gap-1.5 lg:flex-col">
+          <div className="flex min-w-0 flex-row flex-wrap items-start gap-1.5 @[600px]:flex-col">
             {tagsOf(o).length ? tagsOf(o).map((t) => <TagPill key={t} tag={t} />) : <span className="text-[13px] text-muted">{o.product ?? '—'}</span>}
           </div>
         </div>
         {out && (
-          <div className="col-span-full lg:order-last">
+          <div className="col-span-full @[600px]:order-last">
             <OutreachStrip o={o} out={out} onReply={() => setMsg(true)} />
           </div>
         )}
@@ -524,7 +527,7 @@ export function TopOpportunities({ opps }: { opps: Opportunity[] }) {
           </Link>
         </Button>
       </div>
-      <ul className="flex flex-col gap-3">
+      <ul className="@container flex flex-col gap-3">
         {rows.map((o) => (
           <OppRow key={o.id} o={o} onOpen={() => setOpenId(o.id)} />
         ))}

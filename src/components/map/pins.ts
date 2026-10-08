@@ -15,10 +15,17 @@ function esc(s: string) {
   return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
 }
 
-/** `dot`: an unlabeled marker in the pin's colour, for small maps. */
-export function pinIcon(o: Opportunity, active = false, compact = false, dot = false) {
+/** "Robert N." — on the Opportunities map the pin says who, like the Contacts page. */
+const shortName = (o: Opportunity) => {
+  if (!o.person) return o.property.address.split(' ').slice(0, 2).join(' ')
+  const [f, l] = o.person.name.split(' ')
+  return `${f}${l ? ` ${l[0]}.` : ''}`
+}
+
+/** `dot`: an unlabeled marker in the pin's colour, for small maps. `byName`: label with the person, not the upside. */
+export function pinIcon(o: Opportunity, active = false, compact = false, dot = false, byName = false) {
   const kind = pinKind(o)
-  const label = o.stage === 'project' ? 'Project' : o.gain > 0 ? gain(o.gain) : ''
+  const label = byName ? shortName(o) : o.stage === 'project' ? 'Project' : o.gain > 0 ? gain(o.gain) : ''
   const on = active ? ' on' : ''
   let html: string
   if (dot) {

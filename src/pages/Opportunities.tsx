@@ -1,34 +1,364 @@
-import { ArrowRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
-import { plural } from '@/lib/format'
-import { useOpportunities } from '@/lib/opportunities'
+import { ArrowRight, Clock, DollarSign, Plus, Search, SquareDashed, Users } from 'lucide-react'
+import type L from 'leaflet'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Marker, useMap } from 'react-leaflet'
+import { Link, useSearchParams } from 'react-router-dom'
+import { OppDrawer, OppRow } from '@/components/home/TopOpportunities'
+import { BaseMap, TILE_BOUNDS } from '@/components/map/BaseMap'
+import { pinIcon, pinZ } from '@/components/map/pins'
+import { Button } from '@/components/ui/button'
+import { AGENT } from '@/data/tiers'
+import { photoUrl } from '@/lib/assets'
+import { money, plural } from '@/lib/format'
+import { useOpportunities, type Opportunity } from '@/lib/opportunities'
+import { cn, PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
-import { Placeholder } from './Placeholder'
+import { useUi } from '@/store/ui'
 
-// The to-do list. A home leaves it once a project is submitted: from then on it's tracked on its
-// property page, under Properties.
-export default function Opportunities() {
-  const opps = useOpportunities()
-  const projects = useDemo((s) => s.projects)
-  const inProject = (o: (typeof opps)[number]) => o.stage === 'project' || !!projects[o.id] || !!o.property.project
-  const open = opps.filter((o) => !inProject(o))
-  const moved = opps.length - open.length
+// The whole book, laid out like the Contacts page: four stat cards that each end in one action,
+// filter chips, the ranked list (the same cards as Home's Top opportunities) and the map beside it.
+// A home leaves this list once a project is submitted; from then on it lives under Properties.
+
+const COMMISSION = 0.025 // listing side
+const LIKELY = 80
+
+type Filter = 'all' | 'go' | 'seller' | 'reno' | 'adu' | 'listing' | 'check'
+const FILTERS: { k: Filter; label: string }[] = [
+  { k: 'all', label: 'All' },
+  { k: 'go', label: 'Worth a conversation' },
+  { k: 'seller', label: 'Likely seller' },
+  { k: 'reno', label: 'Renovation' },
+  { k: 'adu', label: 'ADU room' },
+  { k: 'listing', label: 'Listing issue' },
+  { k: 'check', label: 'Needs a data check' },
+]
+const worth = (o: Opportunity) => o.urgency === 'now' || o.urgency === 'soon'
+const passes = (o: Opportunity, f: Filter) =>
+  f === 'all' ||
+  (f === 'go' && worth(o)) ||
+  (f === 'seller' && (o.person?.sellScore ?? 0) >= LIKELY) ||
+  (f === 'reno' && o.tags.includes('Renovation')) ||
+  (f === 'adu' && o.tags.includes('ADU room')) ||
+  (f === 'listing' && o.tags.includes('Listing issue')) ||
+  (f === 'check' && o.tags.includes('Data check'))
+
+type Sort = 'recommended' | 'score' | 'value' | 'upside'
+const SORTS: { k: Sort; label: string }[] = [
+  { k: 'recommended', label: 'Recommended' },
+  { k: 'score', label: 'Selling score' },
+  { k: 'upside', label: 'Revive upside' },
+  { k: 'value', label: 'Value' },
+]
+
+const landOf = (o: Opportunity) => (o.tags.includes('ADU room') && o.property.lot ? o.property.lot - o.property.sqft : 0)
+const acres = (sqft: number) => (sqft >= 43_560 ? `${(sqft / 43_560).toFixed(2)} acres` : `${Math.round(sqft / 100) * 100} sq ft`)
+// the map covers the agent's market; a home outside it stays in the list but off the map
+const [[S, W], [N, E]] = TILE_BOUNDS
+const onMap = (o: Opportunity) => o.property.lat > S && o.property.lat < N && o.property.lng > W && o.property.lng < E
+const img = (o: Opportunity) => o.photo ?? photoUrl(o.property.photo)
+
+/** Refit the map to what's listed whenever the filter or search changes. */
+function Fit({ pts, k }: { pts: [number, number][]; k: string }) {
+  const map = useMap()
+  useEffect(() => {
+    const fit = () => {
+      map.invalidateSize()
+      if (pts.length > 1) map.fitBounds(pts, { padding: [48, 48], maxZoom: 13 })
+      else if (pts.length === 1) map.setView(pts[0], 13)
+    }
+    fit()
+    const t = setTimeout(fit, 250) // the sticky panel settles its height after the first paint
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [k, map])
+  return null
+}
+
+function Stat({ icon: Icon, label, hot, children }: { icon: typeof Clock; label: string; hot?: boolean; children: React.ReactNode }) {
   return (
-    <Placeholder title="Opportunities" intro="Every place Revive can add value in your book, ranked by who to call first." phase={2}>
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted">Filters, list / map / pipeline views come next. For now, the ranked book:</p>
-        {moved > 0 && (
-          <Link to="/properties" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">
-            {plural(moved, 'home')} in Revive projects <ArrowRight className="size-3.5" />
-          </Link>
-        )}
+    <div className={cn('flex flex-col rounded-xl border p-4 shadow-card', hot ? 'border-hot-line bg-hot-soft/50' : 'border-line bg-white')}>
+      <div className="flex items-start justify-between gap-2">
+        <p className={cn('text-[12px] font-semibold tracking-wide uppercase', hot ? 'text-hot' : 'text-brand')}>{label}</p>
+        <Icon className={cn('size-4', hot ? 'text-hot' : 'text-brand')} />
       </div>
-      <div className="mt-4 flex flex-col gap-3">
-        {open.map((o) => (
-          <OpportunityCard key={o.id} o={o} size="compact" />
-        ))}
+      {children}
+    </div>
+  )
+}
+const big = 'mt-1.5 flex items-baseline gap-2 text-[26px] leading-8 font-semibold text-ink tabular-nums'
+const small = 'text-[13px] font-normal text-ink-2'
+const cta = 'mt-auto self-start pt-3'
+
+export default function Opportunities() {
+  const all = useOpportunities()
+  const projects = useDemo((s) => s.projects)
+  const openCrm = useUi((s) => s.openCrm)
+  const [params] = useSearchParams()
+  const [filter, setFilter] = useState<Filter>(() => (FILTERS.some((f) => f.k === params.get('filter')) ? (params.get('filter') as Filter) : 'go'))
+  const [sort, setSort] = useState<Sort>('recommended')
+  const [q, setQ] = useState('')
+  const [hover, setHover] = useState<string | null>(null)
+  const [openId, setOpenId] = useState<string | null>(null)
+  // pins are built once per home; hovering only toggles a class, so Leaflet never swaps the element under the cursor
+  const icons = useRef(new Map<string, L.DivIcon>())
+  const markers = useRef(new Map<string, { m: L.Marker; z: number }>())
+  const iconFor = (o: Opportunity) => {
+    let i = icons.current.get(o.id)
+    if (!i) icons.current.set(o.id, (i = pinIcon(o, false, false, false, true)))
+    return i
+  }
+  useEffect(() => {
+    for (const [id, { m, z }] of markers.current) {
+      m.getElement()?.querySelector('.rv-fpin, .rv-pill, .rv-dot')?.classList.toggle('on', id === hover)
+      m.setZIndexOffset(id === hover ? 3000 : z)
+    }
+  }, [hover])
+
+  // homes with a project are tracked under Properties
+  const inProject = (o: Opportunity) => o.stage === 'project' || !!projects[o.id] || !!o.property.project
+  const book = all.filter((o) => !inProject(o))
+  const moved = all.length - book.length
+
+  const stats = useMemo(() => {
+    const now = book.filter((o) => o.urgency === 'now')
+    const contacts = book.filter((o) => o.person && o.property.source === 'contacts')
+    const lift = book.reduce((n, o) => n + (o.gain > 0 ? o.gain : 0), 0)
+    const lots = book.filter((o) => landOf(o) > 0)
+    return {
+      now,
+      worth: book.filter(worth).length,
+      sellers: book.filter((o) => (o.person?.sellScore ?? 0) >= LIKELY).length,
+      contacts: contacts.length,
+      lift,
+      liftN: book.filter((o) => o.gain > 0).length,
+      land: lots.reduce((n, o) => n + landOf(o), 0),
+      lots: lots.length,
+    }
+  }, [book])
+
+  const needle = q.trim().toLowerCase()
+  const searched = book.filter((o) => !needle || o.property.address.toLowerCase().includes(needle) || o.person?.name.toLowerCase().includes(needle))
+  const sorted = [...searched].sort((a, b) =>
+    sort === 'score' ? (b.person?.sellScore ?? -1) - (a.person?.sellScore ?? -1) : sort === 'value' ? b.property.valueNow - a.property.valueNow : sort === 'upside' ? b.gain - a.gain : 0,
+  )
+  const shown = sorted.filter((o) => passes(o, filter))
+  const open = book.find((o) => o.id === openId) ?? null
+  const pinned = shown.filter(onMap)
+  const names = stats.now.map((o) => (o.person ? o.person.name.split(' ')[0] : o.property.address))
+  const nameList = names.length > 2 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names.join(' and ')
+
+  if (!all.length)
+    return (
+      <div className={PAGE}>
+        <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-line px-5 py-4">
+          <p className="text-[14px] text-ink-2">Connect your MLS listings or your CRM and Revive ranks who to call first.</p>
+          <Button asChild>
+            <Link to="/">Connect on Home</Link>
+          </Button>
+        </div>
       </div>
-    </Placeholder>
+    )
+
+  return (
+    <div className={PAGE}>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
+          <p className="mt-1 text-[15px] text-ink-2">Your listings and contacts, enriched with property and market data, ranked by who to call first.</p>
+        </div>
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <label className="relative flex-1 sm:w-64 sm:flex-none">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search name or address"
+              aria-label="Search name or address"
+              className="h-10 w-full rounded-lg border border-line bg-white pr-3 pl-9 text-[14px] outline-none focus:border-[var(--brand-primary-border)] focus:ring-2 focus:ring-[var(--brand-primary-subtle)]"
+            />
+          </label>
+          <Button className="h-10" onClick={() => openCrm('')}>
+            <Plus /> Import contacts
+          </Button>
+        </div>
+      </header>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Stat icon={Clock} label="Call this week" hot>
+          <p className={big}>
+            {stats.now.length} <span className={small}>{stats.now.length === 1 ? 'person' : 'people'} to reach first</span>
+          </p>
+          {stats.now.length > 0 && (
+            <div className="mt-2 flex items-center gap-2.5">
+              <span className="flex shrink-0 -space-x-2">
+                {stats.now.slice(0, 4).map((o) => (
+                  <img key={o.id} src={img(o)} alt="" title={o.person?.name} className="size-7 rounded-full border-2 border-white object-cover" />
+                ))}
+              </span>
+              <span className="truncate text-[13px] font-medium text-ink-2">{nameList}</span>
+            </div>
+          )}
+          <div className={cta}>
+            {filter === 'go' ? (
+              <span className="inline-flex h-9 items-center rounded-lg bg-navy px-3 text-[13px] font-semibold text-white">Showing below</span>
+            ) : (
+              <Button size="sm" className="h-9 bg-hot hover:bg-hot-ink" onClick={() => setFilter('go')}>
+                See all {stats.worth} worth a call <ArrowRight />
+              </Button>
+            )}
+          </div>
+        </Stat>
+        <Stat icon={Users} label="Likely sellers">
+          <p className={big}>
+            {stats.sellers} <span className={small}>of {plural(stats.contacts, 'contact')}</span>
+          </p>
+          <div className={cta}>
+            <Button size="sm" variant="outline" className="h-9 text-brand" onClick={() => setFilter('seller')}>
+              See likely sellers <ArrowRight />
+            </Button>
+          </div>
+        </Stat>
+        <Stat icon={DollarSign} label="Value to unlock">
+          <p className={big}>
+            {money(stats.lift)} <span className={small}>across {plural(stats.liftN, 'home')}</span>
+          </p>
+          <p className="mt-1 text-[13px] text-ink-2">
+            <b className="font-semibold text-[var(--green)]">+{money(Math.round(stats.lift * COMMISSION))}</b> your commission at {(COMMISSION * 100).toFixed(1)}% listing side
+          </p>
+          <div className={cta}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-9 text-brand"
+              onClick={() => {
+                setFilter('all')
+                setSort('upside')
+              }}
+            >
+              See the breakdown <ArrowRight />
+            </Button>
+          </div>
+        </Stat>
+        <Stat icon={SquareDashed} label="Unused land">
+          <p className={big}>
+            {acres(stats.land)} <span className={small}>across {plural(stats.lots, 'lot')}</span>
+          </p>
+          <p className="mt-1 text-[13px] text-ink-2">Room for a detached ADU</p>
+          <div className={cta}>
+            {filter === 'adu' ? (
+              <span className="inline-flex h-9 items-center rounded-lg bg-navy px-3 text-[13px] font-semibold text-white">Showing below</span>
+            ) : (
+              <Button size="sm" variant="outline" className="h-9 text-brand" onClick={() => setFilter('adu')}>
+                See ADU lots <ArrowRight />
+              </Button>
+            )}
+          </div>
+        </Stat>
+      </div>
+
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Filter opportunities">
+          {FILTERS.map((f) => {
+            const n = sorted.filter((o) => passes(o, f.k)).length
+            const on = filter === f.k
+            if (!n && f.k !== 'all' && !on) return null
+            return (
+              <button
+                key={f.k}
+                role="radio"
+                aria-checked={on}
+                onClick={() => setFilter(f.k)}
+                className={cn(
+                  'inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13.5px] font-medium transition-colors',
+                  on ? 'border-hot bg-hot text-white' : 'border-line bg-white text-ink hover:border-[var(--brand-primary-border)]',
+                )}
+              >
+                {on && f.k === 'go' && <span className="size-1.5 rounded-full bg-white" aria-hidden="true" />}
+                {f.label}
+                <span className={cn('text-[12px] tabular-nums', on ? 'text-white/85' : 'text-muted')}>{n}</span>
+              </button>
+            )
+          })}
+        </div>
+        <label className="flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white pr-2 pl-3 text-[13px] text-muted">
+          Sort by
+          <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="bg-transparent font-semibold text-ink outline-none">
+            {SORTS.map((s) => (
+              <option key={s.k} value={s.k}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.55fr)]">
+        <div className="min-w-0">
+          <div className="mb-3 flex items-center justify-between gap-2 text-[13px]">
+            <span className="text-muted">{plural(shown.length, 'opportunity', 'opportunities')}</span>
+            {moved > 0 && (
+              <Link to="/properties" className="inline-flex items-center gap-1 font-medium text-brand hover:underline">
+                {plural(moved, 'home')} in Revive projects <ArrowRight className="size-3.5" />
+              </Link>
+            )}
+          </div>
+          {shown.length ? (
+            <ul className="@container flex flex-col gap-3">
+              {shown.map((o) => (
+                <OppRow key={o.id} o={o} onOpen={() => setOpenId(o.id)} active={hover === o.id} onHover={(on) => setHover(on ? o.id : null)} />
+              ))}
+            </ul>
+          ) : (
+            <p className="rounded-xl border border-dashed border-line px-5 py-6 text-[14px] text-muted">Nothing matches. Try another filter or search.</p>
+          )}
+        </div>
+
+        <div className="relative h-[420px] overflow-hidden rounded-xl border border-line shadow-card xl:sticky xl:top-6 xl:h-[calc(100dvh-var(--demo-h,0px)-48px)]">
+          <BaseMap
+            center={[AGENT.office.lat, AGENT.office.lng]}
+            zoom={11}
+            bounds={pinned.map((o) => [o.property.lat, o.property.lng] as [number, number])}
+            wheelZoom
+          >
+            <Fit pts={pinned.map((o) => [o.property.lat, o.property.lng] as [number, number])} k={`${filter}|${needle}`} />
+            {pinned.map((o) => (
+              <Marker
+                key={o.id}
+                position={[o.property.lat, o.property.lng]}
+                ref={(m) => {
+                  if (m) markers.current.set(o.id, { m, z: pinZ(o) })
+                  else markers.current.delete(o.id)
+                }}
+                icon={iconFor(o)}
+                zIndexOffset={pinZ(o)}
+                title={o.person?.name ?? o.property.address}
+                eventHandlers={{
+                  click: () => setOpenId(o.id),
+                  mouseover: () => {
+                    setHover(o.id)
+                    document.getElementById(`opp-${o.id}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                  },
+                  mouseout: () => setHover(null),
+                }}
+              />
+            ))}
+          </BaseMap>
+          <div className="pointer-events-none absolute inset-x-3 bottom-6 z-[500] flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-white/95 px-3 py-2 text-[12px] text-ink-2 shadow-card">
+            <span className="flex items-center gap-1.5">
+              <span className="size-3 rounded-[3px] bg-hot" /> Call this week
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-5 rounded-full bg-navy" /> This month
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-3 rounded-full border-2 border-[#9aa3b4] bg-white" /> Keep warm
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <OppDrawer o={open} onClose={() => setOpenId(null)} />
+    </div>
   )
 }
