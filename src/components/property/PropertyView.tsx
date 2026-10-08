@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { SourceTag, StageTag } from '@/components/opportunity/Tags'
 import { AiLink } from '@/components/ai/AiLink'
 import { LeadActivity } from './LeadActivity'
+import { NeighborhoodComps } from './NeighborhoodComps'
 import { RenoVisionGallery } from './RenoVisionGallery'
 import { Button } from '@/components/ui/button'
 import { properties } from '@/data/properties'
@@ -274,11 +275,6 @@ function Report({ m, compact }: { m: Model; compact: boolean }) {
 
       {m.opp && <LeadActivity o={m.opp} />}
 
-      <TopOptions m={m} />
-
-      <RenoVisionGallery propertyId={m.id} empty={`See ${m.address} renovated: pick photos and a style, and RenoVision renders the after.`} />
-
-      {/* what used to be the Overview tab: value, why now, and recent activity follow */}
       <section>
         <h2 className="text-[15px] font-semibold text-ink">Value</h2>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
@@ -288,6 +284,12 @@ function Report({ m, compact }: { m: Model; compact: boolean }) {
         </div>
         {m.sources.length > 0 && <p className="mt-2 text-[12px] text-muted">Sources: {m.sources.map((x) => `${x.name} ${money(x.value)}`).join(' · ')}</p>}
       </section>
+
+      <TopOptions m={m} />
+
+      <RenoVisionGallery propertyId={m.id} address={m.address} />
+
+
 
       {m.opp && m.opp.reasons.length > 0 && (
         <section>
@@ -331,21 +333,7 @@ function Report({ m, compact }: { m: Model; compact: boolean }) {
         </section>
       )}
 
-      {m.comps.length > 0 && (
-        <section>
-          <h2 className="text-[15px] font-semibold text-ink">Recent sales nearby</h2>
-          <ul className="mt-2 divide-y divide-line rounded-xl border border-line text-sm">
-            {m.comps.map((c) => (
-              <li key={c.address} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
-                <span className="text-ink">{c.address}</span>
-                <span className="text-muted tabular-nums">
-                  {money(c.price)} · ${c.ppsf}/sqft · {c.distMi} mi · {c.monthsAgo} mo ago
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <NeighborhoodComps id={m.id} address={m.address} city={m.city} valueNow={m.valueNow} sqft={m.sqft} comps={m.comps} />
     </div>
   )
 }

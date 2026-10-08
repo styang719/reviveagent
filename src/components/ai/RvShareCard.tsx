@@ -27,7 +27,7 @@ function cover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, 
   ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, x, y, w, h)
 }
 
-async function download(before: string, after: string, title: string, sub: string) {
+export async function downloadBeforeAfter(before: string, after: string, title: string, sub: string) {
   const c = document.createElement('canvas')
   c.width = W
   c.height = H
@@ -127,7 +127,7 @@ export function RvShareCard({ id }: { id: string }) {
           onClick={async () => {
             setBusy(true)
             try {
-              await download(p.before, p.after, title, d.style)
+              await downloadBeforeAfter(p.before, p.after, title, d.style)
               toast.success('Before & after downloaded', { description: 'Ready to text, email or post.' })
             } catch (e) {
               const code = (e as { code?: string }).code
