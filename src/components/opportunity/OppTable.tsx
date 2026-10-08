@@ -1,6 +1,6 @@
 import { Mail, MailCheck } from 'lucide-react'
 import { useState } from 'react'
-import { img, OutreachStrip, Ring, ScoreCell, TagPill, tagsOf } from '@/components/home/TopOpportunities'
+import { img, LeadStrip, OutreachStrip, Ring, ScoreCell, TagPill, tagsOf, useLeadSignal, useNeedsAttention } from '@/components/home/TopOpportunities'
 import { firstName, gain, money } from '@/lib/format'
 import type { Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
@@ -11,6 +11,8 @@ import { MessageDialog } from './MessageDialog'
 // with the Revive upside, what Revive spotted, and a message button. The bar on the left says how soon.
 
 // narrow (the list is half the page): the score is just its ring; wide: ring and label
+const SOURCE: Record<string, string> = { listings: 'MLS listing', contacts: 'Contact', leadform: 'Lead form', revive: 'Revive lead', search: 'Report' }
+
 const COLS = 'grid grid-cols-[minmax(0,1fr)_64px_76px_118px_40px] @[720px]:grid-cols-[minmax(0,1.7fr)_minmax(124px,1fr)_minmax(80px,0.7fr)_minmax(124px,1fr)_40px] items-center gap-x-3'
 
 /** The score column when space is tight: the ring alone, or for a listing the Listed badge and days on market. */
@@ -38,9 +40,19 @@ function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => voi
   const out = useDemo((s) => s.outreach[o.id])
   const [msg, setMsg] = useState(false)
   const waiting = !!out?.reply && !out.answeredAt
+  const signal = useLeadSignal(o)
+  const attention = useNeedsAttention(o)
   const tags = tagsOf(o)
+  const listing = o.property.source === 'listings'
   return (
-    <li id={`opp-${o.id}`} className={cn('relative border-b border-line-soft', active && 'bg-[var(--brand-primary-subtle)]/60')}>
+    <li
+      id={`opp-${o.id}`}
+      className={cn(
+        'relative border-b border-line-soft',
+        attention && 'my-2 rounded-xl border border-[var(--brand-primary-border)] bg-white shadow-card ring-1 ring-[var(--brand-primary-border)]',
+        active && 'bg-[var(--brand-primary-subtle)]/60',
+      )}
+    >
       <span className={cn('absolute top-2 bottom-2 left-0 w-[3px] rounded-full', BAR[o.urgency] ?? 'bg-line')} aria-hidden="true" />
       <div
         role="button"
@@ -55,8 +67,14 @@ function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => voi
         <div className="flex min-w-0 items-center gap-3">
           <img src={img(o)} alt="" className="size-11 shrink-0 rounded-lg object-cover" />
           <div className="min-w-0">
-            <p className="truncate text-[14.5px] font-semibold text-ink" title={o.property.address}>
-              {o.person?.name ?? o.property.address}
+            <p className="flex min-w-0 items-center gap-1.5">
+              {/* your listing reads as the home; a contact reads as the person */}
+              <span className="truncate text-[14.5px] font-semibold text-ink" title={listing ? o.person?.name : o.property.address}>
+                {listing ? o.property.address : (o.person?.name ?? o.property.address)}
+              </span>
+              <span className={cn('shrink-0 rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold whitespace-nowrap', listing ? 'bg-[var(--brand-primary-subtle)] text-brand' : 'bg-head text-ink-2')}>
+                {SOURCE[o.property.source]}
+              </span>
             </p>
             <p className={cn('line-clamp-2 text-[12.5px] leading-[1.35] font-medium', WHY[o.urgency] ?? 'text-muted')}>{o.reasons[0]}</p>
           </div>
@@ -95,10 +113,16 @@ function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => voi
           <span />
         )}
       </div>
-      {out && (
+      {out ? (
         <div className="grid pr-2 pb-3 pl-4">
           <OutreachStrip o={o} out={out} onReply={() => setMsg(true)} />
         </div>
+      ) : (
+        signal && (
+          <div className="grid pr-2 pb-3 pl-4">
+            <LeadStrip o={o} text={signal} onMessage={() => setMsg(true)} />
+          </div>
+        )
       )}
       {o.person && msg && <MessageDialog o={o} open={msg} onOpenChange={setMsg} />}
     </li>
@@ -109,7 +133,7 @@ export function OppTable({ opps, onOpen, hover, onHover }: { opps: Opportunity[]
   return (
     <div className="@container">
       <div className={cn(COLS, 'sticky top-0 z-10 rounded-xl border border-line bg-head py-2.5 pr-2 pl-4 text-[11.5px] font-semibold tracking-wide text-muted uppercase')}>
-        <span>Contact</span>
+        <span>Home</span>
         <span>
           <span className="@[720px]:hidden">Score</span>
           <span className="hidden @[720px]:inline">Selling score</span>

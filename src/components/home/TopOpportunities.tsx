@@ -301,6 +301,64 @@ function Steps({ out }: { out: Outreach }) {
  * What happened after the agent emailed: waiting, opened, a reply (with what Revive reads in it and the
  * next steps), or answered. Replaces crossing the card out: the to-do isn't done until there's an outcome.
  */
+/**
+ * Recent lead activity worth acting on today: the homeowner opened a shared report, or ran one on the
+ * agent's lead form and kept reading. Null when there's nothing new. Replies are handled by the outreach strip.
+ */
+export function useLeadSignal(o: Opportunity): string | null {
+  return leadSignal(o, useDemo((s) => s.activity[o.id]))
+}
+export function leadSignal(o: Opportunity, logged?: string[]): string | null {
+  const first = o.person ? firstName(o.person.name) : 'The homeowner'
+  const opened = (logged ?? []).find((l) => /opened the report/.test(l))
+  if (opened) return `${first} opened the report you shared · ${opened.split(' · ').pop()}`
+  const f = o.property.facts
+  const viewed = o.property.activity.find((l) => /^Viewed/.test(l))?.split(' · ')[0]
+  if (f.leadFormDaysAgo !== undefined && f.leadFormDaysAgo <= 14)
+    return `${first} ran a Revive AI report on your lead form ${f.leadFormDaysAgo === 0 ? 'today' : `${f.leadFormDaysAgo} days ago`}${viewed ? ` and ${viewed.charAt(0).toLowerCase()}${viewed.slice(1)}` : ''}`
+  if (f.reportOpenedDaysAgo !== undefined && f.reportOpenedDaysAgo <= 14) return `${first} opened your report ${f.reportOpenedDaysAgo} days ago`
+  return null
+}
+
+/** Same test without hooks, for sorting a list: a reply waiting, or fresh lead activity not yet followed up. */
+export const needsAttention = (o: Opportunity, out: Outreach | undefined, logged?: string[]) => (!!out?.reply && !out.answeredAt) || (!!leadSignal(o, logged) && !out)
+
+/** True when a card should stand out: a reply waiting on the agent, or fresh lead activity. */
+export function useNeedsAttention(o: Opportunity) {
+  const out = useDemo((s) => s.outreach[o.id])
+  const signal = useLeadSignal(o)
+  return (!!out?.reply && !out.answeredAt) || (!!signal && !out)
+}
+
+/** The lead-activity version of the reply strip: what they did, and the two ways to follow up. */
+export function LeadStrip({ o, text, onMessage }: { o: Opportunity; text: string; onMessage: () => void }) {
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation()
+  const first = o.person ? firstName(o.person.name) : 'them'
+  return (
+    <div onClick={stop} onKeyDown={stop} className="col-span-full cursor-default rounded-xl border border-[var(--brand-primary-border-subtle)] bg-[var(--brand-primary-subtle)] p-3.5">
+      <p className="flex flex-wrap items-center gap-2 text-[13.5px] font-semibold text-ink">
+        <Eye className="size-4 text-brand" /> Lead activity
+        <span className="rounded-md bg-ok-soft px-1.5 py-0.5 text-[11px] font-semibold text-[var(--green)]">Engaged</span>
+      </p>
+      <p className="mt-1.5 text-[13.5px] leading-5 text-ink-2">{text}</p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {o.person && (
+          <Button size="sm" onClick={onMessage}>
+            <Mail /> Email {first}
+          </Button>
+        )}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => toast.success(`Call request sent to ${ADVISOR.first} at Revive`, { description: `He’ll reach out within one business day to walk through ${o.property.address} with you.` })}
+        >
+          Book a call with Revive
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export function OutreachStrip({ o, out, onReply }: { o: Opportunity; out: Outreach; onReply: () => void }) {
   const now = useNow(20_000)
   const toggle = useDemo((s) => s.toggleChecked)
@@ -376,6 +434,8 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
   const [msg, setMsg] = useState(false)
   const out = useDemo((s) => s.outreach[o.id])
   const waiting = !!out?.reply && !out.answeredAt
+  const signal = useLeadSignal(o)
+  const attention = useNeedsAttention(o)
   return (
     <li id={`opp-${o.id}`}>
       <div
@@ -389,7 +449,7 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
         className={cn(
           'group grid cursor-pointer grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md',
           '@[600px]:grid-cols-[auto_56px_minmax(0,1.35fr)_minmax(124px,0.95fr)_minmax(76px,0.7fr)_minmax(118px,1fr)_44px] @[600px]:gap-x-3.5',
-          waiting && 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]',
+          attention && 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]',
           done && 'bg-head shadow-none',
           active && 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]',
         )}
@@ -447,10 +507,16 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
             {tagsOf(o).length ? tagsOf(o).map((t) => <TagPill key={t} tag={t} />) : <span className="text-[13px] text-muted">{o.product ?? '—'}</span>}
           </div>
         </div>
-        {out && (
+        {out ? (
           <div className="col-span-full @[600px]:order-last">
             <OutreachStrip o={o} out={out} onReply={() => setMsg(true)} />
           </div>
+        ) : (
+          signal && (
+            <div className="col-span-full @[600px]:order-last">
+              <LeadStrip o={o} text={signal} onMessage={() => setMsg(true)} />
+            </div>
+          )
         )}
       </div>
       {o.person && msg && <MessageDialog o={o} open={msg} onOpenChange={setMsg} />}
@@ -467,7 +533,8 @@ export function TopOpportunities({ opps }: { opps: Opportunity[] }) {
   const replied = opps.filter((o) => outreach[o.id]?.reply && !outreach[o.id]?.answeredAt).length
   const open = opps.find((o) => o.id === openId) ?? null
   // a reply waiting on the agent comes first; everything else keeps its rank
-  const rows = [...opps].sort((a, b) => Number(!!(outreach[b.id]?.reply && !outreach[b.id]?.answeredAt)) - Number(!!(outreach[a.id]?.reply && !outreach[a.id]?.answeredAt)))
+  const activity = useDemo((s) => s.activity)
+  const rows = [...opps].sort((a, b) => Number(needsAttention(b, outreach[b.id], activity[b.id])) - Number(needsAttention(a, outreach[a.id], activity[a.id])))
 
   return (
     <section aria-labelledby="top-opps">

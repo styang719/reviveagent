@@ -243,7 +243,7 @@ export default function Properties() {
 
       <Section
         icon={Hammer}
-        title="Revive projects"
+        title="Projects with Revive"
         hint="From review with Revive to construction to listing. Opens the project."
         count={projects.filter((p) => match(p.address, p.city, p.product)).length}
         empty={{ text: 'No projects yet. Start one from any report.', cta: 'Start a project', to: '/ai?flow=project' }}

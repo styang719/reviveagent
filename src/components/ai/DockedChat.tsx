@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDemo } from '@/store/demo'
 import { isAbout, useUi } from '@/store/ui'
 import { startHome, startProject, startReport } from '@/lib/flowEngine'
+import { STARTERS } from '@/lib/ai'
 import { Composer, Thread, useAsk, useHereCtx } from './Chat'
 
 // The conversation follows the agent: when Revive AI opens a result page, the chat docks in the
@@ -80,7 +81,8 @@ export function DockedChat() {
   }, [pendingNav, setPendingNav, setOpen, navigate])
 
   // on a property page the dock is always there, ready to answer about that home
-  if (handoff !== 'dock' || (!hasChat && !here) || pathname === '/ai') return null
+  // Revive AI is always one click away (its own page aside); on a home's page it's about that home
+  if (handoff !== 'dock' || pathname === '/ai') return null
   const starters = here
     ? [
         `What could ${here.label} sell for after a renovation?`,
@@ -89,32 +91,32 @@ export function DockedChat() {
         here.ctx.person ? `Draft a note to ${here.ctx.person.name.split(' ')[0]} about this home` : 'Draft a note to the homeowner',
         'Start a project on this home',
       ]
-    : []
+    : STARTERS
 
   if (!open)
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed right-4 bottom-4 z-40 flex items-center gap-2 rounded-full bg-white py-2 pr-4 pl-2 text-sm font-medium text-ink shadow-xl ring-1 ring-line hover:ring-[var(--brand-agent-border)]"
+        className="fixed right-4 bottom-4 z-[60] flex items-center gap-2 rounded-full bg-white py-2 pr-4 pl-2 text-sm font-medium text-ink shadow-xl ring-1 ring-line hover:ring-[var(--brand-agent-border)]"
       >
         <span className="rv-ai-tile grid size-8 place-items-center rounded-full text-white">
           <Sparkles className="size-4" />
         </span>
-        <span className="max-w-64 truncate">{hasChat ? `Revive AI · ${title ?? 'continue the conversation'}` : `Ask Revive about ${here?.label}`}</span>
+        <span className="max-w-64 truncate">{hasChat ? `Revive AI · ${title ?? 'continue the conversation'}` : (here ? `Ask Revive about ${here.label}` : 'Ask Revive AI')}</span>
       </button>
     )
 
   return (
     <section
       aria-label="Revive AI conversation"
-      className="fixed right-4 bottom-4 z-40 flex h-[min(620px,calc(100dvh-120px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-2xl"
+      className="fixed right-4 bottom-4 z-[60] flex h-[min(620px,calc(100dvh-120px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-2xl"
     >
       <header className="flex items-center justify-between gap-2 border-b border-line bg-[var(--brand-agent-subtle)]/50 px-4 py-2.5">
         <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-ink">
           <span className="rv-ai-tile grid size-6 shrink-0 place-items-center rounded-md text-white">
             <Sparkles className="size-3.5" />
           </span>
-          <span className="truncate">{hasChat ? (title ?? 'Revive AI') : `Revive AI · ${here?.label}`}</span>
+          <span className="truncate">{hasChat ? (title ?? 'Revive AI') : here ? `Revive AI · ${here.label}` : 'Revive AI'}</span>
         </p>
         <div className="flex items-center gap-1">
           {here && hasChat && (
@@ -143,8 +145,10 @@ export function DockedChat() {
           <Thread onAsk={ask} thinking={thinking} compact />
         ) : (
           <div>
-            <p className="text-[14px] font-semibold text-ink">Ask anything about {here?.label}</p>
-            <p className="mt-1 text-[12.5px] text-ink-2">Its value, the Revive scenarios, ADU room, a note to the owner, or start a project.</p>
+            <p className="text-[14px] font-semibold text-ink">{here ? `Ask anything about ${here.label}` : 'Ask Revive anything'}</p>
+            <p className="mt-1 text-[12.5px] text-ink-2">
+              {here ? 'Its value, the Revive scenarios, ADU room, a note to the owner, or start a project.' : 'Any home’s value and upside, who in your book to call, or a note to a client.'}
+            </p>
             <div className="mt-4 flex flex-col gap-2">
               {starters.map((x) => (
                 <button

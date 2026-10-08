@@ -3,7 +3,7 @@ import type L from 'leaflet'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Marker, useMap } from 'react-leaflet'
 import { Link, useSearchParams } from 'react-router-dom'
-import { OppDrawer } from '@/components/home/TopOpportunities'
+import { needsAttention, OppDrawer } from '@/components/home/TopOpportunities'
 import { OppTable } from '@/components/opportunity/OppTable'
 import { BaseMap, TILE_BOUNDS } from '@/components/map/BaseMap'
 import { pinIcon, pinZ } from '@/components/map/pins'
@@ -23,10 +23,11 @@ import { useUi } from '@/store/ui'
 const COMMISSION = 0.025 // listing side
 const LIKELY = 80
 
-type Filter = 'all' | 'go' | 'seller' | 'reno' | 'adu' | 'build'
+type Filter = 'all' | 'go' | 'listings' | 'seller' | 'reno' | 'adu' | 'build'
 const FILTERS: { k: Filter; label: string }[] = [
   { k: 'all', label: 'All' },
   { k: 'go', label: 'Worth a conversation' },
+  { k: 'listings', label: 'MLS listings' },
   { k: 'seller', label: 'Likely seller' },
   { k: 'reno', label: 'Renovation' },
   { k: 'adu', label: 'ADU room' },
@@ -38,6 +39,7 @@ const worth = (o: Opportunity) => o.urgency === 'now' || o.urgency === 'soon'
 const passes = (o: Opportunity, f: Filter) =>
   f === 'all' ||
   (f === 'go' && worth(o)) ||
+  (f === 'listings' && o.property.source === 'listings') ||
   (f === 'seller' && (o.person?.sellScore ?? 0) >= LIKELY) ||
   (f === 'reno' && o.tags.includes('Renovation')) ||
   (f === 'adu' && o.tags.includes('ADU room')) ||
@@ -93,6 +95,8 @@ const cta = 'mt-auto self-start pt-3'
 export default function Opportunities() {
   const all = useOpportunities()
   const projects = useDemo((s) => s.projects)
+  const outreach = useDemo((s) => s.outreach)
+  const activity = useDemo((s) => s.activity)
   const openCrm = useUi((s) => s.openCrm)
   const [params] = useSearchParams()
   const [filter, setFilter] = useState<Filter>(() => (FILTERS.some((f) => f.k === params.get('filter')) ? (params.get('filter') as Filter) : 'go'))
@@ -139,8 +143,11 @@ export default function Opportunities() {
 
   const needle = q.trim().toLowerCase()
   const searched = book.filter((o) => !needle || o.property.address.toLowerCase().includes(needle) || o.person?.name.toLowerCase().includes(needle))
+  // recommended: anything that needs the agent today (a reply, fresh lead activity) comes first
   const sorted = [...searched].sort((a, b) =>
-    sort === 'score' ? (b.person?.sellScore ?? -1) - (a.person?.sellScore ?? -1) : sort === 'value' ? b.property.valueNow - a.property.valueNow : sort === 'upside' ? b.gain - a.gain : 0,
+    sort === 'recommended'
+      ? Number(needsAttention(b, outreach[b.id], activity[b.id])) - Number(needsAttention(a, outreach[a.id], activity[a.id]))
+      : sort === 'score' ? (b.person?.sellScore ?? -1) - (a.person?.sellScore ?? -1) : sort === 'value' ? b.property.valueNow - a.property.valueNow : sort === 'upside' ? b.gain - a.gain : 0,
   )
   const shown = sorted.filter((o) => passes(o, filter))
   const open = book.find((o) => o.id === openId) ?? null
@@ -287,13 +294,13 @@ export default function Opportunities() {
         </label>
       </div>
 
-      <div className="mt-5 grid gap-5 xl:min-h-0 xl:flex-1 xl:grid-cols-2">
+      <div className="mt-5 grid gap-5 xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <div className="min-w-0 xl:flex xl:min-h-0 xl:flex-col">
           <div className="mb-3 flex items-center justify-between gap-2 text-[13px]">
             <span className="text-muted">{plural(shown.length, 'opportunity', 'opportunities')}</span>
             {moved > 0 && (
               <Link to="/properties" className="inline-flex items-center gap-1 font-medium text-brand hover:underline">
-                {plural(moved, 'home')} in Revive projects <ArrowRight className="size-3.5" />
+                {plural(moved, 'home')} in projects with Revive <ArrowRight className="size-3.5" />
               </Link>
             )}
           </div>
@@ -306,7 +313,7 @@ export default function Opportunities() {
           </div>
         </div>
 
-        <div className="relative h-[420px] overflow-hidden rounded-xl border border-line shadow-card xl:h-full">
+        <div className="relative isolate h-[420px] overflow-hidden rounded-xl border border-line shadow-card xl:h-full">
           <BaseMap
             center={[AGENT.office.lat, AGENT.office.lng]}
             zoom={11}

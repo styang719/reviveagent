@@ -35,7 +35,7 @@ export function StatCards({ tier, opps }: { tier: Tier; opps: Opportunity[] }) {
       </Card>
       <Link to="/projects" className="group rounded-xl">
         <Card className="h-full p-5 transition-shadow group-hover:shadow-md">
-          <p className="text-[13px] text-muted">Revive projects</p>
+          <p className="text-[13px] text-muted">Projects with Revive</p>
           <p className={cn('mt-1 text-[28px] leading-9 font-semibold tabular-nums', projects.length ? 'text-ink' : 'text-faint')}>
             {projects.length} <span className="text-base font-medium text-muted">in progress</span>
           </p>
