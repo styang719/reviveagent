@@ -1,4 +1,3 @@
-import reno from '@/assets/cases/case-2.jpg'
 import { ArrowRight, ArrowUp, Copy, MapPin } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -10,7 +9,7 @@ import { usePropertyModel } from '@/components/property/PropertyView'
 import { properties } from '@/data/properties'
 import { answer, runAiPath, type Block, type ChatMessage, type HereCtx } from '@/lib/ai'
 import { photoUrl } from '@/lib/assets'
-import { flowInput, startProject, startReport } from '@/lib/flowEngine'
+import { flowInput, startProject, startReport, rvHome, startRenovision } from '@/lib/flowEngine'
 import { suggestAddresses } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
 import { useConnections, useIsProperty, useOpportunities } from '@/lib/opportunities'
@@ -158,21 +157,6 @@ function Blocks({ blocks, onAsk, answered }: { blocks: Block[]; onAsk: (q: strin
   return (
     <div className="flex flex-col gap-3">
       {blocks.map((b, i) => {
-        if (b.kind === 'renovision')
-          return (
-            <div key={i} className="overflow-hidden rounded-xl border border-line bg-white">
-              <div className="grid grid-cols-2">
-                <span className="relative">
-                  <img src={photoUrl(b.before) ?? reno} alt={`${b.address} today`} className="aspect-[4/3] w-full object-cover" />
-                  <span className="absolute bottom-2 left-2 rounded-md bg-black/60 px-1.5 py-0.5 text-[11px] font-semibold text-white">Before</span>
-                </span>
-                <span className="relative">
-                  <img src={reno} alt={`${b.address} after a Revive refresh`} className="aspect-[4/3] w-full object-cover" />
-                  <span className="absolute bottom-2 left-2 rounded-md bg-[var(--brand-primary)] px-1.5 py-0.5 text-[11px] font-semibold text-white">After · RenoVision</span>
-                </span>
-              </div>
-            </div>
-          )
         if (b.kind === 'text') return <p key={i} className="text-[15px] leading-6 whitespace-pre-line text-ink">{b.text}</p>
         if (b.kind === 'property') return <PropertyBlock key={i} b={b} />
         if (b.kind === 'opps') return <OppsBlock key={i} ids={b.ids} />
@@ -247,6 +231,12 @@ export function useAsk() {
     const text = q.trim()
     if (!text || thinking) return
     if (flowInput(text)) return
+    // RenoVision, asked any way: start the guided flow (on a home's page, for that home)
+    if (/renovision|before (and|&) after|see (it|this home|the home) renovated/i.test(text)) {
+      startRenovision()
+      if (here?.known) rvHome(here.id)
+      return
+    }
     // on a property page, "start a project" or "generate the report" act on this home
     if (here && !STREET_IN.test(text)) {
       if (/\b(start|begin|create|submit|kick off)\b.*\bproject\b/i.test(text)) return startProject({ propertyId: here.id })

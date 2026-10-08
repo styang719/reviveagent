@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { SourceTag, StageTag } from '@/components/opportunity/Tags'
 import { AiLink } from '@/components/ai/AiLink'
 import { LeadActivity } from './LeadActivity'
+import { RenoVisionGallery } from './RenoVisionGallery'
 import { Button } from '@/components/ui/button'
 import { properties } from '@/data/properties'
 import type { Comp, ProjectState, Scenario } from '@/data/types'
@@ -168,7 +169,12 @@ export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab
       <div role="tabpanel">
         {tab === 'report' && <Report m={m} compact={compact} />}
         {tab === 'project' && <Project m={m} />}
-        {tab === 'marketing' && <Marketing m={m} />}
+        {tab === 'marketing' && (
+          <div className="flex flex-col gap-6">
+            <RenoVisionGallery propertyId={m.id} empty={`No designs for ${m.address} yet. See it renovated in the style you pick.`} />
+            <Marketing m={m} />
+          </div>
+        )}
       </div>
     </div>
   )

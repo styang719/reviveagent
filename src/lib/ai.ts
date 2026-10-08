@@ -30,7 +30,6 @@ export type Block =
   | { kind: 'draft'; to: string; personId: string; body: string }
   | { kind: 'connect'; need: 'crm' | 'mls' }
   | { kind: 'suggestions'; items: string[] }
-  | { kind: 'renovision'; address: string; before?: string } // before and after, rendered by RenoVision
   | { kind: 'flow'; step: FlowStep; refId?: string } // an interactive step in a guided flow
 
 export type FlowStep =
@@ -38,6 +37,11 @@ export type FlowStep =
   | 'report-photos'
   | 'report-questions'
   | 'home-intent'
+  | 'rv-source'
+  | 'rv-photos'
+  | 'rv-style'
+  | 'rv-progress'
+  | 'rv-ready'
   | 'report-progress'
   | 'report-ready'
   | 'project-property'
@@ -159,16 +163,6 @@ export function answer(q: string, ctx: Ctx): Block[] {
   const home = findProperty(q) ?? (named ? ctx.opps.find((o) => o.person?.id === named.id)?.property : undefined) ?? here?.property
   const wantsDraft = /\b(draft|write|note|email|text|message)\b/.test(t)
 
-  // "See 412 Oak Ave renovated with RenoVision"
-  if (/renovision|before and after|before & after|renovated look|transformed/.test(t)) {
-    const h = home ?? findProperty('412 Oak Ave')
-    const addr = h ? h.address : 'this home'
-    return [
-      { kind: 'text', text: `Here’s ${addr} after a Revive refresh, rendered by RenoVision from its listing photo. Share it with the homeowner so they can see the home transformed.` },
-      { kind: 'renovision', address: addr, before: h?.photo },
-      { kind: 'suggestions', items: [`What could ${addr} sell for after this?`, `Draft a note to the owner of ${addr} with the before and after`] },
-    ]
-  }
 
   // "Draft a note to Maya …"
   if (wantsDraft) {

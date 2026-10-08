@@ -6,7 +6,7 @@ import { allPhotoKeys, photoUrl } from './assets'
 // The conversation collects what Revive needs; the result is saved and lives on the
 // property's page (one page per home: Overview, Revive AI report, Project, Marketing).
 
-export type FlowKind = 'report' | 'project'
+export type FlowKind = 'report' | 'project' | 'renovision'
 export type Handoff = 'link' | 'panel' | 'dock'
 
 export const SELLING = ['Yes, in the next 6 months', 'Maybe in a year or two', 'No, they plan to stay', 'Not sure yet'] as const
@@ -111,6 +111,31 @@ export function draftFromAddress(text: string): ReportDraft {
     photos: mlsPhotos(text),
   }
 }
+
+/** RenoVision: redesign photos of a home in a chosen style. A home is optional; the photos are what matter. */
+export interface RenoVisionDraft {
+  propertyId?: string // a home on record or one the agent added; empty when they only uploaded photos
+  address?: string
+  city?: string
+  photos: string[] // offered: the home's listing photos, or none
+  picked?: string[]
+  style?: string
+}
+export interface RenoVisionDesign {
+  id: string
+  propertyId?: string
+  address?: string
+  style: string
+  pairs: { before: string; after: string }[]
+  createdAt: number
+}
+export const RV_STYLES = [
+  { name: 'Modern farmhouse', body: 'White board-and-batten, black accents, warm wood' },
+  { name: 'Contemporary', body: 'Clean lines, neutral palette, large windows' },
+  { name: 'California coastal', body: 'Light woods, soft blues, airy and bright' },
+  { name: 'Mid-century modern', body: 'Warm walnut, low profiles, bold accents' },
+  { name: 'Transitional', body: 'Classic shapes, updated finishes, broad appeal' },
+] as const
 
 /** "MLS photos" for the prototype: a few from the bundled photo set, the home's own first. */
 export function mlsPhotos(seed: string, own?: string): string[] {

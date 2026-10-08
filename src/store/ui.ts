@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { ChatMessage } from '@/lib/ai'
-import type { FlowKind, ProjectDraft, ReportDraft } from '@/lib/flows'
+import type { FlowKind, ProjectDraft, RenoVisionDraft, ReportDraft } from '@/lib/flows'
 
 // UI state shared across screens. Revive AI conversations (the active one and the history) and
 // the guided flow in progress are kept for the browser session, so a chat survives moving to a
@@ -13,6 +13,7 @@ export interface FlowState {
   awaiting?: 'address' // the composer's next message is an address
   report?: ReportDraft
   project?: ProjectDraft
+  rv?: RenoVisionDraft
   entry?: 'home' // started from the Home search: ask what the agent wants before assuming a report
   choices?: string[] // project-product: only these products (e.g. the two ways to sell)
 }
@@ -51,7 +52,7 @@ function titleOf(chat: ChatMessage[], flow: FlowState | null, prev?: string, abo
   const asked = chat.filter((m) => m.role === 'user' && m.text).map((m) => m.text!.trim())
   const first = asked[0] ?? 'New chat'
   const address = flow?.report?.address ?? flow?.project?.address ?? about ?? asked[1]
-  const kind = /^generate a revive ai report/i.test(first) ? 'Report' : /^start a revive project/i.test(first) ? 'Project' : null
+  const kind = /^generate a revive ai report/i.test(first) ? 'Report' : /^start a revive project/i.test(first) ? 'Project' : /^visualize a renovation/i.test(first) ? 'RenoVision' : null
   let title = kind && address ? `${kind} · ${address.split(',')[0]}` : first
   if (kind && !address && prev && prev !== first) title = prev // keep the specific name once it has one
   return title.length > 48 ? `${title.slice(0, 46).trimEnd()}…` : title
@@ -64,7 +65,7 @@ function saveActive(s: Pick<UiState, 'threads' | 'activeId' | 'chat' | 'flow' | 
   const prev = s.threads.find((t) => t.id === s.activeId)
   const changed = !prev || prev.chat.length !== s.chat.length
   const hereLabel = s.activeHere && s.here?.id === s.activeHere ? s.here.address : prev?.hereLabel
-  const draft = s.flow?.report ?? s.flow?.project
+  const draft = s.flow?.report ?? s.flow?.project ?? (s.flow?.rv?.address ? { propertyId: s.flow.rv.propertyId, address: s.flow.rv.address } : undefined)
   const aboutId = draft?.propertyId ?? prev?.aboutId
   const aboutLabel = draft?.address?.split(',')[0] || prev?.aboutLabel
   const title = titleOf(s.chat, s.flow, prev?.title, aboutLabel)

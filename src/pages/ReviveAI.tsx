@@ -5,7 +5,7 @@ import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
 import { PropertyView, usePropertyModel, type PropertyTab } from '@/components/property/PropertyView'
 import { Button } from '@/components/ui/button'
 import { STARTERS } from '@/lib/ai'
-import { startProject, startHome, startReport } from '@/lib/flowEngine'
+import { startProject, startHome, startRenovision, startReport } from '@/lib/flowEngine'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { threadHome, useUi, type ChatThread } from '@/store/ui'
@@ -18,7 +18,7 @@ const STARTER_CARDS = [
   { icon: FileText, label: 'Generate a Revive AI report', run: () => startReport() },
   { icon: Hammer, label: 'Start a Revive project', run: () => startProject() },
   { icon: Users, label: STARTERS[1] },
-  { icon: Sparkles, label: 'See 412 Oak Ave renovated with RenoVision' },
+  { icon: Sparkles, label: 'Visualize a renovation with RenoVision', run: () => startRenovision() },
 ]
 
 /** B · the finished report or project, open beside the conversation. */
@@ -181,7 +181,8 @@ export default function ReviveAI() {
     if (useUi.getState().chat.length) clearChat()
     const property = params.get('property') ?? undefined
     const address = params.get('address') ?? undefined
-    if (flow === 'home' && address) startHome(address)
+    if (flow === 'renovision') startRenovision()
+    else if (flow === 'home' && address) startHome(address)
     else if (flow === 'report') startReport({ propertyId: property, address })
     else if (flow === 'project') startProject({ propertyId: property })
     else if (q) ask(q)

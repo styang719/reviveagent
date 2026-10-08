@@ -2,7 +2,14 @@ import { properties } from '@/data/properties'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 import type { ChatMessage, FlowStep } from './ai'
-import { buildReport, draftFromAddress, matchProperty, reportIdFor, type CreatedProject, type ProjectDraft, type ReportDraft } from './flows'
+import { buildReport, draftFromAddress, matchProperty, mlsPhotos, reportIdFor, RV_STYLES, type CreatedProject, type ProjectDraft, type RenoVisionDesign, type RenoVisionDraft, type ReportDraft } from './flows'
+import { photoUrl } from './assets'
+import case1 from '@/assets/cases/case-1.jpg'
+import case2 from '@/assets/cases/case-2.jpg'
+import case3 from '@/assets/cases/case-3.jpg'
+import case4 from '@/assets/cases/case-4.jpg'
+import case5 from '@/assets/cases/case-5.jpg'
+import case6 from '@/assets/cases/case-6.jpg'
 
 // Drives the guided Revive AI conversations. Each step: freeze the step the agent just completed,
 // echo their answer as a message, then ask the next question (often as an interactive card).
@@ -253,6 +260,95 @@ export function submitProject() {
   }), 1800)
 }
 
+// ---------------- RenoVision: see a home redesigned ----------------
+// Pick a home (one on record, or type an address) or skip straight to photos; choose photos, choose a
+// style, generate. Designs for a home are saved on that home; designs from loose photos are saved to the
+// agent's library in Marketing center.
+
+const AFTERS = [case1, case2, case3, case4, case5, case6]
+
+function patchRv(patch: Partial<RenoVisionDraft>) {
+  const f = ui().flow
+  if (f?.rv) ui().setFlow({ ...f, rv: { ...f.rv, ...patch } })
+}
+
+export function startRenovision() {
+  ui().setPanel(null)
+  user('Visualize a renovation with RenoVision')
+  ui().setFlow({ kind: 'renovision', awaiting: 'address', rv: { photos: [] } })
+  ui().addChat(say('Let’s see it renovated. Which home is it? Pick one of yours, type an address, or skip and just use photos.', 'rv-source'))
+}
+
+export function rvHome(propertyId?: string, typed?: string) {
+  close('rv-source')
+  const known = propertyId ? properties.find((p) => p.id === propertyId) : typed ? matchProperty(typed) : undefined
+  const rep = propertyId ? demo().reports[propertyId] : undefined
+  const draft = !known && !rep && typed ? draftFromAddress(typed) : undefined
+  const id = known?.id ?? rep?.id ?? (draft ? reportIdFor(`${draft.address}, ${draft.city}`) : undefined)
+  const address = known?.address ?? rep?.address ?? draft?.address ?? typed ?? ''
+  const city = known?.city ?? rep?.city ?? draft?.city ?? ''
+  const photos = rep?.photos.length ? rep.photos : known ? mlsPhotos(known.address, known.photo) : (draft?.photos ?? [])
+  user(typed ?? `${address}, ${city}`)
+  ui().setFlow({ kind: 'renovision', rv: { propertyId: id, address, city, photos } })
+  ui().addChat(say(`I found photos of ${address}. Pick the ones to redesign, or add your own.`, 'rv-photos'))
+}
+
+export function rvPhotosOnly() {
+  close('rv-source')
+  user('Just use photos')
+  ui().setFlow({ kind: 'renovision', rv: { photos: [] } })
+  ui().addChat(say('Upload photos, or pick from ones you already have in Revive.', 'rv-photos'))
+}
+
+export function rvPhotos(picked: string[]) {
+  close('rv-photos')
+  patchRv({ picked })
+  user(`Use ${picked.length} photo${picked.length === 1 ? '' : 's'}`)
+  ui().addChat(say('Which design style?', 'rv-style'))
+}
+
+export function rvStyle(style: string) {
+  close('rv-style')
+  patchRv({ style })
+  user(style)
+  ui().addChat(say('Generating with RenoVision…', 'rv-progress'))
+  const tid = ui().activeId
+  setTimeout(
+    () =>
+      inThread(tid, () => {
+        close('rv-progress')
+        const d = ui().flow?.rv
+        if (!d?.picked?.length || !d.style) return
+        const k = RV_STYLES.findIndex((x) => x.name === d.style)
+        const design: RenoVisionDesign = {
+          id: `rv-${Date.now()}`,
+          propertyId: d.propertyId,
+          address: d.address,
+          style: d.style,
+          pairs: d.picked.map((before, i) => ({ before, after: AFTERS[(Math.max(0, k) + i) % AFTERS.length] })),
+          createdAt: Date.now(),
+        }
+        demo().addRenovision(design)
+        ui().setFlow(null)
+        ui().addChat(
+          say(
+            d.address ? `Here’s ${d.address} in ${d.style}. Saved to the home’s page under Marketing.` : `Here they are in ${d.style}. Saved to your RenoVision designs in Marketing center.`,
+            'rv-ready',
+            design.id,
+          ),
+        )
+      }),
+    3200,
+  )
+}
+
+/** Photos the agent already has in Revive: their listings and reports, for the photos-only path. */
+export function libraryPhotos(): string[] {
+  const own = Object.values(demo().reports).flatMap((r) => r.photos)
+  const listings = properties.filter((p) => p.source === 'listings' && p.photo).map((p) => photoUrl(p.photo)!)
+  return [...new Set([...own, ...listings, ...mlsPhotos('library')])].slice(0, 8)
+}
+
 // ---------------- Hand-off: where the result opens (three versions) ----------------
 
 function handOff(kind: 'report' | 'project', id: string) {
@@ -268,6 +364,10 @@ export function flowInput(text: string) {
   if (!f) return false
   if (f.kind === 'report' && f.awaiting === 'address') {
     reportAddress(text, false, f.entry)
+    return true
+  }
+  if (f.kind === 'renovision' && f.awaiting === 'address') {
+    rvHome(undefined, text)
     return true
   }
   if (f.kind === 'project' && f.awaiting === 'address') {

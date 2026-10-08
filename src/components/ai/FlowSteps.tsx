@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import type { FlowStep } from '@/lib/ai'
-import { answerQuestions, chooseIntent, chooseProduct, INTENTS, confirmDetails, confirmPhotos, projectDetails, projectProperty, startProject, submitProject } from '@/lib/flowEngine'
-import { GOALS, OCCUPANCY, PRODUCTS, PROJECT_STEPS, recommendProduct, SELLING, TIMELINES } from '@/lib/flows'
+import { answerQuestions, chooseIntent, libraryPhotos, rvHome, rvPhotos, rvPhotosOnly, rvStyle, chooseProduct, INTENTS, confirmDetails, confirmPhotos, projectDetails, projectProperty, startProject, submitProject } from '@/lib/flowEngine'
+import { GOALS, OCCUPANCY, PRODUCTS, RV_STYLES, PROJECT_STEPS, recommendProduct, SELLING, TIMELINES } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
 import { useOpportunities } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
@@ -132,6 +132,147 @@ function ReportPhotos() {
   )
 }
 
+/** RenoVision 1: which home. Homes the agent works on, or skip to photos; typing an address also works. */
+function RvSource() {
+  const opps = useOpportunities()
+  const reports = useDemo((s) => s.reports)
+  const homes = [
+    ...Object.values(reports).map((r) => ({ id: r.id, label: r.address })),
+    ...opps.filter((o) => o.property.photo).map((o) => ({ id: o.id, label: o.property.address })),
+  ].filter((h, i, a) => a.findIndex((x) => x.id === h.id) === i).slice(0, 5)
+  return (
+    <div className={card}>
+      <p className="text-[12px] font-medium text-muted">Your homes</p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {homes.map((h) => (
+          <button key={h.id} type="button" className={chip(false)} onClick={() => rvHome(h.id)}>
+            {h.label}
+          </button>
+        ))}
+      </div>
+      <p className="mt-3 text-[12px] text-muted">Or type any address below.</p>
+      <Button size="sm" variant="outline" className="mt-3" onClick={rvPhotosOnly}>
+        <ImagePlus /> Skip, just use photos
+      </Button>
+    </div>
+  )
+}
+
+/** RenoVision 2: which photos. The home's own, or (no home) photos already in Revive; uploads either way. */
+function RvPhotos() {
+  const rv = useUi((s) => s.flow?.rv)
+  const own = rv?.photos ?? NO_PHOTOS
+  const [list, setList] = useState(() => (own.length ? own : libraryPhotos()))
+  const [on, setOn] = useState<Set<string>>(() => new Set(own.slice(0, 2)))
+  const fileRef = useRef<HTMLInputElement>(null)
+  const add = (files: FileList | null) => {
+    for (const f of Array.from(files ?? []).slice(0, 6)) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const url = String(reader.result)
+        setList((l) => [url, ...l])
+        setOn((s) => new Set(s).add(url))
+      }
+      reader.readAsDataURL(f)
+    }
+  }
+  const chosen = list.filter((u) => on.has(u))
+  return (
+    <div className={card}>
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-line text-[12px] text-muted hover:border-[var(--brand-primary-border)] hover:text-ink"
+        >
+          <ImagePlus className="size-5" /> Upload
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => add(e.target.files)} />
+        {list.map((u, i) => {
+          const sel = on.has(u)
+          return (
+            <button
+              key={u.slice(-40) + i}
+              type="button"
+              aria-pressed={sel}
+              aria-label={`Photo ${i + 1}${sel ? ', selected' : ''}`}
+              onClick={() => setOn((s) => { const n = new Set(s); if (n.has(u)) n.delete(u); else n.add(u); return n })}
+              className={cn('relative aspect-square overflow-hidden rounded-lg ring-2 transition', sel ? 'ring-[var(--brand-primary)]' : 'ring-transparent')}
+            >
+              <img src={u} alt="" className="size-full object-cover" />
+              <span className={cn('absolute top-1 right-1 grid size-5 place-items-center rounded-full border-2 border-white', sel ? 'bg-[var(--brand-primary)] text-white' : 'bg-white/70')}>
+                {sel && <Check className="size-3" strokeWidth={3} />}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      <p className="mt-2 text-[12px] text-muted">{own.length ? `Listing photos of ${rv?.address}.` : 'Photos from your listings and reports.'} Pick up to 4.</p>
+      <Button size="sm" className="mt-3" disabled={!chosen.length || chosen.length > 4} onClick={() => rvPhotos(chosen)}>
+        Use {chosen.length} photo{chosen.length === 1 ? '' : 's'}
+      </Button>
+    </div>
+  )
+}
+
+/** RenoVision 3: the design style. One tap generates. */
+function RvStyle() {
+  return (
+    <div className={cn(card, 'grid gap-2 sm:grid-cols-2')}>
+      {RV_STYLES.map((x) => (
+        <button
+          key={x.name}
+          type="button"
+          onClick={() => rvStyle(x.name)}
+          className="rounded-lg border border-line p-3 text-left transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)]"
+        >
+          <span className="block text-sm font-semibold text-ink">{x.name}</span>
+          <span className="mt-0.5 block text-[12.5px] leading-5 text-muted">{x.body}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** RenoVision result: before and after for each photo, and where it's saved. */
+function RvReady({ id }: { id: string }) {
+  const d = useDemo((s) => s.renovisions[id])
+  if (!d) return null
+  return (
+    <div className="overflow-hidden rounded-xl border border-line bg-white">
+      <div className="flex flex-col gap-2 p-2">
+        {d.pairs.map((p, i) => (
+          <div key={i} className="grid grid-cols-2 gap-1 overflow-hidden rounded-lg">
+            <span className="relative">
+              <img src={p.before} alt="Before" className="aspect-[4/3] w-full object-cover" />
+              <span className="absolute bottom-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10.5px] font-semibold text-white">Before</span>
+            </span>
+            <span className="relative">
+              <img src={p.after} alt={`After, ${d.style}`} className="aspect-[4/3] w-full object-cover" />
+              <span className="absolute bottom-1.5 left-1.5 rounded bg-[var(--brand-primary)] px-1.5 py-0.5 text-[10.5px] font-semibold text-white">After · {d.style}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-wrap items-center gap-2 border-t border-line p-3">
+        {d.propertyId ? (
+          <Button size="sm" variant="outline" asChild>
+            <Link to={`/property/${d.propertyId}?tab=marketing`}>
+              Open {d.address} <ArrowRight />
+            </Link>
+          </Button>
+        ) : (
+          <Button size="sm" variant="outline" asChild>
+            <Link to="/marketing">
+              Open Marketing center <ArrowRight />
+            </Link>
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /** Home search: what the agent wants to do with this home. One tap moves on. */
 function HomeIntent() {
   return (
@@ -180,12 +321,13 @@ function ReportQuestions() {
 }
 
 function Progress({ steps, ms, answered }: { steps: string[]; ms: number; answered?: boolean }) {
-  const [n, setN] = useState(answered ? steps.length : 0)
+  let [n, setN] = useState(answered ? steps.length : 0) // eslint-disable-line prefer-const
   useEffect(() => {
     if (answered) return
     const t = setInterval(() => setN((x) => Math.min(steps.length, x + 1)), ms / steps.length)
     return () => clearInterval(t)
   }, [answered, ms, steps.length])
+  if (answered && n < steps.length) n = steps.length // finished while on screen: show it done
   return (
     <ul className={cn(card, 'flex flex-col gap-2')}>
       {steps.map((s, i) => (
@@ -440,6 +582,7 @@ function ProjectReady({ id }: { id: string }) {
 export function FlowStepView({ step, refId, answered }: { step: FlowStep; refId?: string; answered?: boolean }) {
   if (step === 'report-progress')
     return <Progress answered={answered} ms={3600} steps={['Pulling public records', 'Matching recent sales nearby', 'Estimating renovation scenarios', 'Writing your report']} />
+  if (step === 'rv-progress') return <Progress answered={answered} ms={3200} steps={['Reading the photos', 'Planning the layout and finishes', 'Rendering the design']} />
   if (step === 'project-progress') return <Progress answered={answered} ms={1800} steps={['Packaging property details and photos', 'Sending to Revive']} />
   if (step === 'report-ready' && refId) return <ReportReady id={refId} />
   if (step === 'project-ready' && refId) return <ProjectReady id={refId} />
@@ -448,6 +591,10 @@ export function FlowStepView({ step, refId, answered }: { step: FlowStep; refId?
   if (step === 'report-photos') return <ReportPhotos />
   if (step === 'report-questions') return <ReportQuestions />
   if (step === 'home-intent') return <HomeIntent />
+  if (step === 'rv-source') return <RvSource />
+  if (step === 'rv-photos') return <RvPhotos />
+  if (step === 'rv-style') return <RvStyle />
+  if (step === 'rv-ready' && refId) return <RvReady id={refId} />
   if (step === 'project-property') return <ProjectProperty />
   if (step === 'project-product') return <ProjectProduct />
   if (step === 'project-details') return <ProjectDetails />
