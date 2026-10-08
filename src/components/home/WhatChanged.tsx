@@ -1,4 +1,4 @@
-import { ArrowRight, Eye, FileText, Hammer, Send } from 'lucide-react'
+import { ArrowRight, Eye, FileText, Hammer, MessageCircleReply, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useNow } from '@/hooks/useNow'
 import { ago } from '@/lib/format'
@@ -7,8 +7,8 @@ import { useDemo, type NewsItem } from '@/store/demo'
 // What moved on the homes you work on since you last looked. Each update lives on its property
 // page; this only points there.
 
-const ICON: Record<NewsItem['kind'], typeof Eye> = { report: FileText, shared: Send, opened: Eye, project: Hammer }
-const TAB: Record<NewsItem['kind'], string> = { report: 'report', shared: 'report', opened: 'report', project: 'project' }
+const ICON: Record<NewsItem['kind'], typeof Eye> = { report: FileText, shared: Send, opened: Eye, project: Hammer, reply: MessageCircleReply }
+const TAB: Record<NewsItem['kind'], string> = { report: 'report', shared: 'report', opened: 'report', project: 'project', reply: 'report' }
 
 export function WhatChanged({ max = 4 }: { max?: number }) {
   const news = useDemo((s) => s.news)

@@ -1,5 +1,5 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { AlertTriangle, ArrowRight, Check, Hammer, HousePlus, Mail, SearchCheck, Signpost, X } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Check, CheckCheck, Eye, Hammer, HousePlus, Mail, MailCheck, Reply, SearchCheck, Signpost, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -9,10 +9,11 @@ import { useCta } from '@/components/opportunity/useCta'
 import { Button, buttonVariants } from '@/components/ui/button'
 import type { Source } from '@/data/types'
 import { photoUrl } from '@/lib/assets'
-import { firstName, gain, money } from '@/lib/format'
+import { ago, firstName, gain, money } from '@/lib/format'
+import { useNow } from '@/hooks/useNow'
 import { STAGE_LABEL, useIsProperty, useProgress, type Opportunity, type Tag } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
-import { useDemo } from '@/store/demo'
+import { useDemo, type Outreach } from '@/store/demo'
 
 // Home's weekly to-do: the top opportunities as a checklist of cards. Each card reads left to right
 // (home, where it came from, status, value, upside, priority); clicking it opens the details drawer
@@ -181,6 +182,7 @@ function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void 
   const isProperty = useIsProperty()
   const checked = useDemo((s) => s.checked)
   const toggle = useDemo((s) => s.toggleChecked)
+  const out = useDemo((s) => (o ? s.outreach[o.id] : undefined))
   return (
     <DialogPrimitive.Root open={!!o} onOpenChange={(v) => !v && onClose()}>
       <DialogPrimitive.Portal>
@@ -229,6 +231,27 @@ function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void 
                         Contact
                       </Link>
                     </div>
+                  )}
+
+                  {out && (
+                    <section>
+                      <h3 className="text-[14px] font-semibold text-ink">Email</h3>
+                      <ol className="mt-2 flex flex-col gap-2 text-[13px]">
+                        <li className="rounded-xl bg-head px-3.5 py-2.5">
+                          <span className="font-medium text-ink">You</span> <span className="text-muted">· “{out.subject}”</span>
+                        </li>
+                        {out.reply && (
+                          <li className="rounded-xl bg-[var(--brand-agent-subtle)] px-3.5 py-2.5 text-ink-2">
+                            <span className="font-medium text-ink">{o.person ? firstName(o.person.name) : 'Homeowner'}</span> · “{out.reply.text}”
+                          </li>
+                        )}
+                        {out.answeredAt && (
+                          <li className="rounded-xl bg-head px-3.5 py-2.5">
+                            <span className="font-medium text-ink">You</span> <span className="text-muted">· replied</span>
+                          </li>
+                        )}
+                      </ol>
+                    </section>
                   )}
 
                   <dl className="grid grid-cols-2 gap-3">
@@ -306,10 +329,105 @@ function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void 
   )
 }
 
+const INTENT: Record<NonNullable<Outreach['reply']>['intent'], { label: string; cls: string }> = {
+  interested: { label: 'Interested', cls: 'bg-ok-soft text-[var(--green)]' },
+  question: { label: 'Has a question', cls: 'bg-[var(--brand-primary-subtle)] text-brand' },
+  'not-now': { label: 'Not now', cls: 'bg-head text-ink-2' },
+}
+
+/** Sent → Opened → Replied, as three small steps. */
+function Steps({ out }: { out: Outreach }) {
+  const steps = [
+    ['Sent', true],
+    ['Opened', !!out.openedAt],
+    ['Replied', !!out.reply],
+  ] as const
+  return (
+    <span className="hidden items-center gap-1.5 text-[11.5px] sm:flex" aria-label="Email progress">
+      {steps.map(([label, on], i) => (
+        <span key={label} className="flex items-center gap-1.5">
+          {i > 0 && <span className={cn('h-px w-4', on ? 'bg-[var(--brand-primary)]' : 'bg-line')} />}
+          <span className={cn('size-1.5 rounded-full', on ? 'bg-[var(--brand-primary)]' : 'bg-line')} />
+          <span className={on ? 'font-medium text-ink-2' : 'text-faint'}>{label}</span>
+        </span>
+      ))}
+    </span>
+  )
+}
+
+/**
+ * What happened after the agent emailed: waiting, opened, a reply (with what Revive reads in it and the
+ * next steps), or answered. Replaces crossing the card out: the to-do isn't done until there's an outcome.
+ */
+function OutreachStrip({ o, out, onReply }: { o: Opportunity; out: Outreach; onReply: () => void }) {
+  const now = useNow(20_000)
+  const toggle = useDemo((s) => s.toggleChecked)
+  const answer = useDemo((s) => s.answerReply)
+  const done = !!useDemo((s) => s.checked[o.id])
+  const first = o.person ? firstName(o.person.name) : 'They'
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation()
+
+  if (out.reply && !out.answeredAt) {
+    const intent = INTENT[out.reply.intent]
+    return (
+      <div onClick={stop} onKeyDown={stop} className="col-span-full cursor-default rounded-xl border border-[var(--brand-agent-border-subtle,#e0caf2)] bg-[var(--brand-agent-subtle)] p-3.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <Reply className="size-4 text-[var(--brand-agent)]" />
+          <p className="text-[13.5px] font-semibold text-ink">
+            {first} replied <span className="font-normal text-muted">· {ago(out.reply.at, now)}</span>
+          </p>
+          <span className={cn('rounded-md px-1.5 py-0.5 text-[11px] font-semibold', intent.cls)}>{intent.label}</span>
+        </div>
+        <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-5 text-ink-2">“{out.reply.text}”</p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Button size="sm" onClick={onReply}>
+            <Reply /> Reply with Revive’s draft
+          </Button>
+          {out.reply.intent === 'not-now' ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                if (!done) toggle(o.id)
+                answer(o.id, `Reminder set: follow up with ${first} in March`)
+                toast.success(`We’ll remind you about ${first} in March`)
+              }}
+            >
+              Remind me in spring
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" asChild>
+              <AiLink to={`/ai?flow=project&property=${o.id}`}>Start a project</AiLink>
+            </Button>
+          )}
+        </div>
+      </div>
+    )
+  }
+  const [Icon, text, tone] = out.answeredAt
+    ? out.reply?.intent === 'not-now'
+      ? [CheckCheck, `${first} said not now · reminder set for March`, 'text-[var(--green)]']
+      : [CheckCheck, `You replied · ${ago(out.answeredAt, now)} · waiting on ${first}`, 'text-[var(--green)]']
+    : out.openedAt
+      ? [Eye, `${first} opened your email · ${ago(out.openedAt, now)}`, 'text-brand']
+      : [MailCheck, `Emailed · ${ago(out.sentAt, now)} · “${out.subject}”`, 'text-muted']
+  return (
+    <div className="col-span-full flex items-center justify-between gap-3 rounded-xl bg-head px-3 py-2">
+      <p className="flex min-w-0 items-center gap-2 text-[12.5px] text-ink-2">
+        <Icon className={cn('size-4 shrink-0', tone)} />
+        <span className="truncate">{text}</span>
+      </p>
+      {!out.answeredAt && <Steps out={out} />}
+    </div>
+  )
+}
+
 function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
   const done = !!useDemo((s) => s.checked[o.id])
   const toggle = useDemo((s) => s.toggleChecked)
   const [msg, setMsg] = useState(false)
+  const out = useDemo((s) => s.outreach[o.id])
+  const waiting = !!out?.reply && !out.answeredAt
   return (
     <li>
       <div
@@ -321,7 +439,8 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
         className={cn(
           'group grid cursor-pointer grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md',
           'lg:grid-cols-[auto_56px_minmax(0,1.35fr)_minmax(0,0.95fr)_minmax(0,0.7fr)_minmax(0,1fr)_44px] lg:gap-x-3.5',
-          done && 'opacity-55',
+          waiting && 'border-[var(--brand-agent-border)] ring-1 ring-[var(--brand-agent-border)]',
+          done && 'bg-head shadow-none',
         )}
       >
         <button
@@ -341,7 +460,7 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
         </button>
         <span className="size-14 overflow-hidden rounded-xl bg-line-soft">{img(o) && <img src={img(o)} alt="" className="size-full object-cover" />}</span>
         <div className="min-w-0">
-          <p className={cn('truncate text-[14.5px] font-semibold text-ink', done && 'line-through')}>{o.property.address}</p>
+          <p className="truncate text-[14.5px] font-semibold text-ink">{o.property.address}</p>
           <p className="truncate text-[13px] text-muted">{o.person?.name ?? o.property.city}</p>
           <div className="mt-1.5 flex items-center gap-1.5">
             <span className="rounded-md bg-head px-1.5 py-0.5 text-[11px] font-medium text-ink-2">{SOURCE[o.property.source]}</span>
@@ -358,9 +477,10 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
             onKeyDown={(e) => e.stopPropagation()}
             aria-label={`Message ${o.person.name}`}
             title={`Message ${firstName(o.person.name)}`}
-            className="grid size-11 place-items-center justify-self-end rounded-xl border border-line bg-white text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)] lg:order-last"
+            className="relative grid size-11 place-items-center justify-self-end rounded-xl border border-line bg-white text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)] lg:order-last"
           >
-            <Mail className="size-[18px]" />
+            {out ? <MailCheck className="size-[18px]" /> : <Mail className="size-[18px]" />}
+            {waiting && <span className="absolute -top-1 -right-1 size-3 rounded-full border-2 border-white bg-[var(--brand-agent)]" aria-label="New reply" />}
           </button>
         ) : (
           <span className="lg:order-last" />
@@ -376,6 +496,11 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
             {tagsOf(o).length ? tagsOf(o).map((t) => <TagPill key={t} tag={t} />) : <span className="text-[13px] text-muted">{o.product ?? '—'}</span>}
           </div>
         </div>
+        {out && (
+          <div className="col-span-full lg:order-last">
+            <OutreachStrip o={o} out={out} onReply={() => setMsg(true)} />
+          </div>
+        )}
       </div>
       {o.person && msg && <MessageDialog o={o} open={msg} onOpenChange={setMsg} />}
     </li>
@@ -385,8 +510,13 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
 export function TopOpportunities({ opps }: { opps: Opportunity[] }) {
   const checked = useDemo((s) => s.checked)
   const [openId, setOpenId] = useState<string | null>(null)
+  const outreach = useDemo((s) => s.outreach)
   const done = opps.filter((o) => checked[o.id]).length
+  const emailed = opps.filter((o) => outreach[o.id]).length
+  const replied = opps.filter((o) => outreach[o.id]?.reply && !outreach[o.id]?.answeredAt).length
   const open = opps.find((o) => o.id === openId) ?? null
+  // a reply waiting on the agent comes first; everything else keeps its rank
+  const rows = [...opps].sort((a, b) => Number(!!(outreach[b.id]?.reply && !outreach[b.id]?.answeredAt)) - Number(!!(outreach[a.id]?.reply && !outreach[a.id]?.answeredAt)))
 
   return (
     <section aria-labelledby="top-opps">
@@ -397,6 +527,13 @@ export function TopOpportunities({ opps }: { opps: Opportunity[] }) {
           </h2>
           <p className="mt-1 text-[13px] text-muted">
             {done} of {opps.length} done
+            {emailed > 0 && ` · ${emailed} emailed`}
+            {replied > 0 && (
+              <span className="font-semibold text-[var(--brand-agent)]">
+                {' '}
+                · {replied} {replied === 1 ? 'reply' : 'replies'} waiting
+              </span>
+            )}
           </p>
         </div>
         <Button variant="ghost" className="h-10 shrink-0 px-3 text-[14px] text-brand" asChild>
@@ -406,7 +543,7 @@ export function TopOpportunities({ opps }: { opps: Opportunity[] }) {
         </Button>
       </div>
       <ul className="flex flex-col gap-3">
-        {opps.map((o) => (
+        {rows.map((o) => (
           <OppRow key={o.id} o={o} onOpen={() => setOpenId(o.id)} />
         ))}
       </ul>

@@ -5,12 +5,30 @@ import type { CreatedProject, GeneratedReport, Handoff } from '@/lib/flows'
 
 // Demo state. Tier and the overrides below are the only state; every screen derives from data + this store.
 /** Something that happened to a home the agent works on. Recorded once; Home and Inbox only announce it. */
+/** An email the agent sent from a top-opportunity card, and what came back. */
+export interface Outreach {
+  subject: string
+  template: string // listing | listing-seller | adu | renovation
+  sentAt: number
+  openedAt?: number
+  reply?: { at: number; text: string; intent: 'interested' | 'question' | 'not-now' }
+  answeredAt?: number // the agent replied to their reply
+}
+
+// What the homeowner writes back in the demo, by template. Real replies would be read by Revive AI for intent.
+const REPLIES: Record<string, (first: string) => NonNullable<Outreach['reply']>> = {
+  listing: (a) => ({ at: 0, intent: 'interested', text: `Thanks ${a}. We were pretty discouraged after it came off the market. What would a relaunch plan look like, and would it cost us anything up front?` }),
+  'listing-seller': () => ({ at: 0, intent: 'question', text: 'Interesting. If Revive covers it until closing, how long would the work take? We’d want to be back on the market before the holidays.' }),
+  adu: () => ({ at: 0, intent: 'interested', text: 'We’ve actually talked about an ADU for my mom. Yes, please send the numbers for our lot.' }),
+  renovation: () => ({ at: 0, intent: 'not-now', text: 'Thanks for thinking of us! We’re not ready to sell yet. Maybe in the spring.' }),
+}
+
 export interface NewsItem {
   id: string
   propertyId: string
   address: string
   text: string
-  kind: 'report' | 'shared' | 'opened' | 'project'
+  kind: 'report' | 'shared' | 'opened' | 'project' | 'reply'
   at: number
 }
 
@@ -40,6 +58,10 @@ interface DemoState {
   toggleChecked: (id: string) => void
   /** an email sent from a template: logged on the home, and its to-do ticked off */
   logMessage: (id: string, line: string) => void
+  outreach: Record<string, Outreach>
+  /** send a template email; in the demo the homeowner opens it, then replies, a few seconds later */
+  sendOutreach: (p: { id: string; address: string; name: string; subject: string; template: string; agent: string }) => void
+  answerReply: (id: string, line: string) => void
   /** demo bar: a new agent with nothing connected, or with both MLS (license) and CRM connected */
   setNewAgent: (connected: boolean) => void
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
@@ -56,6 +78,7 @@ const initial = () => ({
   stageOverrides: {},
   claimed: {},
   checked: {} as Record<string, number>,
+  outreach: {} as Record<string, Outreach>,
   updated: {},
   activity: {},
   referralClockStart: Date.now(),
@@ -87,6 +110,30 @@ export const useDemo = create<DemoState>()(
       ...initial(),
       setTier: (tier) => set({ tier }),
       logMessage: (id, line) => set((s) => ({ activity: withActivity(s, id, line), checked: { ...s.checked, [id]: s.checked[id] ?? Date.now() } })),
+      sendOutreach: ({ id, address, name, subject, template, agent }) => {
+        const first = name.split(' ')[0]
+        set((s) => ({
+          outreach: { ...s.outreach, [id]: { subject, template, sentAt: Date.now() } },
+          activity: withActivity(s, id, `You emailed ${name}: “${subject}”`),
+        }))
+        const patch = (fn: (o: Outreach) => Partial<Outreach>, item?: NewsItem) =>
+          set((s) =>
+            s.outreach[id]
+              ? { outreach: { ...s.outreach, [id]: { ...s.outreach[id], ...fn(s.outreach[id]) } }, ...(item ? { news: [item, ...s.news] } : {}) }
+              : {},
+          )
+        setTimeout(() => patch(() => ({ openedAt: Date.now() }), news(id, address, 'opened', `${first} opened your email`)), 4000)
+        setTimeout(() => {
+          const r = (REPLIES[template] ?? REPLIES.renovation)(agent)
+          patch(() => ({ reply: { ...r, at: Date.now() } }), news(id, address, 'reply', `${first} replied to your email`))
+          set((s) => ({ activity: withActivity(s, id, `${first} replied: “${r.text.slice(0, 60)}…”`) }))
+        }, 11000)
+      },
+      answerReply: (id, line) =>
+        set((s) => ({
+          outreach: s.outreach[id] ? { ...s.outreach, [id]: { ...s.outreach[id], answeredAt: Date.now() } } : s.outreach,
+          activity: withActivity(s, id, line),
+        })),
       toggleChecked: (id) =>
         set((s) => {
           const checked = { ...s.checked }
@@ -155,6 +202,6 @@ export const useDemo = create<DemoState>()(
       connectLicense: (license) => set({ license }),
       reset: () => set((s) => ({ ...initial(), tier: s.tier, handoff: s.handoff })),
     }),
-    { name: 'revive-demo', version: 10, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, news: [], checked: {}, ...(s as object), handoff: 'dock' }) as unknown as DemoState },
+    { name: 'revive-demo', version: 10, storage: createJSONStorage(() => localStorage), migrate: (s) => ({ reports: {}, projects: {}, news: [], checked: {}, outreach: {}, ...(s as object), handoff: 'dock' }) as unknown as DemoState },
   ),
 )
