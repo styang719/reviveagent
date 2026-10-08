@@ -17,12 +17,14 @@ import { AiLink } from '@/components/ai/AiLink'
 
 const CRMS = ['Follow Up Boss', 'kvCORE', 'Lofty', 'BoomTown', 'Sierra Interactive', 'Real Geeks']
 const DRE = /^\d{8}$/
+export const IMPORT_MS = 5200 // how long pulling in a source takes in the demo (Home shows each step)
 
 /** License number → listings. Used in Get set up, and inline (no label or hint) on the Your listings panel. */
 export function LicenseForm({ autoFocus = false, inline = false }: { autoFocus?: boolean; inline?: boolean }) {
   const id = inline ? 'dre-inline' : 'dre'
   const connect = useDemo((s) => s.connectLicense)
   const openStep = useUi((s) => s.openStep)
+  const setImporting = useUi((s) => s.setImporting)
   const [value, setValue] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,12 +40,15 @@ export function LicenseForm({ autoFocus = false, inline = false }: { autoFocus?:
     if (!DRE.test(v)) return setError('A California DRE license number has 8 digits, like 02134589.')
     setError(null)
     setBusy(true)
+    // Your listings shows the import step by step, then the real insights
+    setImporting({ kind: 'mls', at: Date.now() })
     setTimeout(() => {
       connect(v)
       openStep(null)
       setBusy(false)
+      setImporting(null)
       toast.success('Found your listings', { description: '2 active listings on the MLS: 123 Main St and 250 Elm St.' })
-    }, 1200)
+    }, IMPORT_MS)
   }
   return (
     <form onSubmit={submit} className={inline ? undefined : 'mt-2.5'} noValidate>
@@ -105,6 +110,7 @@ export function CrmDialog() {
   const openCrm = useUi((s) => s.openCrm)
   const openStep = useUi((s) => s.openStep)
   const connect = useDemo((s) => s.connectCrm)
+  const setImporting = useUi((s) => s.setImporting)
   return (
     <Dialog open={pick !== null} onOpenChange={(o) => !o && openCrm(null)}>
       <DialogContent>
@@ -125,10 +131,14 @@ export function CrmDialog() {
               </Button>
               <Button
                 onClick={() => {
-                  connect()
                   openCrm(null)
                   openStep(null)
-                  toast.success(`${pick} connected`, { description: '12 contacts with an address. Revive checked every home.' })
+                  setImporting({ kind: 'crm', at: Date.now(), from: pick })
+                  setTimeout(() => {
+                    connect()
+                    setImporting(null)
+                    toast.success(`${pick} connected`, { description: '12 contacts with an address. Revive checked every home.' })
+                  }, IMPORT_MS)
                 }}
               >
                 Sign in and connect

@@ -76,6 +76,8 @@ interface UiState {
   pendingNav: string | null // C: page to open once the result is ready
   setPendingNav: (to: string | null) => void
   dockOpen: boolean // C: the chat docked on other pages is expanded
+  importing: { kind: 'mls' | 'crm'; at: number; from?: string } | null // a source being pulled in (Home shows the steps)
+  setImporting: (i: UiState['importing']) => void
   here: { id: string; address: string; city: string } | null // the property page the agent is on; Revive AI answers about it
   setHere: (h: UiState['here']) => void
   aiRequest: { path: string; n: number } | null // a CTA asked Revive AI to start something (/ai?q=… or ?flow=…); the dock picks it up
@@ -133,6 +135,8 @@ export const useUi = create<UiState>()(
       setPanel: (panel) => set({ panel }),
       pendingNav: null,
       setPendingNav: (pendingNav) => set({ pendingNav }),
+      importing: null,
+      setImporting: (importing) => set({ importing }),
       here: null,
       setHere: (here) => set({ here }),
       aiRequest: null,
