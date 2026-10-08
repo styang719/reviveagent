@@ -42,7 +42,12 @@ The demo bar has four scenarios: **New agent · 0 deals** (nothing connected), *
 - **Conversations**: every CTA that opens Revive AI with context (a Home to-do, Start a project on a property)
   starts a new conversation in the docked chat, without leaving the page; its expand button opens the full Revive
   AI page. The one exception is the Ask Revive search on Home: entering a question or an address there (or a
-  prompt chip under it) goes to the Revive AI page. Earlier ones are listed on the Revive AI page, ChatGPT style, named by
+  prompt chip under it) goes to the Revive AI page.
+- **Home search flow**: picking an address there doesn't assume a report. Revive AI confirms the home's details,
+  shows the photos it found listed online (select or add more), then asks "What can I help you with today?":
+  Sell the house (then Renovate to Sell or Sell 360), Flip the house (Flip 360), Refer my client to renovate to
+  stay (Renovate to Stay), or Generate a Revive AI report. A project goes on to timing, occupancy and review; a
+  report to its two questions. `startHome` / `chooseIntent` in `src/lib/flowEngine.ts`. Earlier ones are listed on the Revive AI page, ChatGPT style, named by
   what they're about (e.g. “Report · 55 Fair Oaks Ave”), and can be reopened or deleted. Kept for the browser
   session; Reset demo clears them.
 - New agents start with nothing connected. Try a license number like `02134589` (finds 2 listings) and

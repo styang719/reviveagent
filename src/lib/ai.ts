@@ -36,6 +36,7 @@ export type FlowStep =
   | 'report-details'
   | 'report-photos'
   | 'report-questions'
+  | 'home-intent'
   | 'report-progress'
   | 'report-ready'
   | 'project-property'

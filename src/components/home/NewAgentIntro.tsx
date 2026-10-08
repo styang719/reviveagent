@@ -30,7 +30,7 @@ export function ReviveAiIntro() {
   const suggestions = dismissed ? [] : suggestAddresses(q)
   const open = suggestions.length > 0
   const pick = (value: string) => {
-    navigate(`/ai?flow=report&address=${encodeURIComponent(value)}`)
+    navigate(`/ai?flow=home&address=${encodeURIComponent(value)}`)
     setQ('')
     setActive(0)
   }

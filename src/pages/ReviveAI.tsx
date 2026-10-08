@@ -5,7 +5,7 @@ import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
 import { PropertyView, usePropertyModel, type PropertyTab } from '@/components/property/PropertyView'
 import { Button } from '@/components/ui/button'
 import { STARTERS } from '@/lib/ai'
-import { startProject, startReport } from '@/lib/flowEngine'
+import { startProject, startHome, startReport } from '@/lib/flowEngine'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
@@ -151,7 +151,8 @@ export default function ReviveAI() {
     if (useUi.getState().chat.length) clearChat()
     const property = params.get('property') ?? undefined
     const address = params.get('address') ?? undefined
-    if (flow === 'report') startReport({ propertyId: property, address })
+    if (flow === 'home' && address) startHome(address)
+    else if (flow === 'report') startReport({ propertyId: property, address })
     else if (flow === 'project') startProject({ propertyId: property })
     else if (q) ask(q)
   })

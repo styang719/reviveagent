@@ -32,7 +32,7 @@ interface DemoState {
   news: NewsItem[] // what changed, newest first: reports, shares, opens, project updates (Home shows it)
   shareReport: (propertyId: string, address: string, to?: string) => void
   handoff: Handoff // how Revive AI hands a finished report/project to its page; the docked chat was chosen
-  addReport: (r: GeneratedReport) => void
+  addReport: (r: GeneratedReport, quiet?: boolean) => void
   addProject: (p: CreatedProject) => void
   setHandoff: (h: Handoff) => void
   setTier: (tier: Tier) => void
@@ -104,8 +104,8 @@ export const useDemo = create<DemoState>()(
         set((s) => ({ updated: { ...s.updated, [id]: Date.now() }, activity: withActivity(s, id, 'You sent Revive a status update') })),
       connectCrm: () => set({ crmConnected: true }),
       markReportGenerated: () => set({ reportGenerated: true }),
-      addReport: (r) =>
-        set((s) => ({
+      addReport: (r, quiet) =>
+        set((s) => quiet ? { reports: { ...s.reports, [r.id]: r } } : ({
           reports: { ...s.reports, [r.id]: r },
           reportGenerated: true,
           activity: withActivity(s, r.id, 'You generated a Revive AI report'),

@@ -13,6 +13,8 @@ export interface FlowState {
   awaiting?: 'address' // the composer's next message is an address
   report?: ReportDraft
   project?: ProjectDraft
+  entry?: 'home' // started from the Home search: ask what the agent wants before assuming a report
+  choices?: string[] // project-product: only these products (e.g. the two ways to sell)
 }
 
 /** A past or current Revive AI conversation, for the history list. */

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import type { FlowStep } from '@/lib/ai'
-import { answerQuestions, chooseProduct, confirmDetails, confirmPhotos, projectDetails, projectProperty, startProject, submitProject } from '@/lib/flowEngine'
+import { answerQuestions, chooseIntent, chooseProduct, INTENTS, confirmDetails, confirmPhotos, projectDetails, projectProperty, startProject, submitProject } from '@/lib/flowEngine'
 import { GOALS, OCCUPANCY, PRODUCTS, PROJECT_STEPS, recommendProduct, SELLING, TIMELINES } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
 import { useOpportunities } from '@/lib/opportunities'
@@ -128,6 +128,25 @@ function ReportPhotos() {
       <Button size="sm" className="mt-3" disabled={!chosen.length} onClick={() => confirmPhotos(chosen)}>
         Use {chosen.length} photo{chosen.length === 1 ? '' : 's'}
       </Button>
+    </div>
+  )
+}
+
+/** Home search: what the agent wants to do with this home. One tap moves on. */
+function HomeIntent() {
+  return (
+    <div className={cn(card, 'grid gap-2 sm:grid-cols-2')}>
+      {INTENTS.map((x) => (
+        <button
+          key={x.key}
+          type="button"
+          onClick={() => chooseIntent(x.key)}
+          className="rounded-lg border border-line p-3 text-left transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)]"
+        >
+          <span className="block text-sm font-semibold text-ink">{x.label}</span>
+          <span className="mt-0.5 block text-[12.5px] leading-5 text-muted">{x.body}</span>
+        </button>
+      ))}
     </div>
   )
 }
@@ -290,12 +309,15 @@ function ProjectProperty() {
 function ProjectProduct() {
   const pid = useUi((s) => s.flow?.project?.propertyId)
   const report = useDemo((s) => (pid ? s.reports[pid] : undefined))
-  const rec = recommendProduct(report, report?.goal)
-  const [pick, setPick] = useState(rec)
+  const choices = useUi((s) => s.flow?.choices)
+  const products = choices ? PRODUCTS.filter((p) => choices.includes(p.name)) : PRODUCTS
+  const suggested = recommendProduct(report, report?.goal)
+  const rec = products.some((p) => p.name === suggested) ? suggested : products[0].name
+  const [pick, setPick] = useState<string>(rec)
   return (
     <div className={card}>
       <div className="grid gap-2 sm:grid-cols-2">
-        {PRODUCTS.map((p) => (
+        {products.map((p) => (
           <button
             key={p.name}
             type="button"
@@ -358,6 +380,7 @@ function ProjectDetails() {
 function ProjectReview() {
   const p = useUi((s) => s.flow?.project)
   const report = useDemo((s) => (p ? s.reports[p.propertyId] : undefined))
+  const draftPhotos = useUi((s) => s.flow?.report?.photos?.length)
   if (!p) return null
   const rows: [string, string][] = [
     ['Property', `${p.address}, ${p.city}`],
@@ -365,7 +388,7 @@ function ProjectReview() {
     ['Timeline', p.timeline ?? '–'],
     ['Occupancy', p.occupancy ?? '–'],
     ...(p.homeowner ? [['Homeowner', p.homeowner] as [string, string]] : []),
-    ['Attached', report ? `Revive AI report · ${report.photos.length} photos` : 'Property details from public records'],
+    ['Attached', report ? `Revive AI report · ${report.photos.length} photos` : draftPhotos ? `Property details · ${draftPhotos} photos` : 'Property details from public records'],
   ]
   return (
     <div className={card}>
@@ -424,6 +447,7 @@ export function FlowStepView({ step, refId, answered }: { step: FlowStep; refId?
   if (step === 'report-details') return <ReportDetails />
   if (step === 'report-photos') return <ReportPhotos />
   if (step === 'report-questions') return <ReportQuestions />
+  if (step === 'home-intent') return <HomeIntent />
   if (step === 'project-property') return <ProjectProperty />
   if (step === 'project-product') return <ProjectProduct />
   if (step === 'project-details') return <ProjectDetails />

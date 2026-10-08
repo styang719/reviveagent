@@ -50,10 +50,10 @@ export function startReport(prefill?: { propertyId?: string; address?: string })
   ui().addChat(say('Let’s build a Revive AI report. What’s the property address?'))
 }
 
-export function reportAddress(text: string, silent = false) {
+export function reportAddress(text: string, silent = false, entry?: 'home') {
   if (!silent) user(text)
   const draft = draftFromAddress(text)
-  ui().setFlow({ kind: 'report', report: draft })
+  ui().setFlow({ kind: 'report', report: draft, entry })
   ui().addChat(
     say(
       draft.propertyId
@@ -69,14 +69,55 @@ export function confirmDetails(d: Partial<ReportDraft>) {
   patchReport(d)
   const r = ui().flow?.report
   user(`${r?.beds ?? '–'} bd · ${r?.baths ?? '–'} ba · ${r?.sqft?.toLocaleString() ?? '–'} sqft · built ${r?.yearBuilt ?? '–'}. Looks right.`)
-  ui().addChat(say('I pulled these photos from the MLS. Keep the ones that show the home today, and add your own if you have newer ones.', 'report-photos'))
+  ui().addChat(say(`I found ${r?.address ?? 'this home'} listed online. Select the photos that show it today, or add your own.`, 'report-photos'))
 }
 
 export function confirmPhotos(photos: string[]) {
   close('report-photos')
   patchReport({ photos })
   user(`Use ${photos.length} photo${photos.length === 1 ? '' : 's'}`)
-  ui().addChat(say('Two quick questions so I can pick the right scenarios.', 'report-questions'))
+  if (ui().flow?.entry === 'home') ui().addChat(say(`What can I help you with on ${ui().flow?.report?.address ?? 'this home'} today?`, 'home-intent'))
+  else ui().addChat(say('Two quick questions so I can pick the right scenarios.', 'report-questions'))
+}
+
+// ---------------- Search a home (from the Home search) ----------------
+// Confirm the home and its photos first, then ask what the agent wants; only then branch into a
+// report or a project, with the questions that one needs.
+
+export function startHome(address: string) {
+  ui().setPanel(null)
+  user(address)
+  reportAddress(address, true, 'home')
+}
+
+export const INTENTS = [
+  { key: 'sell', label: 'Sell the house', body: 'Renovate or prep before listing, so it sells for more.' },
+  { key: 'flip', label: 'Flip the house', body: 'Revive buys, renovates and resells; the owner shares the upside.' },
+  { key: 'stay', label: 'Refer my client to renovate to stay', body: 'Upgrades for owners staying put, with flexible payment.' },
+  { key: 'report', label: 'Generate a Revive AI report', body: 'Value today, upside by product and ADU room, to share.' },
+] as const
+export type Intent = (typeof INTENTS)[number]['key']
+
+export function chooseIntent(intent: Intent) {
+  close('home-intent')
+  const f = ui().flow
+  const draft = f?.report
+  if (!draft) return
+  user(INTENTS.find((x) => x.key === intent)!.label)
+  if (intent === 'report') {
+    ui().addChat(say('Two quick questions so I can pick the right scenarios.', 'report-questions'))
+    return
+  }
+  // the confirmed details and photos ride along; they're saved with the project when it's submitted
+  const pid = draft.propertyId ?? reportIdFor(`${draft.address}, ${draft.city}`)
+  ui().setFlow({ kind: 'project', entry: 'home', report: draft, project: { propertyId: pid, address: draft.address, city: draft.city } })
+  if (intent === 'sell') {
+    ui().setFlow({ ...ui().flow!, choices: ['Renovate to Sell', 'Sell 360'] })
+    ui().addChat(say('Two ways Revive can help sell it. Which fits your client?', 'project-product'))
+    return
+  }
+  patchProject({ product: intent === 'flip' ? 'Flip 360' : 'Renovate to Stay' })
+  ui().addChat(say('A few details so Revive can review it quickly.', 'project-details'))
 }
 
 export function answerQuestions(selling: string, goal: string) {
@@ -150,7 +191,7 @@ export function projectProperty(propertyId: string | undefined, typed?: string) 
     address = known?.address ?? draft.address
     city = known?.city ?? draft.city
     // a project needs the home's numbers: make the report quietly if there isn't one
-    if (!known && !demo().reports[pid]) demo().addReport(buildReport(draft))
+    if (!known && !demo().reports[pid]) demo().addReport(buildReport(draft), true)
   }
   user(typed ?? `${address}, ${city}`)
   ui().setFlow({ kind: 'project', project: { propertyId: pid!, address, city } })
@@ -193,6 +234,9 @@ export function submitProject() {
     close('project-progress')
     const d = ui().flow?.project
     if (!d?.product || !d.timeline || !d.occupancy) return
+    // a project needs the home's numbers: keep them as a report behind it, without announcing one
+    const draft = ui().flow?.report
+    if (draft && !draft.propertyId && !demo().reports[d.propertyId]) demo().addReport(buildReport(draft), true)
     const project: CreatedProject = { ...d, product: d.product, timeline: d.timeline, occupancy: d.occupancy, id: `pj-${Date.now()}`, createdAt: Date.now() }
     demo().addProject(project)
     ui().setFlow(null)
