@@ -67,10 +67,19 @@ async function download(before: string, after: string, title: string, sub: strin
   ctx.fillStyle = 'rgba(255,255,255,.7)'
   ctx.font = '400 20px Poppins, sans-serif'
   ctx.fillText(`${sub} · DRE #02134589`, 132, top + ph + 100)
+  const filename = `${title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-before-after.png`
+  const blob = await new Promise<Blob>((ok, fail) => c.toBlob((b) => (b ? ok(b) : fail(new Error('no image'))), 'image/png'))
+  // hosted on claude.ai the viewer saves through its downloads capability (it asks first);
+  // anywhere else (local dev) a plain download link works
+  const host = (window as unknown as { claude?: { use: (n: string) => Promise<{ save: (r: { filename: string; data: Blob }) => Promise<unknown> } | null> } }).claude
+  const downloads = host ? await host.use('downloads') : null
+  if (downloads) return downloads.save({ filename, data: blob })
+  if (host) throw Object.assign(new Error('unavailable'), { code: 'unavailable' })
   const link = document.createElement('a')
-  link.download = `${title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-before-after.png`
-  link.href = c.toDataURL('image/png')
+  link.download = filename
+  link.href = URL.createObjectURL(blob)
   link.click()
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000)
 }
 
 export function RvShareCard({ id }: { id: string }) {
@@ -120,8 +129,13 @@ export function RvShareCard({ id }: { id: string }) {
             try {
               await download(p.before, p.after, title, d.style)
               toast.success('Before & after downloaded', { description: 'Ready to text, email or post.' })
-            } catch {
-              toast.error('Couldn’t make the image', { description: 'One of the photos couldn’t be read. Try another photo.' })
+            } catch (e) {
+              const code = (e as { code?: string }).code
+              if (code === 'declined') toast('Download cancelled')
+              else if (code) toast.error('Downloads aren’t available here', { description: 'Open the prototype in a browser tab to download.' })
+              else toast.error('Couldn’t make the image', { description: 'One of the photos couldn’t be read. Try another photo.' })
+              setBusy(false)
+              return
             }
             setBusy(false)
           }}
