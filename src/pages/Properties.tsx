@@ -2,7 +2,8 @@ import { ArrowRight, Calendar, FileText, Hammer, Search, Sparkles } from 'lucide
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AiLink } from '@/components/ai/AiLink'
-import { StartWithRevive } from '@/components/property/StartWithRevive'
+import { CaseStudies } from '@/components/home/NewAgentIntro'
+import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
 import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
@@ -219,6 +220,8 @@ export default function Properties() {
       .map((o) => ({ id: o.id, address: o.property.address, city: o.property.city, photo: o.property.photo, valueNow: o.property.valueNow, upside: o.gain || undefined, product: o.product })),
   ]
 
+  const firstVisit = !needle && projects.length === 0 && reportRows.length === 0
+
   return (
     <div className={PAGE}>
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
@@ -238,13 +241,26 @@ export default function Properties() {
         </label>
       </div>
 
+      {firstVisit ? (
+        // nothing here yet: say what each section is for, show the proof nearby, and make starting easy
+        <>
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            <ProjectsEmpty />
+            <ReportsEmpty />
+          </div>
+          <div className="mt-12">
+            <CaseStudies />
+          </div>
+        </>
+      ) : (
+        <>
       <Section
         icon={Hammer}
         title="Projects with Revive"
         hint="From review with Revive to construction to listing. Opens the project."
         count={projects.filter((p) => match(p.address, p.city, p.product)).length}
         empty={{ text: 'No projects yet. Start one from any report.', cta: 'Start a project', to: '/ai?flow=project' }}
-        emptyNode={needle ? noMatch : <StartWithRevive />}
+        emptyNode={needle ? noMatch : <ProjectsEmpty />}
       >
         {projects.filter((p) => match(p.address, p.city, p.product)).map((p) => (
           <ProjectCard key={p.id} p={p} />
@@ -257,12 +273,14 @@ export default function Properties() {
         hint="Homes you’ve run a report on. Share it with the homeowner, or turn it into a project."
         count={reportRows.filter((r) => match(r.address, r.city, r.product)).length}
         empty={{ text: 'No reports yet. Any address works, nothing to connect first.', cta: 'Generate a report', to: '/ai?flow=report' }}
-        emptyNode={needle ? noMatch : undefined}
+        emptyNode={needle ? noMatch : <ReportsEmpty />}
       >
         {reportRows.filter((r) => match(r.address, r.city, r.product)).map((r) => (
           <ReportCard key={r.id} r={r} />
         ))}
       </Section>
+        </>
+      )}
     </div>
   )
 }
