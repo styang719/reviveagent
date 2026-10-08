@@ -234,6 +234,27 @@ function RvStyle() {
   )
 }
 
+/** Designs made from loose photos: add them to a home so they live on its page. */
+function RvAttach({ id }: { id: string }) {
+  const opps = useOpportunities()
+  const reports = useDemo((s) => s.reports)
+  const attach = useDemo((s) => s.attachRenovision)
+  const homes = [
+    ...Object.values(reports).map((r) => ({ id: r.id, label: r.address })),
+    ...opps.filter((o) => o.property.photo).map((o) => ({ id: o.id, label: o.property.address })),
+  ].filter((h, i, a) => a.findIndex((x) => x.id === h.id) === i).slice(0, 4)
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-[12.5px] text-muted">Add to a home:</span>
+      {homes.map((h) => (
+        <button key={h.id} type="button" className={chip(false)} onClick={() => attach(id, h.id, h.label)}>
+          {h.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 /** RenoVision result: before and after for each photo, and where it's saved. */
 function RvReady({ id }: { id: string }) {
   const d = useDemo((s) => s.renovisions[id])
@@ -257,16 +278,12 @@ function RvReady({ id }: { id: string }) {
       <div className="flex flex-wrap items-center gap-2 border-t border-line p-3">
         {d.propertyId ? (
           <Button size="sm" variant="outline" asChild>
-            <Link to={`/property/${d.propertyId}?tab=marketing`}>
+            <Link to={`/property/${d.propertyId}?tab=report`}>
               Open {d.address} <ArrowRight />
             </Link>
           </Button>
         ) : (
-          <Button size="sm" variant="outline" asChild>
-            <Link to="/marketing">
-              Open Marketing center <ArrowRight />
-            </Link>
-          </Button>
+          <RvAttach id={d.id} />
         )}
       </div>
     </div>

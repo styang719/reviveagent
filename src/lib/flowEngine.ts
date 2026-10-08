@@ -288,6 +288,8 @@ export function rvHome(propertyId?: string, typed?: string) {
   const address = known?.address ?? rep?.address ?? draft?.address ?? typed ?? ''
   const city = known?.city ?? rep?.city ?? draft?.city ?? ''
   const photos = rep?.photos.length ? rep.photos : known ? mlsPhotos(known.address, known.photo) : (draft?.photos ?? [])
+  // a new address becomes a home on record, so its designs have a page to live on
+  if (draft && id && !demo().reports[id]) demo().addReport(buildReport(draft), true)
   user(typed ?? `${address}, ${city}`)
   ui().setFlow({ kind: 'renovision', rv: { propertyId: id, address, city, photos } })
   ui().addChat(say(`I found photos of ${address}. Pick the ones to redesign, or add your own.`, 'rv-photos'))
@@ -332,7 +334,7 @@ export function rvStyle(style: string) {
         ui().setFlow(null)
         ui().addChat(
           say(
-            d.address ? `Here’s ${d.address} in ${d.style}. Saved to the home’s page under Marketing.` : `Here they are in ${d.style}. Saved to your RenoVision designs in Marketing center.`,
+            d.address ? `Here’s ${d.address} in ${d.style}. Saved to ${d.address}, with its Revive AI report.` : `Here they are in ${d.style}. They’re saved in this conversation; add them to a home to keep them with it.`,
             'rv-ready',
             design.id,
           ),

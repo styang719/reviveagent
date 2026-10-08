@@ -64,6 +64,7 @@ interface DemoState {
   answerReply: (id: string, line: string) => void
   renovisions: Record<string, RenoVisionDesign>
   addRenovision: (d: RenoVisionDesign) => void
+  attachRenovision: (id: string, propertyId: string, address: string) => void
   addActivity: (id: string, line: string) => void // a logged call or note
   logged: Record<string, { at: number; kind: 'call' | 'note'; text: string }[]> // calls and notes, with times, for the contact timeline
   /** demo bar: a new agent with nothing connected, or with both MLS (license) and CRM connected */
@@ -140,6 +141,12 @@ export const useDemo = create<DemoState>()(
           renovisions: { ...s.renovisions, [d.id]: d },
           ...(d.propertyId ? { activity: withActivity(s, d.propertyId, `You created a RenoVision design · ${d.style}`) } : {}),
         })),
+      attachRenovision: (id, propertyId, address) =>
+        set((s) =>
+          s.renovisions[id]
+            ? { renovisions: { ...s.renovisions, [id]: { ...s.renovisions[id], propertyId, address } }, activity: withActivity(s, propertyId, `You added a RenoVision design · ${s.renovisions[id].style}`) }
+            : {},
+        ),
       addActivity: (id, line) =>
         set((s) => ({
           activity: withActivity(s, id, line),

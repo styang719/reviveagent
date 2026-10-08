@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button'
 import type { RenoVisionDesign } from '@/lib/flows'
 import { useDemo } from '@/store/demo'
 
-// RenoVision designs, saved where they belong: on the home they were made for, or (made from loose
-// photos) in the agent's library in Marketing center.
+// RenoVision designs for a home, shown with its Revive AI report.
 export function RenoVisionGallery({ propertyId, title = 'RenoVision designs', empty }: { propertyId?: string | null; title?: string; empty?: string }) {
   const all = useDemo((s) => s.renovisions)
   const list: RenoVisionDesign[] = Object.values(all)
@@ -16,7 +15,7 @@ export function RenoVisionGallery({ propertyId, title = 'RenoVision designs', em
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
         <Button size="sm" variant="outline" className="text-brand" asChild>
-          <AiLink to="/ai?flow=renovision">
+          <AiLink to={propertyId ? `/ai?flow=renovision&property=${propertyId}` : '/ai?flow=renovision'}>
             <Sparkles /> New RenoVision design
           </AiLink>
         </Button>

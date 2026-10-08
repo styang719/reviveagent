@@ -169,12 +169,7 @@ export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab
       <div role="tabpanel">
         {tab === 'report' && <Report m={m} compact={compact} />}
         {tab === 'project' && <Project m={m} />}
-        {tab === 'marketing' && (
-          <div className="flex flex-col gap-6">
-            <RenoVisionGallery propertyId={m.id} empty={`No designs for ${m.address} yet. See it renovated in the style you pick.`} />
-            <Marketing m={m} />
-          </div>
-        )}
+        {tab === 'marketing' && <Marketing m={m} />}
       </div>
     </div>
   )
@@ -280,6 +275,8 @@ function Report({ m, compact }: { m: Model; compact: boolean }) {
       {m.opp && <LeadActivity o={m.opp} />}
 
       <TopOptions m={m} />
+
+      <RenoVisionGallery propertyId={m.id} empty={`See ${m.address} renovated: pick photos and a style, and RenoVision renders the after.`} />
 
       {/* what used to be the Overview tab: value, why now, and recent activity follow */}
       <section>
