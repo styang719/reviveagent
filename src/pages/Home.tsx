@@ -6,7 +6,6 @@ import { ReferralHero } from '@/components/home/ReferralHero'
 import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { SetupTodo } from '@/components/home/ConnectBook'
-import { StatCards } from '@/components/home/StatCards'
 import { CaseStudies, ReviveAiIntro } from '@/components/home/NewAgentIntro'
 import { YourBook } from '@/components/home/YourBook'
 import { TopOpportunities } from '@/components/home/TopOpportunities'
@@ -99,9 +98,6 @@ export default function Home() {
         <RevivePathCard tier={tier} opps={opps} />
       </div>
 
-      <div className="mt-8">
-        <StatCards tier={tier} opps={opps} />
-      </div>
 
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex min-w-0 flex-col gap-5">
