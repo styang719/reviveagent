@@ -1,5 +1,5 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { ArrowRight, Check, X } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Check, Hammer, HousePlus, SearchCheck, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -9,7 +9,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import type { Source } from '@/data/types'
 import { photoUrl } from '@/lib/assets'
 import { firstName, gain, money } from '@/lib/format'
-import { STAGE_LABEL, useIsProperty, useProgress, type Opportunity } from '@/lib/opportunities'
+import { STAGE_LABEL, useIsProperty, useProgress, type Opportunity, type Tag } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
@@ -55,16 +55,72 @@ function status(o: Opportunity): { main: string; sub?: string; hot?: boolean } {
   return { main: 'Not listed', sub: o.reasons[0] }
 }
 
-const img = (o: Opportunity) => o.photo ?? photoUrl(o.property.photo)
-
-function Cell({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+/** A small ring gauge: the number in the middle, the ring filled to pct. */
+function Ring({ value, pct, color }: { value: number; pct: number; color: string }) {
+  const r = 15
+  const c = 2 * Math.PI * r
   return (
-    <div className={cn('min-w-0', className)}>
-      <p className="text-[11.5px] text-muted">{label}</p>
-      <div className="mt-0.5 truncate text-[13.5px] font-semibold text-ink tabular-nums">{children}</div>
+    <span className="relative grid size-10 shrink-0 place-items-center">
+      <svg viewBox="0 0 36 36" className="absolute inset-0 -rotate-90" aria-hidden="true">
+        <circle cx="18" cy="18" r={r} fill="none" stroke="var(--line-soft, #eef0f4)" strokeWidth="3.5" />
+        <circle cx="18" cy="18" r={r} fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round" strokeDasharray={`${c * Math.min(1, pct)} ${c}`} />
+      </svg>
+      <span className="text-[13px] font-bold text-ink tabular-nums">{value}</span>
+    </span>
+  )
+}
+
+/** Not listed: the selling score as a ring. Your listing: days on market as a ring. */
+function ScoreCell({ o }: { o: Opportunity }) {
+  const dom = o.property.facts.daysOnMarket
+  if (o.property.source === 'listings' && dom !== undefined)
+    return (
+      <div className="flex items-center gap-2.5">
+        <Ring value={dom} pct={dom / 90} color={dom > 30 ? 'var(--hot)' : 'var(--brand-primary)'} />
+        <span className="text-[13px] leading-4 text-muted">
+          Days on
+          <br />
+          market
+        </span>
+      </div>
+    )
+  const score = o.person?.sellScore
+  if (score === undefined) return <span className="text-[13px] text-muted">No score yet</span>
+  // worded apart from the High / Medium / Low priority badge on the same card
+  const [label, color] = score >= 80 ? ['Likely', 'var(--green)'] : score >= 60 ? ['Could sell', 'var(--teal)'] : ['Unlikely', 'var(--amber)']
+  return (
+    <div className="flex items-center gap-2.5" title="Selling score: how likely the owner is to sell">
+      <Ring value={score} pct={score / 100} color={color} />
+      <span className="text-[13px] leading-4 font-medium whitespace-nowrap text-ink-2">
+        {label}
+        <span className="block text-[11px] font-normal text-faint">Selling score</span>
+      </span>
     </div>
   )
 }
+
+const TAG: Record<Tag, { icon: typeof Hammer; cls: string }> = {
+  'Listing issue': { icon: AlertTriangle, cls: 'bg-[var(--amber-soft)] text-[var(--amber)]' },
+  'ADU room': { icon: HousePlus, cls: 'bg-[var(--brand-agent-subtle)] text-[var(--brand-agent)]' },
+  Renovation: { icon: Hammer, cls: 'bg-[var(--brand-primary-subtle)] text-brand' },
+  'Data check': { icon: SearchCheck, cls: 'bg-head text-ink-2' },
+}
+
+function TagPill({ tag }: { tag: Tag }) {
+  const t = TAG[tag]
+  const Icon = t.icon
+  return (
+    <span className={cn('inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] font-semibold whitespace-nowrap', t.cls)}>
+      <Icon className="size-3.5" /> {tag}
+    </span>
+  )
+}
+
+/** What Revive spots on the home: listing issue first (it's the reason to call), then ADU room, then renovation. */
+const ORDER: Tag[] = ['Listing issue', 'ADU room', 'Renovation', 'Data check']
+const tagsOf = (o: Opportunity) => [...o.tags].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b)).slice(0, 2)
+
+const img = (o: Opportunity) => o.photo ?? photoUrl(o.property.photo)
 
 /** The one thing to do next, worded for the relationship: your seller vs. someone you're winning. */
 function NextAction({ o, onDone }: { o: Opportunity; onDone?: () => void }) {
@@ -253,7 +309,6 @@ function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () => void 
 function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
   const done = !!useDemo((s) => s.checked[o.id])
   const toggle = useDemo((s) => s.toggleChecked)
-  const st = status(o)
   return (
     <li>
       <div
@@ -264,7 +319,7 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
         aria-label={`Open ${o.property.address}`}
         className={cn(
           'group grid cursor-pointer grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md',
-          'lg:grid-cols-[auto_56px_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1.15fr)_76px] lg:gap-x-3.5',
+          'lg:grid-cols-[auto_56px_minmax(0,1.15fr)_minmax(0,1.05fr)_minmax(0,0.75fr)_minmax(0,1fr)_76px] lg:gap-x-3.5',
           done && 'opacity-55',
         )}
       >
@@ -293,19 +348,15 @@ function OppRow({ o, onOpen }: { o: Opportunity; onOpen: () => void }) {
           <Priority o={o} />
         </div>
         {/* below lg the numbers wrap to a second row under the home */}
-        <div className="col-span-4 grid grid-cols-3 gap-3 lg:contents">
-          <Cell label="Status">
-            <span className={st.hot ? 'text-hot' : undefined}>{st.main}</span>
-            {st.sub && <span className="block truncate text-[12px] font-normal text-muted">{st.sub}</span>}
-          </Cell>
-          <Cell label="Value">
-            {money(o.property.valueNow)}
-            {o.gain > 0 && <span className="block truncate text-[12px] font-normal text-muted">→ {money(o.property.valueNow + o.gain)}</span>}
-          </Cell>
-          <Cell label="Opportunity">
-            {o.product ?? '—'}
-            {o.gain > 0 && <span className="block text-[12px] font-medium text-[var(--green)]">{gain(o.gain)}</span>}
-          </Cell>
+        <div className="col-span-4 flex flex-wrap items-center gap-x-6 gap-y-3 lg:contents">
+          <ScoreCell o={o} />
+          <div className="min-w-0">
+            <p className="text-[16px] font-bold text-ink tabular-nums">{money(o.property.valueNow)}</p>
+            {o.gain > 0 && <p className="text-[13px] font-semibold text-[var(--green)] tabular-nums">{gain(o.gain)}</p>}
+          </div>
+          <div className="flex min-w-0 flex-col items-start gap-1.5">
+            {tagsOf(o).length ? tagsOf(o).map((t) => <TagPill key={t} tag={t} />) : <span className="text-[13px] text-muted">{o.product ?? '—'}</span>}
+          </div>
         </div>
         <div className="hidden justify-self-end lg:block">
           <Priority o={o} />
