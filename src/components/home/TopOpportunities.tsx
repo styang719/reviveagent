@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { AiLink } from '@/components/ai/AiLink'
+import { ADVISOR } from '@/components/home/AdvisorCard'
 import { ContactTimeline } from '@/components/opportunity/ContactTimeline'
 import { MessageDialog } from '@/components/opportunity/MessageDialog'
 import { useCta } from '@/components/opportunity/useCta'
@@ -371,8 +372,14 @@ function OutreachStrip({ o, out, onReply }: { o: Opportunity; out: Outreach; onR
               Remind me in spring
             </Button>
           ) : (
-            <Button size="sm" variant="outline" asChild>
-              <AiLink to={`/ai?flow=project&property=${o.id}`}>Start a project</AiLink>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                toast.success(`Call request sent to ${ADVISOR.first} at Revive`, { description: `He’ll reach out within one business day to walk through ${o.property.address} with you.` })
+              }
+            >
+              Book a call with Revive
             </Button>
           )}
         </div>
