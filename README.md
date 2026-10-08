@@ -73,7 +73,7 @@ The demo bar has four scenarios: **New agent · 0 deals** (nothing connected), *
 | `src/lib/opportunities.ts` | Builds the opportunity list for the current tier: stage, urgency, tags, contextual CTA |
 | `src/store/demo.ts` | The only state: tier, stage overrides, claimed referrals, referral updates, activity |
 | `src/components/opportunity/OpportunityCard.tsx` | The one card used everywhere |
-| `src/components/home/TopOpportunities.tsx` | Home's “Top opportunities this week”: 5 cards, each a checklist item read left to right (photo, address and contact, MLS listing / Contact label, selling score as a ring (days on market for your listings); value with the Revive upside; what Revive spots as tags: Listing issue, ADU room, Renovation; High / Medium / Low priority from the why-now score). A card opens a details drawer with why now, Revive scenarios, activity and the one next action; ticks persist in `demo.checked` |
+| `src/components/home/TopOpportunities.tsx` | Home's “Top opportunities this week”: 5 cards, each a checklist item read left to right (photo, address and contact, MLS listing / Contact label, selling score as a ring for homes not on the market (your listings show a Listed badge with days on market instead); value with the Revive upside; what Revive spots as tags: Listing issue, ADU room, Renovation; High / Medium / Low priority from the why-now score). A card opens a details drawer with why now, Revive scenarios, activity and the one next action; ticks persist in `demo.checked` |
 | `src/styles/tokens.css` | Revive tokens mapped onto the shadcn theme variables |
 
 ## Build phases

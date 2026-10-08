@@ -1,5 +1,5 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { AlertTriangle, ArrowRight, Check, Hammer, HousePlus, SearchCheck, X } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Check, Hammer, HousePlus, SearchCheck, Signpost, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -70,18 +70,17 @@ function Ring({ value, pct, color }: { value: number; pct: number; color: string
   )
 }
 
-/** Not listed: the selling score as a ring. Your listing: days on market as a ring. */
+/** Not listed: the selling score as a ring. Your listing: a Listed badge with days on market. */
 function ScoreCell({ o }: { o: Opportunity }) {
   const dom = o.property.facts.daysOnMarket
+  // already on the market: a selling score means nothing here, so show where the listing stands
   if (o.property.source === 'listings' && dom !== undefined)
     return (
-      <div className="flex items-center gap-2.5">
-        <Ring value={dom} pct={dom / 90} color={dom > 30 ? 'var(--hot)' : 'var(--brand-primary)'} />
-        <span className="text-[13px] leading-4 text-muted">
-          Days on
-          <br />
-          market
+      <div className="flex flex-col items-start gap-1">
+        <span className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--brand-primary-subtle)] px-2 py-1 text-[12px] font-semibold text-brand">
+          <Signpost className="size-3.5" /> Listed
         </span>
+        <span className={cn('text-[12.5px] whitespace-nowrap tabular-nums', dom > 30 ? 'font-medium text-hot' : 'text-muted')}>{dom} days on market</span>
       </div>
     )
   const score = o.person?.sellScore
