@@ -24,7 +24,7 @@ interface Item {
 }
 
 const ICON: Record<Kind, { icon: typeof Mail; cls: string }> = {
-  reply: { icon: MessageCircle, cls: 'border-[var(--brand-agent)] bg-[var(--brand-agent)] text-white' },
+  reply: { icon: MessageCircle, cls: 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' },
   text: { icon: MessageCircle, cls: 'border-[var(--brand-agent-border)] text-[var(--brand-agent)]' },
   email: { icon: Mail, cls: 'border-[var(--brand-primary-border)] text-brand' },
   call: { icon: Phone, cls: 'border-[var(--brand-primary-border)] text-brand' },
@@ -154,7 +154,7 @@ export function ContactTimeline({ o, onMessage }: { o: Opportunity; onMessage: (
                   <span className="shrink-0 text-[12.5px] text-muted">{it.when}</span>
                 </div>
                 {it.body && <p className="mt-0.5 text-[13px] text-ink-2">{it.body}</p>}
-                {it.quote && <p className="mt-2 rounded-xl bg-[var(--brand-agent-subtle)] px-3.5 py-2.5 text-[13.5px] text-ink">“{it.quote.replace(/^"|"$/g, '')}”</p>}
+                {it.quote && <p className="mt-2 rounded-xl bg-[var(--brand-primary-subtle)] px-3.5 py-2.5 text-[13.5px] text-ink">“{it.quote.replace(/^"|"$/g, '')}”</p>}
                 {it.tag && <span className="mt-2 inline-block rounded-full border border-line bg-head px-2.5 py-0.5 text-[12px] font-medium text-ink-2">{it.tag}</span>}
               </div>
             </li>

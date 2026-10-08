@@ -346,9 +346,9 @@ function OutreachStrip({ o, out, onReply }: { o: Opportunity; out: Outreach; onR
   if (out.reply && !out.answeredAt) {
     const intent = INTENT[out.reply.intent]
     return (
-      <div onClick={stop} onKeyDown={stop} className="col-span-full cursor-default rounded-xl border border-[var(--brand-agent-border-subtle,#e0caf2)] bg-[var(--brand-agent-subtle)] p-3.5">
+      <div onClick={stop} onKeyDown={stop} className="col-span-full cursor-default rounded-xl border border-[var(--brand-primary-border-subtle)] bg-[var(--brand-primary-subtle)] p-3.5">
         <div className="flex flex-wrap items-center gap-2">
-          <Reply className="size-4 text-[var(--brand-agent)]" />
+          <Reply className="size-4 text-brand" />
           <p className="text-[13.5px] font-semibold text-ink">
             {first} replied <span className="font-normal text-muted">· {ago(out.reply.at, now)}</span>
           </p>
@@ -423,7 +423,7 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
         className={cn(
           'group grid cursor-pointer grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md',
           '@[600px]:grid-cols-[auto_56px_minmax(0,1.35fr)_minmax(124px,0.95fr)_minmax(76px,0.7fr)_minmax(118px,1fr)_44px] @[600px]:gap-x-3.5',
-          waiting && 'border-[var(--brand-agent-border)] ring-1 ring-[var(--brand-agent-border)]',
+          waiting && 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]',
           done && 'bg-head shadow-none',
           active && 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]',
         )}
@@ -465,7 +465,7 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
             className="relative grid size-11 place-items-center justify-self-end rounded-xl border border-line bg-white text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)] @[600px]:order-last"
           >
             {out ? <MailCheck className="size-[18px]" /> : <Mail className="size-[18px]" />}
-            {waiting && <span className="absolute -top-1 -right-1 size-3 rounded-full border-2 border-white bg-[var(--brand-agent)]" aria-label="New reply" />}
+            {waiting && <span className="absolute -top-1 -right-1 size-3 rounded-full border-2 border-white bg-[var(--brand-primary)]" aria-label="New reply" />}
           </button>
         ) : (
           <span className="@[600px]:order-last" />
@@ -514,7 +514,7 @@ export function TopOpportunities({ opps }: { opps: Opportunity[] }) {
             {done} of {opps.length} done
             {emailed > 0 && ` · ${emailed} emailed`}
             {replied > 0 && (
-              <span className="font-semibold text-[var(--brand-agent)]">
+              <span className="font-semibold text-brand">
                 {' '}
                 · {replied} {replied === 1 ? 'reply' : 'replies'} waiting
               </span>
