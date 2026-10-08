@@ -1,9 +1,10 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { PropertyPhoto } from '@/components/property/PropertyPhoto'
 import { Button } from '@/components/ui/button'
 import { gain, money } from '@/lib/format'
-import type { Opportunity } from '@/lib/opportunities'
+import { AiLink } from '@/components/ai/AiLink'
+import { useIsProperty, type Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 import { SourceTag, StageTag, UrgencyTag } from './Tags'
 import { useCta } from './useCta'
@@ -57,6 +58,7 @@ export function PersonLine({ o }: { o: Opportunity }) {
 export function OpportunityCard({ o, size = 'feed', className }: { o: Opportunity; size?: 'feed' | 'compact'; className?: string }) {
   const runCta = useCta()
   const compact = size === 'compact'
+  const isProperty = useIsProperty()
   return (
     <article className={cn('rounded-xl border border-line bg-white p-4 shadow-card transition-shadow hover:shadow-md', className)}>
       <div className="flex gap-4">
@@ -70,9 +72,13 @@ export function OpportunityCard({ o, size = 'feed', className }: { o: Opportunit
           <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div className="min-w-0">
               <h3 className="text-base font-semibold text-ink">
-                <Link to={`/property/${o.id}`} className="hover:text-brand hover:underline">
-                  {o.property.address}
-                </Link>
+                {isProperty(o) ? (
+                  <Link to={`/property/${o.id}`} className="hover:text-brand hover:underline">
+                    {o.property.address}
+                  </Link>
+                ) : (
+                  o.property.address
+                )}
                 <span className="font-normal text-muted">, {o.property.city}</span>
               </h3>
               <PersonLine o={o} />
@@ -101,11 +107,20 @@ export function OpportunityCard({ o, size = 'feed', className }: { o: Opportunit
             <Button size="sm" variant={o.cta.kind === 'claim' ? 'warn' : 'default'} onClick={() => runCta(o)}>
               {o.cta.label}
             </Button>
-            <Button size="sm" variant="ghost" asChild>
-              <Link to={`/property/${o.id}`}>
-                View property <ArrowRight />
-              </Link>
-            </Button>
+            {isProperty(o) ? (
+              <Button size="sm" variant="ghost" asChild>
+                <Link to={`/property/${o.id}`}>
+                  View property <ArrowRight />
+                </Link>
+              </Button>
+            ) : (
+              // not a property yet: the report is what makes it one
+              <Button size="sm" variant="ghost" asChild>
+                <AiLink to={`/ai?flow=report&property=${o.id}`}>
+                  <Sparkles /> Run a Revive AI report
+                </AiLink>
+              </Button>
+            )}
           </div>
         </div>
       </div>

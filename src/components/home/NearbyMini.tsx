@@ -7,7 +7,7 @@ import { pinIcon, pinZ } from '@/components/map/pins'
 import { Card } from '@/components/ui/card'
 import { AGENT } from '@/data/tiers'
 import { plural } from '@/lib/format'
-import { isActionable, type Opportunity } from '@/lib/opportunities'
+import { isActionable, useIsProperty, type Opportunity } from '@/lib/opportunities'
 
 const baseIcon = L.divIcon({ className: 'rv-pinwrap', html: `<span class="rv-office" title="${AGENT.office.label}"></span>`, iconAnchor: [0, 0] })
 
@@ -21,6 +21,7 @@ const miles = (a: { lat: number; lng: number }, b: { lat: number; lng: number })
 
 export function NearbyMini({ opps }: { opps: Opportunity[] }) {
   const navigate = useNavigate()
+  const isProperty = useIsProperty()
   const inArea = opps.filter((o) => miles(AGENT.office, o.property) <= AGENT.marketRadiusMiles)
   // the mini map shows only what's worth acting on; the full map has the whole book
   const worth = inArea.filter((o) => isActionable(o) || o.stage === 'project')
@@ -53,7 +54,7 @@ export function NearbyMini({ opps }: { opps: Opportunity[] }) {
               icon={pinIcon(o, false, true, i >= LABELED)}
               zIndexOffset={pinZ(o) + (i < LABELED ? 1000 : 0)}
               title={o.property.address}
-              eventHandlers={{ click: () => navigate(`/property/${o.id}`) }}
+              eventHandlers={{ click: () => isProperty(o) && navigate(`/property/${o.id}`) }}
             />
           ))}
         </BaseMap>

@@ -177,3 +177,13 @@ export function useConnections() {
 
 /** Opportunities worth acting on: "Call this week" and "Reach out this month". */
 export const isActionable = (o: Opportunity) => o.urgency === 'now' || o.urgency === 'soon'
+
+/**
+ * An opportunity becomes a property (with its own page) once there's a Revive AI report or a project
+ * on it. Until then it's just an opportunity: not linked, and its next step is to run the report.
+ */
+export function useIsProperty() {
+  const reports = useDemo((s) => s.reports)
+  const projects = useDemo((s) => s.projects)
+  return (o: Opportunity) => !!(o.property.reportRun || o.property.project || reports[o.id] || projects[o.id] || o.stage === 'project')
+}

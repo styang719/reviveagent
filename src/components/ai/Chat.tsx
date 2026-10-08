@@ -12,7 +12,7 @@ import { photoUrl } from '@/lib/assets'
 import { flowInput, startProject, startReport } from '@/lib/flowEngine'
 import { suggestAddresses } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
-import { useConnections, useOpportunities } from '@/lib/opportunities'
+import { useConnections, useIsProperty, useOpportunities } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
@@ -78,8 +78,21 @@ function PropertyBlock({ b }: { b: Extract<Block, { kind: 'property' }> }) {
   )
 }
 
+/** An opportunity row: a link only once it's a property (has a report or a project). */
+function OppRow({ o, linked, children }: { o: { id: string }; linked: boolean; children: React.ReactNode }) {
+  const cls = 'flex items-start gap-3 p-3'
+  return linked ? (
+    <Link to={`/property/${o.id}`} className={cn(cls, 'hover:bg-head')}>
+      {children}
+    </Link>
+  ) : (
+    <div className={cls}>{children}</div>
+  )
+}
+
 function OppsBlock({ ids }: { ids: string[] }) {
   const opps = useOpportunities()
+  const isProperty = useIsProperty()
   return (
     <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
       {ids
@@ -87,7 +100,7 @@ function OppsBlock({ ids }: { ids: string[] }) {
         .filter((o) => !!o)
         .map((o) => (
           <li key={o.id}>
-            <Link to={`/property/${o.id}`} className="flex items-start gap-3 p-3 hover:bg-head">
+            <OppRow o={o} linked={isProperty(o)}>
               {o.photo && <img src={o.photo} alt="" className="size-14 shrink-0 rounded-lg object-cover" />}
               <div className="min-w-0 flex-1">
                 <UrgencyTag urgency={o.urgency} />
@@ -97,7 +110,7 @@ function OppsBlock({ ids }: { ids: string[] }) {
                 <Reasons o={o} max={2} />
               </div>
               <Estimate o={o} />
-            </Link>
+            </OppRow>
           </li>
         ))}
     </ul>

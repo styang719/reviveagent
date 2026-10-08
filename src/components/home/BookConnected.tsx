@@ -96,7 +96,7 @@ export function ListingInsights({ opps }: { opps: Opportunity[] }) {
             const dom = o.property.facts.daysOnMarket
             return (
               <li key={o.id}>
-                <Link to={`/property/${o.id}?tab=report`} className="flex items-center gap-3 rounded-xl border border-white bg-white px-3 py-2.5 shadow-card hover:shadow-md">
+                <div className="flex items-center gap-3 rounded-xl border border-white bg-white px-3 py-2.5 shadow-card">
                   <img src={o.photo ?? photoUrl(o.property.photo)} alt="" className="size-11 shrink-0 rounded-lg object-cover" />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
@@ -113,7 +113,7 @@ export function ListingInsights({ opps }: { opps: Opportunity[] }) {
                       </p>
                     </div>
                   </div>
-                </Link>
+                </div>
               </li>
             )
           })}
@@ -143,7 +143,7 @@ export function ContactInsights({ opps }: { opps: Opportunity[] }) {
         <ul className="flex flex-col gap-2.5">
           {rows.map((o) => (
             <li key={o.id}>
-              <Link to={`/person/${o.person!.id}`} className="flex items-start gap-3 rounded-xl border border-white bg-white px-3 py-2.5 shadow-card hover:shadow-md">
+              <div className="flex items-start gap-3 rounded-xl border border-white bg-white px-3 py-2.5 shadow-card">
                 <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-[12.5px] font-semibold text-brand">
                   {o.person!.name
                     .split(' ')
@@ -162,7 +162,7 @@ export function ContactInsights({ opps }: { opps: Opportunity[] }) {
                   </p>
                   {o.reasons[0] && <p className="mt-0.5 truncate text-[12px] text-ink-2">{o.reasons[0]}</p>}
                 </div>
-              </Link>
+              </div>
             </li>
           ))}
         </ul>
