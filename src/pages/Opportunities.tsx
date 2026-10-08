@@ -202,13 +202,9 @@ export default function Opportunities() {
             </div>
           )}
           <div className={cta}>
-            {filter === 'go' ? (
-              <span className="inline-flex h-9 items-center rounded-lg bg-navy px-3 text-[13px] font-semibold text-white">Showing below</span>
-            ) : (
-              <Button size="sm" className="h-9 bg-hot hover:bg-hot-ink" onClick={() => setFilter('go')}>
-                See all {stats.worth} worth a call <ArrowRight />
-              </Button>
-            )}
+            <Button size="sm" className="h-9 bg-hot hover:bg-hot-ink" onClick={() => setFilter('go')}>
+              See all {stats.worth} worth a call <ArrowRight />
+            </Button>
           </div>
         </Stat>
         <Stat icon={Users} label="Likely sellers">
@@ -248,13 +244,9 @@ export default function Opportunities() {
           </p>
           <p className="mt-1 text-[13px] text-ink-2">Room for a detached ADU</p>
           <div className={cta}>
-            {filter === 'adu' ? (
-              <span className="inline-flex h-9 items-center rounded-lg bg-navy px-3 text-[13px] font-semibold text-white">Showing below</span>
-            ) : (
-              <Button size="sm" variant="outline" className="h-9 text-brand" onClick={() => setFilter('adu')}>
-                See ADU lots <ArrowRight />
-              </Button>
-            )}
+            <Button size="sm" variant="outline" className="h-9 text-brand" onClick={() => setFilter('adu')}>
+              See ADU lots <ArrowRight />
+            </Button>
           </div>
         </Stat>
       </div>
