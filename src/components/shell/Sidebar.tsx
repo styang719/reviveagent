@@ -1,5 +1,5 @@
 import { Building2, ChevronRight, Home, Inbox, Megaphone, PanelLeft, Sparkles, Target } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import avatar from '@/assets/avatar-michelle.jpg'
 import { AGENT } from '@/data/tiers'
 import { cn } from '@/lib/utils'
@@ -8,7 +8,7 @@ import { QrCode } from './QrCode'
 
 const NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },
-  { to: '/properties', label: 'Properties', icon: Building2 },
+  { to: '/properties', label: 'Properties', icon: Building2, also: '/property/' }, // a property page lives under Properties
   { to: '/opportunities', label: 'Opportunities', icon: Target },
   { to: '/marketing', label: 'Marketing', icon: Megaphone },
   { to: '/inbox', label: 'Inbox', icon: Inbox, badge: 8 },
@@ -56,6 +56,7 @@ function ReviveAiItem({ collapsed }: { collapsed: boolean }) {
 }
 
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+  const { pathname } = useLocation()
   return (
     <aside
       className={cn(
@@ -79,7 +80,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
       <nav className="mt-6 flex flex-col gap-1 px-3" aria-label="Main">
         <ReviveAiItem collapsed={collapsed} />
-        {NAV.map(({ to, label, icon: Icon, end, badge }) => (
+        {NAV.map(({ to, label, icon: Icon, end, badge, also }) => (
           <NavLink
             key={to}
             to={to}
@@ -88,7 +89,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
             className={({ isActive }) =>
               cn(
                 'relative flex h-10 items-center gap-3 rounded-lg px-3 text-base transition-colors',
-                isActive ? 'bg-sb-active font-medium text-white' : 'text-sb-ink hover:bg-white/8 hover:text-white',
+                isActive || (also && pathname.startsWith(also)) ? 'bg-sb-active font-medium text-white' : 'text-sb-ink hover:bg-white/8 hover:text-white',
                 collapsed && 'justify-center px-0',
               )
             }
