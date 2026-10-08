@@ -170,7 +170,7 @@ export default function Opportunities() {
 
   return (
     // wide screens: the page itself doesn't scroll; the list scrolls and the map stays put beside it
-    <div className={cn(PAGE, 'max-w-none sm:px-6 xl:flex xl:h-[calc(100dvh-var(--demo-h,0px))] xl:flex-col xl:overflow-hidden xl:pb-6')}>
+    <div className={cn(PAGE, 'max-w-none xl:flex xl:h-[calc(100dvh-var(--demo-h,0px))] xl:flex-col xl:overflow-hidden xl:pb-6')}>
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
