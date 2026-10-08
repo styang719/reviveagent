@@ -15,7 +15,9 @@ import { YourBook } from '@/components/home/YourBook'
 import { OpportunityCard } from '@/components/opportunity/OpportunityCard'
 import { AGENT, TIERS } from '@/data/tiers'
 import { useNow } from '@/hooks/useNow'
-import { isActionable, useOpportunities } from '@/lib/opportunities'
+import { isActionable, useConnections, useOpportunities } from '@/lib/opportunities'
+import { gain } from '@/lib/format'
+import { useUi } from '@/store/ui'
 import { PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
@@ -29,6 +31,8 @@ export default function Home() {
   const tier = useDemo((s) => s.tier)
   const opps = useOpportunities()
   const now = useNow(30_000)
+  const { crm, mls } = useConnections()
+  const importing = useUi((s) => s.importing)
 
   const newReferral = opps.find((o) => o.referral?.status === 'new' && !o.referral.claimedAt && o.referral.expiresAt > now)
   const waiting = opps.filter((o) => o.referral?.needsUpdateNow && o.id !== newReferral?.id)
@@ -46,6 +50,10 @@ export default function Home() {
 
   const isNew = tier === 'new'
 
+  const feedGain = feed.slice(0, FEED_SIZE).reduce((n, o) => n + (o.gain || 0), 0)
+  // once both sources are in, the ranked list is the agent's book; the source panels would repeat it
+  const bookDone = crm && mls && !importing
+
   const whoToCall = feed.length > 0 && (
     <section aria-labelledby="who-to-call">
       <div className="mb-6 flex items-end justify-between gap-3">
@@ -53,7 +61,15 @@ export default function Home() {
           <h2 id="who-to-call" className="text-xl font-semibold text-ink">
             Who to call this week
           </h2>
-          <p className="mt-1.5 text-[13px] text-muted">Ranked by why now: timing, relationship and what Revive can add.</p>
+          <p className="mt-1.5 text-[13px] text-muted">
+            {feedGain > 0 ? (
+              <>
+                <span className="font-semibold text-[var(--green)]">{gain(feedGain)}</span> potential with Revive across these {Math.min(feed.length, FEED_SIZE)} homes. Ranked by why now.
+              </>
+            ) : (
+              'Ranked by why now: timing, relationship and what Revive can add.'
+            )}
+          </p>
         </div>
         <Link to="/opportunities" className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-brand hover:underline">
           See all {actionableCount} <ArrowRight className="size-3.5" />
@@ -89,8 +105,12 @@ export default function Home() {
           <RevivePathCard tier={tier} opps={opps} />
           <div className="flex min-w-0 flex-col gap-12">
             <WhatChanged />
-            <YourBook opps={opps} />
-            {whoToCall}
+            {bookDone ? whoToCall : (
+              <>
+                <YourBook opps={opps} />
+                {whoToCall}
+              </>
+            )}
             <CaseStudies />
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">
