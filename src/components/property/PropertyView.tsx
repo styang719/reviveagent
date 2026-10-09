@@ -1,12 +1,10 @@
 import { ArrowRight, Check, FileText, Hammer, HousePlus, Share2, Sparkles, Wand2 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { SourceTag, StageTag } from '@/components/opportunity/Tags'
-import openHouse from '@/assets/marketing/open-house.webp'
-import postcard from '@/assets/marketing/postcard.webp'
-import social from '@/assets/marketing/social-post.webp'
 import { AiLink } from '@/components/ai/AiLink'
+import { CreateMaterialDialog, MaterialPreview, TEMPLATES, type Home, type Material } from '@/components/marketing/CreateMaterial'
 import { TemplateCard } from '@/components/marketing/TemplateCard'
 import { isMobileApp } from '@/mobile/mode'
 import { LeadActivity } from './LeadActivity'
@@ -437,33 +435,53 @@ function ProjectTimeline({ title, steps, next, details, docs }: { title: string;
 
 function Marketing({ m }: { m: Model }) {
   // the Marketing center's templates, for this home's product: listing marketing once there's a project,
-  // conversation starters while it's a report
+  // conversation starters while it's a report. "Create" makes one for this home; what's made is listed first.
   const product = m.created?.product ?? m.builtIn?.product ?? [...m.scenarios].sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))[0]?.product ?? 'Renovate to Sell'
-  const items = m.created || m.builtIn
-    ? [
-        { name: 'Coming soon', type: 'Postcard', img: postcard },
-        { name: 'Before & after', type: 'Socials', img: social },
-        { name: 'Open house', type: 'Flyer', img: openHouse },
-        { name: 'Renovation story', type: 'One pager', img: postcard },
-      ]
-    : [
-        { name: 'What it could sell for', type: 'One pager', img: postcard },
-        { name: 'Your home’s potential', type: 'Socials', img: social },
-        { name: 'Renovate with Revive', type: 'Playbook', img: openHouse },
-      ]
+  const project = !!(m.created || m.builtIn)
+  const home: Home = { address: m.address, city: m.city, photo: m.photos[0], product, price: m.builtIn?.targetList ?? m.valueNow, project }
+  const [open, setOpen] = useState(false)
+  const [start, setStart] = useState<string | undefined>()
+  const [made, setMade] = useState<Material[]>([])
+  const create = (id?: string) => {
+    setStart(id)
+    setOpen(true)
+  }
   return (
     <div>
-      <p className="mb-4 text-[13.5px] text-muted">
-        {product} templates for {m.address}, branded with your name.{' '}
-        <Link to={isMobileApp() ? "/m/marketing" : "/marketing"} className="font-medium text-brand">
-          Browse all in the Marketing center
-        </Link>
-      </p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[13.5px] text-muted">
+          {product} templates for {m.address}, branded with your name.{' '}
+          <Link to={isMobileApp() ? '/m/marketing' : '/marketing'} className="font-medium text-brand">
+            Browse all in the Marketing center
+          </Link>
+        </p>
+        <Button onClick={() => create()}>
+          <Sparkles /> Create marketing material
+        </Button>
+      </div>
+
+      {made.length > 0 && (
+        <section className="mb-6">
+          <h3 className="mb-2 text-sm font-semibold text-ink">Your materials for this home</h3>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-6">
+            {made.map((x) => (
+              <button key={x.id} onClick={() => toast.success(`Downloading ${x.template.name.toLowerCase()}`, { description: 'Print-ready PDF and PNG.' })} className="text-left">
+                <MaterialPreview m={x} home={home} small />
+                <span className="mt-1.5 block truncate text-[12.5px] font-medium text-ink">{x.template.name}</span>
+                <span className="block text-[11.5px] text-muted">{x.template.type} · just now</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {made.length > 0 && <h3 className="mb-2 text-sm font-semibold text-ink">Templates</h3>}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {items.map((t) => (
-          <TemplateCard key={t.name} name={t.name} type={t.type} img={t.img} />
+        {TEMPLATES.filter((t) => t.forProject === project).map((t) => (
+          <TemplateCard key={t.id} name={t.name} type={t.type} img={t.img} onOpen={() => create(t.id)} />
         ))}
       </div>
+      <CreateMaterialDialog open={open} onOpenChange={setOpen} home={home} initial={start} onCreated={(x) => setMade((l) => [x, ...l])} />
     </div>
   )
 }
