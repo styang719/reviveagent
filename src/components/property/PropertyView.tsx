@@ -20,7 +20,7 @@ import { useDemo } from '@/store/demo'
 // One page per home. Reports and projects made in Revive AI land here, next to everything else
 // Revive knows about the property: Overview · Revive AI report · Project · Marketing.
 
-export type PropertyTab = 'report' | 'project' | 'marketing'
+export type PropertyTab = 'report' | 'project' | 'renovision' | 'marketing'
 
 interface Model {
   id: string
@@ -84,6 +84,7 @@ export function usePropertyModel(id: string, address?: string): Model | null {
 const TABS: { id: PropertyTab; label: string }[] = [
   { id: 'report', label: 'Revive AI report' },
   { id: 'project', label: 'Project' },
+  { id: 'renovision', label: 'RenoVision' },
   { id: 'marketing', label: 'Marketing' },
 ]
 
@@ -170,6 +171,7 @@ export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab
       <div role="tabpanel">
         {tab === 'report' && <Report m={m} />}
         {tab === 'project' && <Project m={m} />}
+        {tab === 'renovision' && <RenoVisionGallery propertyId={m.id} address={m.address} />}
         {tab === 'marketing' && <Marketing m={m} />}
       </div>
     </div>
@@ -296,7 +298,6 @@ function Report({ m }: { m: Model }) {
 
       <TopOptions m={m} />
 
-      <RenoVisionGallery propertyId={m.id} address={m.address} />
 
 
 

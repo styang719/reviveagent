@@ -393,7 +393,7 @@ function RvReady({ id }: { id: string }) {
             <Check className="size-3.5" /> Saved to {d.address}
           </span>
           <Button size="sm" variant="outline" className="ml-auto" asChild>
-            <Link to={`/property/${d.propertyId}?tab=report`}>
+            <Link to={`/property/${d.propertyId}?tab=renovision`}>
               Open home <ArrowRight />
             </Link>
           </Button>

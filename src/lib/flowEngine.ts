@@ -335,7 +335,7 @@ export function rvStyle(style: string) {
         ui().setFlow(null)
         ui().addChat(
           say(
-            d.address ? `Here’s ${d.address} in ${d.style}. Saved to ${d.address}, with its Revive AI report.` : `Here they are in ${d.style}. They’re saved in this conversation; add them to a home to keep them with it.`,
+            d.address ? `Here’s ${d.address} in ${d.style}. Saved to ${d.address}, under its RenoVision tab.` : `Here they are in ${d.style}. They’re saved in this conversation; add them to a home to keep them with it.`,
             'rv-ready',
             design.id,
           ),
