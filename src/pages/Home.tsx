@@ -100,8 +100,8 @@ export default function Home() {
       {greeting}
 
       {/* the same Ask Revive search as a new agent sees; the Revive status leads the right column */}
-      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex min-w-0 flex-col gap-6">
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-12 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="flex min-w-0 flex-col gap-12">
           <ReviveAiIntro />
           {newReferral && <ReferralHero o={newReferral} />}
           {tier === 'partner' && <ReferralUpdates waiting={waiting} />}
