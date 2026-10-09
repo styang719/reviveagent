@@ -5,7 +5,7 @@ import { ReferralsToday } from '@/components/home/ReferralsToday'
 import { ReferEarn } from '@/components/home/ReferralCards'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { SetupTodo } from '@/components/home/ConnectBook'
-import { CaseStudies, ReviveAiIntro } from '@/components/home/NewAgentIntro'
+import { ReviveAiIntro } from '@/components/home/NewAgentIntro'
 import { MarketingCenter } from '@/components/home/MarketingCenter'
 import { YourBook } from '@/components/home/YourBook'
 import { TopOpportunities } from '@/components/home/TopOpportunities'
@@ -80,7 +80,6 @@ export default function Home() {
                 {whoToCall}
               </>
             )}
-            {!bookDone && <CaseStudies />}
             <MarketingCenter />
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">
