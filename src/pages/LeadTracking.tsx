@@ -223,7 +223,7 @@ export default function LeadTracking() {
   )
 }
 
-/** No referrals yet: keep the section, and show the path to Partner (same card as the dashboard) next to what a referral looks like. */
+/** No referrals yet: keep the section, and show the path to Partner (same card as the dashboard). */
 function ReferralsEmpty({ tier, opps }: { tier: Tier; opps: Opportunity[] }) {
   const partner = tier === 'partner'
   return (
@@ -238,29 +238,15 @@ function ReferralsEmpty({ tier, opps }: { tier: Tier; opps: Opportunity[] }) {
         <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">0</span>
       </div>
       <p className="mt-1.5 mb-5 text-[13px] text-muted">
-        {partner ? 'New referrals from Revive show up here first, exclusive to you for 24 hours.' : 'Homeowners nearby who are ready to sell, sent to Revive Partners first. Here’s what one looks like.'}
+        {partner ? 'New referrals from Revive show up here first, exclusive to you for 24 hours.' : 'Homeowners nearby who are ready to sell, sent to Revive Partners first.'}
       </p>
-      <div className="grid gap-4 lg:grid-cols-2">
-        {!partner && <RevivePathCard tier={tier} opps={opps} />}
-        <div className="relative rounded-xl border border-dashed border-line bg-white p-5" aria-label="Example seller referral">
-          <span className="absolute top-3 right-3 rounded-full bg-line-soft px-2 py-0.5 text-[11px] font-semibold tracking-wide text-muted uppercase">Example</span>
-          <div className="pointer-events-none select-none" aria-hidden="true">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--teal-soft)] px-2.5 py-1 text-[11.5px] font-semibold text-navy">New referral · 23 hrs left</span>
-            <p className="mt-3 text-[16px] font-semibold text-ink">1482 Linden Ave</p>
-            <p className="text-[13px] text-muted">Dana Whitfield · 3 bd · 2 ba · 1,720 sqft</p>
-            <div className="mt-4 grid grid-cols-3 gap-3 border-y border-line-soft py-3 text-[12px] text-muted">
-              <span>Est. value<b className="block text-[15px] font-semibold text-ink">$1.24M</b></span>
-              <span>Timeline<b className="block text-[15px] font-semibold text-ink">2–4 mo</b></span>
-              <span>Wants<b className="block text-[15px] font-semibold text-ink">Sell 360</b></span>
-            </div>
-            <p className="mt-3 text-[13px] leading-5 text-ink-2">“We’re thinking about selling this spring and want to know what to fix first.”</p>
-            <div className="mt-4 flex gap-2">
-              <span className="inline-flex h-8 items-center rounded-lg bg-[var(--brand-primary)] px-3 text-[13px] font-medium text-white">Claim lead</span>
-              <span className="inline-flex h-8 items-center rounded-lg border border-line px-3 text-[13px] font-medium text-ink">Pass</span>
-            </div>
-          </div>
+      {partner ? (
+        <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No referrals right now.</p>
+      ) : (
+        <div className="max-w-xl">
+          <RevivePathCard tier={tier} opps={opps} />
         </div>
-      </div>
+      )}
     </section>
   )
 }
