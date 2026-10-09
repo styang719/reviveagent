@@ -2,6 +2,7 @@ import { ExternalLink, FileText, Hammer, MapPin, MessageSquare, PanelLeft, Spark
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
+import { ReviveBubbleBot } from '@/components/ai/ReviveBubbleBot'
 import { PropertyView, usePropertyModel, type PropertyTab } from '@/components/property/PropertyView'
 import { Button } from '@/components/ui/button'
 import { STARTERS } from '@/lib/ai'
@@ -234,7 +235,7 @@ export default function ReviveAI() {
           <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6">
             {empty ? (
               <div className="flex flex-col items-center pt-6 text-center sm:pt-14">
-                <AiAvatar className="size-20" />
+                <ReviveBubbleBot size={104} />
                 <h2 className="mt-5 text-2xl font-semibold text-balance text-ink sm:text-[28px]">What can I help you with?</h2>
                 <p className="mt-2 max-w-md text-[15px] text-ink-2">Generate a report, start a project, or ask about any home or anyone in your book.</p>
                 <div className="mt-8 grid w-full gap-3 text-left sm:grid-cols-2">
