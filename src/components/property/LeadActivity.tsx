@@ -24,7 +24,8 @@ const split = (line: string) => {
 }
 const iconFor = (t: string) => (/repl/i.test(t) ? MessageCircle : /report/i.test(t) ? FileText : /clicked|viewed/i.test(t) ? MousePointerClick : /email/i.test(t) ? Mail : Eye)
 
-export function LeadActivity({ o }: { o: Opportunity }) {
+/** `footer`: where the report came from (generated when, or the button to generate it), at the bottom of the box. */
+export function LeadActivity({ o, footer }: { o: Opportunity; footer?: React.ReactNode }) {
   const now = useNow(20_000)
   const out = useDemo((s) => s.outreach[o.id])
   const logged = useDemo((s) => s.activity[o.id])
@@ -51,7 +52,8 @@ export function LeadActivity({ o }: { o: Opportunity }) {
   }
 
   return (
-    <section aria-labelledby="lead-activity" className="rounded-xl border border-line bg-white p-4 shadow-card">
+    <section aria-labelledby="lead-activity" className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
+      <div className="p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="lead-activity" className="text-[15px] font-semibold text-ink">
           Lead activity
@@ -78,6 +80,8 @@ export function LeadActivity({ o }: { o: Opportunity }) {
       ) : (
         <p className="mt-2 text-[13.5px] text-muted">{first} hasn’t opened anything yet. Share the report and you’ll see here when they do.</p>
       )}
+      </div>
+      {footer && <div className="border-t border-line bg-[var(--brand-agent-subtle)]/50 px-4 py-2.5">{footer}</div>}
     </section>
   )
 }

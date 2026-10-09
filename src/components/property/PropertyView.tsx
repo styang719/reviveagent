@@ -252,28 +252,37 @@ function Report({ m, compact }: { m: Model; compact: boolean }) {
   const best = [...m.scenarios].sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))[0]
   return (
     <div className="flex flex-col gap-5">
-      {/* a home that already has a report (generated here, or run on the lead form) just shows it */}
-      {(r || !m.reportRun) && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-[var(--brand-agent-subtle)]/60 px-4 py-3">
-          <p className="flex items-center gap-2 text-sm text-ink-2">
-            <Sparkles className="size-4 text-[var(--brand-agent)]" />
-            {r
-              ? `Revive AI report · generated ${new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-              : m.isPreview
-                ? 'Quick estimate from public records'
-                : 'Based on what Revive has on record'}
-          </p>
-          {!m.reportRun && (
-            <Button size="sm" asChild>
-              <AiLink to={aiPath('report', m)}>
-                Generate the full report <ArrowRight />
-              </AiLink>
-            </Button>
-          )}
-        </div>
-      )}
-
-      {m.opp && <LeadActivity o={m.opp} />}
+      {/* where the report came from: alone, or as the footer of the lead activity box when there's a homeowner */}
+      {(() => {
+        const when = r
+          ? `Revive AI report · generated ${new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${new Date(r.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+          : m.reportRun
+            ? m.opp?.property.facts.leadFormDaysAgo !== undefined
+              ? `Revive AI report · run through your lead form ${m.opp.property.facts.leadFormDaysAgo} days ago`
+              : 'Revive AI report'
+            : m.isPreview
+              ? 'Quick estimate from public records'
+              : 'Based on what Revive has on record'
+        const footer = (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="flex items-center gap-2 text-[13px] text-ink-2">
+              <Sparkles className="size-4 text-[var(--brand-agent)]" /> {when}
+            </p>
+            {!m.reportRun && (
+              <Button size="sm" asChild>
+                <AiLink to={aiPath('report', m)}>
+                  Generate the full report <ArrowRight />
+                </AiLink>
+              </Button>
+            )}
+          </div>
+        )
+        return m.opp?.person ? (
+          <LeadActivity o={m.opp} footer={footer} />
+        ) : (
+          <div className="rounded-lg bg-[var(--brand-agent-subtle)]/60 px-4 py-3">{footer}</div>
+        )
+      })()}
 
       <section>
         <h2 className="text-[15px] font-semibold text-ink">Value</h2>
