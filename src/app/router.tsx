@@ -13,12 +13,40 @@ import ReviveAI from '@/pages/ReviveAI'
 import Property from '@/pages/Property'
 import { Placeholder } from '@/pages/Placeholder'
 import { AppLayout } from './AppLayout'
+import { MobileLayout } from '@/mobile/MobileLayout'
+import MobileChat from '@/mobile/MobileChat'
+import MobileMap from '@/mobile/MobileMap'
+import MobileMore from '@/mobile/MobileMore'
 import { RouteError } from './RouteError'
 
 // The hosted preview build uses hash routing (no server rewrites there).
 const createRouter = import.meta.env.VITE_ROUTER === 'hash' ? createHashRouter : createBrowserRouter
 
 export const router = createRouter([
+  {
+    // the mobile prototype: same pages, its own shell (Revive AI home, map in the middle of the tab bar)
+    path: '/m',
+    element: <MobileLayout />,
+    errorElement: <RouteError />,
+    children: [
+      { index: true, element: <MobileChat /> },
+      { path: 'ai', element: <MobileChat /> },
+      { path: 'map', element: <MobileMap /> },
+      { path: 'more', element: <MobileMore /> },
+      { path: 'opportunities', element: <Opportunities /> },
+      { path: 'properties', element: <Properties /> },
+      { path: 'projects', element: <Navigate to="/m/properties" replace /> },
+      { path: 'leads', element: <LeadTracking /> },
+      { path: 'leads/referrals', element: <Referrals /> },
+      { path: 'leads/referrals/:id', element: <ReferralDetail /> },
+      { path: 'case-studies', element: <CaseStudies /> },
+      { path: 'marketing', element: <Marketing /> },
+      { path: 'inbox', element: <Inbox /> },
+      { path: 'property/:id', element: <Property /> },
+      { path: 'person/:id', element: <Person /> },
+      { path: '*', element: <Navigate to="/m" replace /> },
+    ],
+  },
   {
     element: <AppLayout />,
     errorElement: <RouteError />,
