@@ -369,7 +369,7 @@ export function Composer({
         className={cn(
           'flex w-full items-end gap-2',
           pill
-            ? 'rounded-[28px] border border-white/80 bg-white/70 p-1.5 shadow-[0_8px_28px_rgba(28,46,88,0.14),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-xl backdrop-saturate-150'
+            ? 'rounded-[28px] border border-white/60 bg-white/40 p-1.5 shadow-[0_8px_28px_rgba(28,46,88,0.14),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-[6px] backdrop-saturate-[1.8]'
             : 'rounded-2xl border border-line bg-white p-2 pl-4 shadow-card focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10',
         )}
         onSubmit={(e) => {

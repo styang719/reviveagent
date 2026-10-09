@@ -114,7 +114,7 @@ export default function MobileChat() {
       </header>
 
       {/* bottom: the conversation fades out under the message bar and the tab bar */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[calc(var(--tab-h)+110px)] bg-gradient-to-t from-white from-30% via-white/70 to-transparent" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[calc(var(--tab-h)+60px)] bg-gradient-to-t from-white/50 to-transparent" />
       <div className="absolute inset-x-4 bottom-[calc(var(--tab-h)+10px)] z-20">
         {menu && (
           <>

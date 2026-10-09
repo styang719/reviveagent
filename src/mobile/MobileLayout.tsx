@@ -29,7 +29,7 @@ function TabBar() {
     // frosted glass pill, floating over the page so content scrolls under it; icons only, the current tab sits in a soft pill
     <nav
       aria-label="Main"
-      className="absolute inset-x-4 bottom-[calc(10px+env(safe-area-inset-bottom))] z-[700] rounded-full border border-white/80 bg-white/75 p-1.5 shadow-[0_10px_36px_rgba(28,46,88,0.14),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-xl backdrop-saturate-150"
+      className="absolute inset-x-4 bottom-[calc(10px+env(safe-area-inset-bottom))] z-[700] rounded-full border border-white/60 bg-white/30 p-1.5 shadow-[0_10px_36px_rgba(28,46,88,0.16),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-[6px] backdrop-saturate-[1.8]"
     >
       <ul className="grid grid-cols-5">
         {TABS.map((t) => {
@@ -44,7 +44,7 @@ function TabBar() {
                 title={t.label}
                 className={cn(
                   'grid h-12 place-items-center rounded-full transition-colors active:scale-95',
-                  active ? 'bg-[rgba(28,46,88,0.07)] text-ink' : 'text-ink-2',
+                  active ? 'bg-white/70 text-ink shadow-[0_1px_4px_rgba(28,46,88,0.08)]' : 'text-ink-2',
                 )}
               >
                 <Icon className="size-6" strokeWidth={active ? 2 : 1.75} />
@@ -126,8 +126,6 @@ export function MobileLayout() {
       <main ref={main} id="main" className={cn('relative min-h-0 flex-1 overflow-y-auto pt-[env(safe-area-inset-top)]', !fullBleed && 'pb-[calc(var(--tab-h)+16px)]')}>
         <Outlet />
       </main>
-      {/* content fades out behind the tab bar */}
-      {!fullBleed && <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[650] h-[calc(var(--tab-h)+24px)] bg-gradient-to-t from-white via-white/70 to-transparent" />}
       <TabBar />
       <CrmDialog />
       <Toaster position="top-center" richColors closeButton />
