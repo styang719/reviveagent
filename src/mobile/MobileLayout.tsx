@@ -78,9 +78,9 @@ function PhoneShell() {
     return () => (clearTimeout(t), offDemo(), offUi())
   }, [])
 
-  // a comfortable size: most of the window's height, never above 95% of a real phone's size
+  // a comfortable size: most of the window's height, never above a real phone's size
   useEffect(() => {
-    const fit = () => setScale(Math.max(0.5, Math.min(((window.innerHeight - DEMO_BAR_HEIGHT) * 0.93) / 868, (window.innerWidth - 32) / 414, 0.95)))
+    const fit = () => setScale(Math.max(0.5, Math.min(((window.innerHeight - DEMO_BAR_HEIGHT) * 0.97) / 868, (window.innerWidth - 32) / 414, 1)))
     fit()
     window.addEventListener('resize', fit)
     return () => window.removeEventListener('resize', fit)
@@ -89,7 +89,7 @@ function PhoneShell() {
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[radial-gradient(120%_120%_at_0%_0%,var(--brand-primary-subtle)_0%,#fff_55%)]">
       <DemoBar />
-      <div className="flex flex-1 items-center justify-center py-4">
+      <div className="flex flex-1 items-center justify-center py-3">
         <div style={{ width: 414 * scale, height: 868 * scale }}>
           <div
             className="h-[868px] w-[414px] origin-top-left overflow-hidden rounded-[52px] border-[12px] border-navy bg-white shadow-[0_30px_80px_rgba(28,46,88,0.35)]"

@@ -1,8 +1,8 @@
-import { Check, Hammer, MessageSquareReply, PhoneCall, UserRound } from 'lucide-react'
+import { Check, ChevronRight, Hammer, MessageSquareReply, PhoneCall, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { attentionOf, attentionRank, crmSignal, img, leadSignal } from '@/components/home/TopOpportunities'
-import { actionFor, needsAction } from '@/components/property/SellerReferrals'
+import { attentionOf, attentionRank, img } from '@/components/home/TopOpportunities'
+import { needsAction } from '@/components/property/SellerReferrals'
 import { isActionable, useOpportunities } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
@@ -31,12 +31,11 @@ export function TodayChecklist() {
   const lead = leads[0]
   if (lead) {
     const att = attentionOf(lead, outreach[lead.id], activity[lead.id])
-    const signal = leadSignal(lead, activity[lead.id]) ?? crmSignal(lead)
     todos.push({
       id: `lead-${lead.id}`,
       icon: att === 'reply' ? MessageSquareReply : PhoneCall,
       title: att === 'reply' ? `Reply to ${first(lead.person?.name)}` : `Call ${lead.person?.name ?? 'the homeowner'}`,
-      sub: signal ?? `${lead.property.address} · ${lead.reasons[0] ?? 'Worth a call this week'}`,
+      sub: lead.property.address,
       to: `/m/property/${lead.id}`,
       tone: 'lead',
       photo: img(lead),
@@ -48,7 +47,7 @@ export function TodayChecklist() {
   const project = opps.find((o) => o.property.project?.nextFromAgent)
   if (project) {
     const pr = project.property.project!
-    todos.push({ id: `project-${project.id}`, icon: Hammer, title: pr.nextFromAgent!, sub: `${project.property.address} · ${pr.stageLabel ?? pr.product}`, to: `/m/property/${project.id}`, tone: 'project', photo: img(project), label: 'Project update' })
+    todos.push({ id: `project-${project.id}`, icon: Hammer, title: pr.nextFromAgent!, sub: project.property.address, to: `/m/property/${project.id}`, tone: 'project', photo: img(project), label: 'Project update' })
   }
 
   // a Revive referral that needs them (new, or waiting on an update)
@@ -58,7 +57,7 @@ export function TodayChecklist() {
       id: `ref-${ref.id}`,
       icon: UserRound,
       title: ref.referral!.status === 'new' ? `Call ${ref.person?.name ?? 'your new referral'}` : `Update Revive on ${first(ref.person?.name)}`,
-      sub: `${ref.property.address} · ${actionFor(ref.referral!.status, first(ref.person?.name))}`,
+      sub: ref.property.address,
       to: `/m/leads/referrals/${ref.id}`,
       tone: 'referral',
       photo: img(ref),
@@ -69,7 +68,7 @@ export function TodayChecklist() {
   // room for one more lead, when the list is short
   if (leads[1] && todos.length < 3) {
     const o = leads[1]
-    todos.push({ id: `lead-${o.id}`, icon: PhoneCall, title: `Call ${o.person?.name ?? 'the homeowner'}`, sub: `${o.property.address} · ${o.reasons[0] ?? 'Worth a call this week'}`, to: `/m/property/${o.id}`, tone: 'lead', photo: img(o), label: 'Lead to call' })
+    todos.push({ id: `lead-${o.id}`, icon: PhoneCall, title: `Call ${o.person?.name ?? 'the homeowner'}`, sub: o.property.address, to: `/m/property/${o.id}`, tone: 'lead', photo: img(o), label: 'Lead to call' })
   }
   if (!todos.length) return null
 
@@ -83,51 +82,40 @@ export function TodayChecklist() {
     })
 
   return (
-    <section aria-labelledby="today-title" className="mt-4">
-      <div className="flex items-center justify-between px-1">
-        <h2 id="today-title" className="flex items-center gap-2 text-[15px] font-semibold text-ink">
+    // a navy card, so the to-dos read apart from the prompt tiles below
+    <section aria-labelledby="today-title" className="mt-4 overflow-hidden rounded-[22px] bg-[radial-gradient(120%_90%_at_100%_0%,#2b4580_0%,var(--navy)_60%,#141f3d_100%)] p-1.5 text-white shadow-[0_10px_28px_rgba(28,46,88,0.25)]">
+      <div className="flex items-center justify-between px-3 pt-2 pb-1">
+        <h2 id="today-title" className="text-[15px] font-semibold">
           Today
-          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-navy px-1.5 text-[11px] font-semibold text-white tabular-nums">{left}</span>
         </h2>
-        <span className="text-[12.5px] text-muted">{left ? 'Swipe for more' : 'All done for today'}</span>
+        <span className="rounded-full bg-white/12 px-2 py-0.5 text-[12px] font-medium text-white/85 tabular-nums">{left ? `${left} to do` : 'All done'}</span>
       </div>
-      {/* one card per to-do, a photo of the home on top: swipe across, tap to go there */}
-      <ul className="-mx-4 mt-2 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
+      <ul className="flex flex-col">
         {todos.map((t) => {
           const isDone = done.has(t.id)
           return (
-            <li key={t.id} className="w-[232px] shrink-0 snap-start">
-              <Link
-                to={t.to}
-                className={cn('block overflow-hidden rounded-[22px] bg-white shadow-[0_6px_20px_rgba(28,46,88,0.12)] ring-1 ring-black/[0.03] transition-opacity', isDone && 'opacity-55')}
+            <li key={t.id} className="flex items-center">
+              <button
+                onClick={() => toggle(t.id)}
+                aria-pressed={isDone}
+                aria-label={isDone ? `Mark “${t.title}” not done` : `Mark “${t.title}” done`}
+                className="grid size-11 shrink-0 place-items-center"
               >
-                <span className="relative block h-[92px] bg-line-soft">
-                  {t.photo && <img src={t.photo} alt="" className="size-full object-cover" />}
-                  <span className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
-                  <span
-                    className={cn(
-                      'absolute bottom-2 left-2.5 inline-flex items-center gap-1 rounded-full px-2 py-[3px] text-[11.5px] font-semibold text-white',
-                      t.tone === 'lead' ? 'bg-[var(--brand-primary)]' : t.tone === 'project' ? 'bg-[var(--green)]' : 'bg-[var(--brand-agent)]',
-                    )}
-                  >
-                    <t.icon className="size-3" /> {t.label}
+                <span className={cn('grid size-[22px] place-items-center rounded-full border-[1.5px] transition-colors', isDone ? 'border-[var(--teal)] bg-[var(--teal)] text-navy' : 'border-white/45')}>
+                  {isDone && <Check className="size-3.5" strokeWidth={3} />}
+                </span>
+              </button>
+              <Link to={t.to} className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl py-2 pr-2.5 active:bg-white/5">
+                <span className="min-w-0 flex-1">
+                  <span className={cn('block truncate text-[14.5px] font-medium', isDone && 'text-white/50 line-through')}>{t.title}</span>
+                  <span className={cn('mt-0.5 flex items-center gap-1.5 text-[12px] text-white/60', isDone && 'opacity-60')}>
+                    <span className={cn('inline-flex shrink-0 items-center gap-1 font-semibold', t.tone === 'lead' ? 'text-[#9db8ff]' : t.tone === 'project' ? 'text-[var(--teal)]' : 'text-[#d6b4f5]')}>
+                      <t.icon className="size-3" /> {t.label}
+                    </span>
+                    <span className="truncate">· {t.sub}</span>
                   </span>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      toggle(t.id)
-                    }}
-                    aria-pressed={isDone}
-                    aria-label={isDone ? `Mark “${t.title}” not done` : `Mark “${t.title}” done`}
-                    className={cn('absolute top-2 right-2 grid size-7 place-items-center rounded-full border-[1.5px] backdrop-blur-sm', isDone ? 'border-white bg-[var(--green)] text-white' : 'border-white/90 bg-white/25')}
-                  >
-                    {isDone && <Check className="size-3.5" strokeWidth={3} />}
-                  </button>
                 </span>
-                <span className="block px-3 pt-2.5 pb-3">
-                  <span className={cn('line-clamp-2 min-h-10 text-[14.5px] leading-5 font-semibold text-ink', isDone && 'line-through')}>{t.title}</span>
-                  <span className="mt-1 block truncate text-[12px] text-muted">{t.sub}</span>
-                </span>
+                <ChevronRight className="size-4 shrink-0 text-white/40" />
               </Link>
             </li>
           )
