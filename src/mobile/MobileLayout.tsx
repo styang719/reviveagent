@@ -8,6 +8,7 @@ import { TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
+import { ChatDrawer, useChatDrawer } from './ChatDrawer'
 import { inPhoneFrame, PHONE_FRAME_NAME, setMobileApp } from './mode'
 import { ViewSwitch } from './ViewSwitch'
 
@@ -118,15 +119,28 @@ export function MobileLayout() {
   const main = useRef<HTMLElement>(null)
   useEffect(() => main.current?.scrollTo(0, 0), [pathname])
 
+  const drawer = useChatDrawer((s) => s.open)
+  const setDrawer = useChatDrawer((s) => s.setOpen)
+  useEffect(() => setDrawer(false), [pathname, setDrawer])
   const fullBleed = /^\/m(\/ai|\/map)?\/?$/.test(pathname)
   if (wide) return <PhoneShell />
   return (
-    <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-white [--tab-h:calc(72px+env(safe-area-inset-bottom))]">
-      {/* the map and the chat run edge to edge under the glass; other pages leave room so their last row clears it */}
-      <main ref={main} id="main" className={cn('relative min-h-0 flex-1 overflow-y-auto pt-[env(safe-area-inset-top)]', !fullBleed && 'pb-[calc(var(--tab-h)+16px)]')}>
-        <Outlet />
-      </main>
-      <TabBar />
+    <div className="relative h-[100dvh] overflow-hidden bg-white [--tab-h:calc(72px+env(safe-area-inset-bottom))]">
+      <ChatDrawer />
+      {/* the app; it slides aside, rounded, when the chat drawer opens */}
+      <div
+        className={cn(
+          'absolute inset-0 z-10 flex flex-col overflow-hidden bg-white transition-[transform,border-radius,box-shadow] duration-300 ease-[cubic-bezier(.32,.72,0,1)]',
+          drawer && 'translate-x-[84%] rounded-l-[40px] shadow-[-12px_0_48px_rgba(28,46,88,0.14)]',
+        )}
+      >
+        {/* the map and the chat run edge to edge under the glass; other pages leave room so their last row clears it */}
+        <main ref={main} id="main" className={cn('relative min-h-0 flex-1 overflow-y-auto pt-[env(safe-area-inset-top)]', !fullBleed && 'pb-[calc(var(--tab-h)+16px)]')}>
+          <Outlet />
+        </main>
+        <TabBar />
+        {drawer && <button aria-label="Close chats" onClick={() => setDrawer(false)} className="absolute inset-0 z-[900] bg-white/20" />}
+      </div>
       <CrmDialog />
       <Toaster position="top-center" richColors closeButton />
     </div>

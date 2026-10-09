@@ -1,6 +1,5 @@
-import { FileText, Gift, Hammer, Map, Plus, Sparkles, SquarePen, Users } from 'lucide-react'
+import { FileText, Hammer, Map, Menu, Plus, Sparkles, SquarePen, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
 import { Link, useSearchParams } from 'react-router-dom'
 import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
 import { AGENT } from '@/data/tiers'
@@ -8,10 +7,12 @@ import { STARTERS } from '@/lib/ai'
 import { rvHome, startHome, startProject, startRenovision, startReport } from '@/lib/flowEngine'
 import { useOpportunities, isActionable } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
+import { useChatDrawer } from './ChatDrawer'
 import { useUi } from '@/store/ui'
 
 // Mobile home: Revive AI, full screen. The conversation scrolls under a white fade at the top (Revive in the
-// center, new chat and Refer & Earn on either side) and under the glass message bar and tab bar at the bottom. Reports and projects open as pages; the Revive AI tab brings you back to the conversation.
+// center, the chats drawer and a new chat on either side) and under the glass message bar and tab bar at the bottom.
+// Reports and projects open as pages; the Revive AI tab brings you back to the conversation.
 
 const STARTER_CARDS = [
   { icon: FileText, label: 'Generate a Revive AI report', run: () => startReport() },
@@ -29,6 +30,7 @@ export default function MobileChat() {
   const empty = chat.length === 0
   const end = useRef<HTMLDivElement>(null)
   const [menu, setMenu] = useState(false)
+  const openDrawer = useChatDrawer((s) => s.setOpen)
   useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [chat.length, thinking])
 
   // arriving with context (/m/ai?q=… or ?flow=report|project|home|renovision), same as the desktop page
@@ -95,8 +97,8 @@ export default function MobileChat() {
       {/* top: the conversation fades out under Revive */}
       <header className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[168px] bg-gradient-to-b from-white from-55% via-white/85 to-transparent">
         <div className="flex items-start justify-between px-4 pt-3">
-          <button onClick={clearChat} className={circle} aria-label="New chat">
-            <SquarePen className="size-[22px]" strokeWidth={1.75} />
+          <button onClick={() => openDrawer(true)} className={circle} aria-label="Chats">
+            <Menu className="size-[22px]" strokeWidth={1.75} />
           </button>
           <span className="flex flex-col items-center">
             <AiAvatar className="size-[68px] drop-shadow-[0_8px_14px_rgba(97,70,180,0.25)]" />
@@ -104,8 +106,8 @@ export default function MobileChat() {
               Revive AI
             </span>
           </span>
-          <button onClick={() => toast.success('Referral link copied', { description: 'Invite an agent to Revive.' })} className={circle} aria-label="Refer & Earn">
-            <Gift className="size-[22px]" strokeWidth={1.75} />
+          <button onClick={() => chat.length && clearChat()} className={circle} aria-label="New chat">
+            <SquarePen className="size-[22px]" strokeWidth={1.75} />
           </button>
         </div>
       </header>
