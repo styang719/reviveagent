@@ -1,7 +1,7 @@
-import { Check, ChevronRight, Hammer, Map, MessageSquareReply, PhoneCall, UserRound } from 'lucide-react'
+import { Check, Hammer, MessageSquareReply, PhoneCall, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { attentionOf, attentionRank, crmSignal, leadSignal } from '@/components/home/TopOpportunities'
+import { attentionOf, attentionRank, crmSignal, img, leadSignal } from '@/components/home/TopOpportunities'
 import { actionFor, needsAction } from '@/components/property/SellerReferrals'
 import { isActionable, useOpportunities } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
@@ -11,7 +11,7 @@ import { useDemo } from '@/store/demo'
 // the project waiting on them, the Revive referral that needs an update. Each row takes them there; the
 // circle ticks it off for now.
 
-type Todo = { id: string; icon: typeof PhoneCall; title: string; sub: string; to: string; tone: 'lead' | 'project' | 'referral' }
+type Todo = { id: string; icon: typeof PhoneCall; title: string; sub: string; to: string; tone: 'lead' | 'project' | 'referral'; photo?: string; label: string }
 const first = (name?: string) => name?.split(' ')[0] ?? 'the homeowner'
 
 export function TodayChecklist() {
@@ -36,9 +36,11 @@ export function TodayChecklist() {
       id: `lead-${lead.id}`,
       icon: att === 'reply' ? MessageSquareReply : PhoneCall,
       title: att === 'reply' ? `Reply to ${first(lead.person?.name)}` : `Call ${lead.person?.name ?? 'the homeowner'}`,
-      sub: `${lead.property.address} · ${signal ?? lead.reasons[0] ?? 'Worth a call this week'}`,
+      sub: signal ?? `${lead.property.address} · ${lead.reasons[0] ?? 'Worth a call this week'}`,
       to: `/m/property/${lead.id}`,
       tone: 'lead',
+      photo: img(lead),
+      label: att === 'reply' ? 'Reply waiting' : 'Lead to call',
     })
   }
 
@@ -46,7 +48,7 @@ export function TodayChecklist() {
   const project = opps.find((o) => o.property.project?.nextFromAgent)
   if (project) {
     const pr = project.property.project!
-    todos.push({ id: `project-${project.id}`, icon: Hammer, title: pr.nextFromAgent!, sub: `${project.property.address} · ${pr.stageLabel ?? pr.product}`, to: `/m/property/${project.id}`, tone: 'project' })
+    todos.push({ id: `project-${project.id}`, icon: Hammer, title: pr.nextFromAgent!, sub: `${project.property.address} · ${pr.stageLabel ?? pr.product}`, to: `/m/property/${project.id}`, tone: 'project', photo: img(project), label: 'Project update' })
   }
 
   // a Revive referral that needs them (new, or waiting on an update)
@@ -56,16 +58,18 @@ export function TodayChecklist() {
       id: `ref-${ref.id}`,
       icon: UserRound,
       title: ref.referral!.status === 'new' ? `Call ${ref.person?.name ?? 'your new referral'}` : `Update Revive on ${first(ref.person?.name)}`,
-      sub: `Revive referral · ${actionFor(ref.referral!.status, first(ref.person?.name))}`,
+      sub: `${ref.property.address} · ${actionFor(ref.referral!.status, first(ref.person?.name))}`,
       to: `/m/leads/referrals/${ref.id}`,
       tone: 'referral',
+      photo: img(ref),
+      label: 'Revive referral',
     })
   }
 
   // room for one more lead, when the list is short
   if (leads[1] && todos.length < 3) {
     const o = leads[1]
-    todos.push({ id: `lead-${o.id}`, icon: PhoneCall, title: `Call ${o.person?.name ?? 'the homeowner'}`, sub: `${o.property.address} · ${o.reasons[0] ?? 'Worth a call this week'}`, to: `/m/property/${o.id}`, tone: 'lead' })
+    todos.push({ id: `lead-${o.id}`, icon: PhoneCall, title: `Call ${o.person?.name ?? 'the homeowner'}`, sub: `${o.property.address} · ${o.reasons[0] ?? 'Worth a call this week'}`, to: `/m/property/${o.id}`, tone: 'lead', photo: img(o), label: 'Lead to call' })
   }
   if (!todos.length) return null
 
@@ -77,50 +81,58 @@ export function TodayChecklist() {
       else n.add(id)
       return n
     })
-  const toCall = opps.filter(isActionable).length
 
   return (
-    <section aria-labelledby="today-title" className="mt-3.5 rounded-[22px] border border-white/80 bg-white/70 p-1.5 shadow-[0_2px_12px_rgba(28,46,88,0.06)] backdrop-blur-sm">
-      <div className="flex items-baseline justify-between px-3 pt-2 pb-1">
-        <h2 id="today-title" className="text-[15px] font-semibold text-ink">
+    <section aria-labelledby="today-title" className="mt-4">
+      <div className="flex items-center justify-between px-1">
+        <h2 id="today-title" className="flex items-center gap-2 text-[15px] font-semibold text-ink">
           Today
+          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-navy px-1.5 text-[11px] font-semibold text-white tabular-nums">{left}</span>
         </h2>
-        <span className="text-[12.5px] text-muted tabular-nums">{left ? `${left} to do` : 'All done'}</span>
+        <span className="text-[12.5px] text-muted">{left ? 'Swipe for more' : 'All done for today'}</span>
       </div>
-      <ul className="flex flex-col">
+      {/* one card per to-do, a photo of the home on top: swipe across, tap to go there */}
+      <ul className="-mx-4 mt-2 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
         {todos.map((t) => {
           const isDone = done.has(t.id)
           return (
-            <li key={t.id} className="flex items-center gap-1">
-              <button
-                onClick={() => toggle(t.id)}
-                aria-pressed={isDone}
-                aria-label={isDone ? `Mark “${t.title}” not done` : `Mark “${t.title}” done`}
-                className="grid size-11 shrink-0 place-items-center"
+            <li key={t.id} className="w-[232px] shrink-0 snap-start">
+              <Link
+                to={t.to}
+                className={cn('block overflow-hidden rounded-[22px] bg-white shadow-[0_6px_20px_rgba(28,46,88,0.12)] ring-1 ring-black/[0.03] transition-opacity', isDone && 'opacity-55')}
               >
-                <span className={cn('grid size-[22px] place-items-center rounded-full border-[1.5px] transition-colors', isDone ? 'border-[var(--green)] bg-[var(--green)] text-white' : 'border-[#c4cad6] bg-white')}>
-                  {isDone && <Check className="size-3.5" strokeWidth={3} />}
-                </span>
-              </button>
-              <Link to={t.to} className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl py-2 pr-2.5 active:bg-[rgba(28,46,88,0.04)]">
-                <span className="min-w-0 flex-1">
-                  <span className={cn('flex items-center gap-1.5 text-[14.5px] font-medium text-ink', isDone && 'text-muted line-through')}>
-                    <t.icon className={cn('size-3.5 shrink-0', t.tone === 'lead' ? 'text-brand' : t.tone === 'project' ? 'text-[var(--green)]' : 'text-[var(--brand-agent)]')} />
-                    <span className="truncate">{t.title}</span>
+                <span className="relative block h-[92px] bg-line-soft">
+                  {t.photo && <img src={t.photo} alt="" className="size-full object-cover" />}
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+                  <span
+                    className={cn(
+                      'absolute bottom-2 left-2.5 inline-flex items-center gap-1 rounded-full px-2 py-[3px] text-[11.5px] font-semibold text-white',
+                      t.tone === 'lead' ? 'bg-[var(--brand-primary)]' : t.tone === 'project' ? 'bg-[var(--green)]' : 'bg-[var(--brand-agent)]',
+                    )}
+                  >
+                    <t.icon className="size-3" /> {t.label}
                   </span>
-                  <span className={cn('block truncate text-[12.5px] text-muted', isDone && 'opacity-60')}>{t.sub}</span>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      toggle(t.id)
+                    }}
+                    aria-pressed={isDone}
+                    aria-label={isDone ? `Mark “${t.title}” not done` : `Mark “${t.title}” done`}
+                    className={cn('absolute top-2 right-2 grid size-7 place-items-center rounded-full border-[1.5px] backdrop-blur-sm', isDone ? 'border-white bg-[var(--green)] text-white' : 'border-white/90 bg-white/25')}
+                  >
+                    {isDone && <Check className="size-3.5" strokeWidth={3} />}
+                  </button>
                 </span>
-                <ChevronRight className="size-4 shrink-0 text-faint" />
+                <span className="block px-3 pt-2.5 pb-3">
+                  <span className={cn('line-clamp-2 min-h-10 text-[14.5px] leading-5 font-semibold text-ink', isDone && 'line-through')}>{t.title}</span>
+                  <span className="mt-1 block truncate text-[12px] text-muted">{t.sub}</span>
+                </span>
               </Link>
             </li>
           )
         })}
       </ul>
-      {toCall > 0 && (
-        <Link to="/m/map" className="mx-1.5 mt-0.5 mb-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-[13px] font-medium text-brand active:bg-[rgba(28,46,88,0.04)]">
-          <Map className="size-3.5" /> See all {toCall} opportunities on the map
-        </Link>
-      )}
     </section>
   )
 }

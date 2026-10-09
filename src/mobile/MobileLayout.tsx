@@ -78,9 +78,9 @@ function PhoneShell() {
     return () => (clearTimeout(t), offDemo(), offUi())
   }, [])
 
-  // a comfortable size: most of the window's height, never above 85% of a real phone's size
+  // a comfortable size: most of the window's height, never above 95% of a real phone's size
   useEffect(() => {
-    const fit = () => setScale(Math.max(0.5, Math.min(((window.innerHeight - DEMO_BAR_HEIGHT) * 0.86) / 868, (window.innerWidth - 32) / 414, 0.85)))
+    const fit = () => setScale(Math.max(0.5, Math.min(((window.innerHeight - DEMO_BAR_HEIGHT) * 0.93) / 868, (window.innerWidth - 32) / 414, 0.95)))
     fit()
     window.addEventListener('resize', fit)
     return () => window.removeEventListener('resize', fit)
