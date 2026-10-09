@@ -67,7 +67,7 @@ const who = (city: string, o?: Opportunity) => `${city}${o?.person ? ` · ${o.pe
 
 function Photo({ to, photo, badge, tone = 'dark', className }: { to: string; photo?: string; badge: React.ReactNode; tone?: 'dark' | 'ai'; className?: string }) {
   return (
-    <Link to={to} tabIndex={-1} aria-hidden="true" className={cn('relative block h-28 shrink-0 overflow-hidden bg-line-soft', className)}>
+    <Link to={to} tabIndex={-1} aria-hidden="true" className={cn('relative block aspect-video shrink-0 overflow-hidden bg-line-soft', className)}>
       {photo && <img src={src(photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
       <span
         className={cn(
@@ -94,7 +94,7 @@ function Title({ to, title, city }: { to: string; title: string; city: string })
 
 function Note({ icon: Icon, children, tone }: { icon: typeof Eye; children: React.ReactNode; tone?: 'brand' | 'ai' }) {
   return (
-    <p className="flex items-start gap-2 text-[12.5px] leading-[18px] text-ink-2">
+    <p className="flex min-h-9 items-start gap-2 text-[12.5px] leading-[18px] text-ink-2">
       <Icon className={cn('mt-px size-3.5 shrink-0', tone === 'brand' ? 'text-brand' : tone === 'ai' ? 'text-[var(--brand-agent)]' : 'text-muted')} />
       <span className="line-clamp-2">{children}</span>
     </p>
@@ -195,16 +195,19 @@ function ReportCard({ o, signal }: { o: Opportunity; signal: string }) {
       <Photo to={to} photo={o.property.photo} tone="ai" badge={<><Sparkles className="size-3" /> Revive AI report</>} />
       <div className="flex flex-1 flex-col gap-3 p-4">
         <Title to={to} title={o.property.address} city={who(o.property.city, o)} />
-        <dl className="grid grid-cols-2 gap-1.5">
-          <div className="rounded-lg bg-head px-2.5 py-1.5">
-            <dt className="text-[11px] text-muted">Today</dt>
-            <dd className="text-[14px] font-semibold text-ink tabular-nums">{money(o.property.valueNow)}</dd>
+        {/* same shape as a project's progress: one label row, then a bar (today's value against the potential) */}
+        <div>
+          <div className="flex items-baseline justify-between gap-2 text-[13px]">
+            <span className="flex min-w-0 items-center gap-1 truncate font-medium text-ink tabular-nums">
+              {money(o.property.valueNow)} <ArrowRight className="size-3 shrink-0 text-muted" /> {money(o.property.valueNow + o.gain)}
+            </span>
+            <span className="shrink-0 font-semibold text-[var(--green)] tabular-nums">{gain(o.gain)}</span>
           </div>
-          <div className="rounded-lg bg-ok-soft px-2.5 py-1.5">
-            <dt className="text-[11px] text-muted">Upside</dt>
-            <dd className="text-[14px] font-semibold text-[var(--green)] tabular-nums">{gain(o.gain)}</dd>
+          <div className="mt-1.5 flex h-2 overflow-hidden rounded-full bg-line-soft" role="img" aria-label={`Value today ${money(o.property.valueNow)}, potential ${money(o.property.valueNow + o.gain)}`}>
+            <span className="bg-[var(--brand-agent-border)]" style={{ width: `${Math.round((o.property.valueNow / (o.property.valueNow + o.gain)) * 100)}%` }} />
+            <span className="flex-1 bg-[var(--green)]" />
           </div>
-        </dl>
+        </div>
         <Note icon={Eye} tone="ai">
           {signal}
         </Note>
