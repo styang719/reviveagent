@@ -85,8 +85,12 @@ export function scoreOpportunity(p: Property, person: Person | undefined, ctx: U
   add(p.source === 'listings' && (f.daysOnMarket ?? 0) >= 30, `Your listing, ${f.daysOnMarket} days on market`, 30)
   add(p.source === 'listings' && f.priceCutDaysAgo !== undefined && f.priceCutDaysAgo <= 7, 'Your listing, price cut this week', 30)
   add(ctx.unclaimedReferral, 'Revive referral, exclusive to you right now', 60)
-  add(f.reportOpenedDaysAgo !== undefined && f.reportOpenedDaysAgo <= 7, 'Opened the report you shared', 35)
-  add(f.leadFormDaysAgo !== undefined && f.leadFormDaysAgo <= 7, 'Ran a report on your lead form', 35)
+  // fresh lead activity is the clearest sign to call now, so it alone is enough for High
+  add(f.reportOpenedDaysAgo !== undefined && f.reportOpenedDaysAgo <= 7, 'Opened the report you shared', 50)
+  add(f.leadFormDaysAgo !== undefined && f.leadFormDaysAgo <= 7, 'Ran a report on your lead form', 50)
+  const reopened = person?.history?.find((h) => h.kind === 'email' && h.daysAgo <= 14 && h.tag && /twice|\d+ times/.test(h.tag))
+  const times = /(\d+) times/.exec(reopened?.tag ?? '')?.[1]
+  add(!!reopened, `Opened your email ${times ? `${times} times` : 'twice'} in the last 2 weeks`, 15)
 
   triggers.sort((a, b) => b.points - a.points)
   const raw = triggers.reduce((s, t) => s + t.points, 0)
