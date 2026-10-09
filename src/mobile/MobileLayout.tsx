@@ -139,17 +139,17 @@ export function MobileLayout() {
         {/* every page but the chat and the map carries the Revive bar: frosted like the tab bar, the page scrolls under it */}
         {!fullBleed && (
           <header className="absolute inset-x-0 top-0 z-20 flex justify-center border-b border-[rgba(28,46,88,0.06)] bg-white/75 pt-[env(safe-area-inset-top)] backdrop-blur-xl backdrop-saturate-150">
-            <Link to="/m" aria-label="Revive AI home" className="flex h-12 items-center">
+            <Link to="/m" aria-label="Revive AI home" className="flex h-[52px] items-center">
               <span
                 aria-hidden="true"
-                className="block h-[22px] w-[81px] bg-navy"
+                className="block h-[27px] w-[99px] bg-navy"
                 style={{ WebkitMask: `url(${JSON.stringify(wordmark)}) center / contain no-repeat`, mask: `url(${JSON.stringify(wordmark)}) center / contain no-repeat` }}
               />
               <span className="sr-only">Revive</span>
             </Link>
           </header>
         )}
-        <main ref={main} id="main" className={cn('relative min-h-0 flex-1 overflow-y-auto', fullBleed ? 'pt-[env(safe-area-inset-top)]' : 'pt-[calc(48px+env(safe-area-inset-top))] pb-[calc(var(--tab-h)+16px)]')}>
+        <main ref={main} id="main" className={cn('rv-m relative min-h-0 flex-1 overflow-y-auto', fullBleed ? 'pt-[env(safe-area-inset-top)]' : 'pt-[calc(52px+env(safe-area-inset-top))] pb-[calc(var(--tab-h)+16px)]')}>
           <Outlet />
         </main>
         <TabBar />

@@ -408,3 +408,8 @@
 @keyframes rv-me-pulse { 0% { transform: scale(.5); opacity: 1 } 100% { transform: scale(1.4); opacity: 0 } }
 .rv-subject { display: grid; place-items: center; width: 30px; height: 30px; transform: translate(-50%, -50%); border-radius: 50%; color: #fff; background: var(--navy); border: 2.5px solid #fff; box-shadow: 0 2px 8px rgba(16, 24, 40, 0.35); }
 @media (prefers-reduced-motion: reduce) { .rv-me::after { animation: none; } }
+
+/* mobile app: the desktop pages' headings, one step down, so they sit under the Revive logo instead of shouting over it */
+.rv-m .text-\[28px\], .rv-m .text-\[26px\] { font-size: 21px; line-height: 28px; }
+.rv-m .text-2xl { font-size: 21px; line-height: 28px; }
+.rv-m .text-xl { font-size: 17px; line-height: 24px; }
