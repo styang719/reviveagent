@@ -5,15 +5,14 @@
  * (the eyes painted out underneath), the eyes, the specular highlights, and the floating bubble. Stacked at
  * rest they are exactly the original image. The layers are embedded below, so this file has no other imports.
  *
- * CSS keyframes only. Every motion is a few pixels or a percent of scale, each on its own slow period, so the
- * loop never lines up and never pulls the eye from the text beside it:
+ * CSS keyframes only. Each motion runs on its own period, so the loop never visibly lines up:
  *
- *   float    5.6s   the bot rises 3px and settles; the shadow below shrinks and fades as it rises
- *   breathe  3.4s   squash and stretch from the base (0.99 ↔ 1.01), like a liquid bubble
- *   wobble   4.7s   a tiny skew, out of phase with the breath, so the membrane seems to ripple
- *   shimmer  3.9s   the highlights pulse 0.8 ↔ 1 and slide a pixel; a faint sheen drifts across the glass
- *   blink    7.3s   one quick blink (scaleY 0.1)
- *   bubbles  6.1s, 8.3s   two tiny bubbles leave the chimney, rise ~10px and fade
+ *   float    4.2s   the bot rises 8px with a slight sway and settles; the shadow below shrinks and fades as it rises
+ *   breathe  2.6s   squash and stretch from the base (~0.97 ↔ 1.03), like a liquid bubble
+ *   wobble   4.7s   a ±2° skew, out of phase with the breath, so the membrane seems to ripple
+ *   shimmer  3.9s   the highlights pulse 0.55 ↔ 1 and slide; a sheen drifts across the glass
+ *   blink    5.8s   one quick blink (scaleY 0.1)
+ *   bubbles  4.4s, 5.9s   two tiny bubbles leave the chimney, rise ~22px and fade
  *
  * Everything stops under prefers-reduced-motion.
  */
@@ -27,9 +26,9 @@ const css = `
 .rvb { --rvb-ease: cubic-bezier(.45,0,.55,1); }
 .rvb img { position: absolute; display: block; user-select: none; pointer-events: none; -webkit-user-drag: none; }
 .rvb-layer { position: absolute; inset: 0; width: 100%; height: 100%; }
-.rvb-float   { animation: rvb-float 5.6s var(--rvb-ease) infinite; }
-.rvb-shadow  { animation: rvb-shadow 5.6s var(--rvb-ease) infinite; }
-.rvb-breathe { transform-origin: 50% 99%; animation: rvb-breathe 3.4s var(--rvb-ease) infinite; }
+.rvb-float   { animation: rvb-float 4.2s var(--rvb-ease) infinite; }
+.rvb-shadow  { animation: rvb-shadow 4.2s var(--rvb-ease) infinite; }
+.rvb-breathe { transform-origin: 50% 99%; animation: rvb-breathe 2.6s var(--rvb-ease) infinite; }
 .rvb-wobble  { transform-origin: 50% 99%; animation: rvb-wobble 4.7s var(--rvb-ease) infinite; }
 .rvb-glint   { mix-blend-mode: screen; animation: rvb-glint 3.9s var(--rvb-ease) infinite; }
 .rvb-sheen   {
@@ -37,24 +36,24 @@ const css = `
   background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.5) 45%, rgba(255,214,240,.35) 52%, transparent 66%) 0 0 / 260% 100% no-repeat;
   mix-blend-mode: soft-light; animation: rvb-sheen 9s var(--rvb-ease) infinite;
 }
-.rvb-eyes    { transform-origin: 50.1% 57.8%; animation: rvb-blink 7.3s linear infinite; }
+.rvb-eyes    { transform-origin: 50.1% 57.8%; animation: rvb-blink 5.8s linear infinite; }
 .rvb-companion { animation: rvb-companion 4.9s var(--rvb-ease) infinite; }
-.rvb-stray   { opacity: 0; animation: rvb-stray 6.1s ease-out infinite; }
-.rvb-stray-2 { animation-duration: 8.3s; animation-delay: 3.2s; }
+.rvb-stray   { opacity: 0; animation: rvb-stray 4.4s ease-out infinite; }
+.rvb-stray-2 { animation-duration: 5.9s; animation-delay: 2.1s; }
 
-@keyframes rvb-float   { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
-@keyframes rvb-shadow  { 0%,100% { transform: translateX(-50%) scaleX(1); opacity: .55 } 50% { transform: translateX(-50%) scaleX(.86); opacity: .34 } }
-@keyframes rvb-breathe { 0%,100% { transform: scale(1.01,.99) } 50% { transform: scale(.99,1.01) } }
-@keyframes rvb-wobble  { 0%,100% { transform: skewX(-.6deg) } 50% { transform: skewX(.6deg) } }
-@keyframes rvb-glint   { 0%,100% { opacity: .8; transform: translate(0,0) } 50% { opacity: 1; transform: translate(.6px,-.4px) } }
-@keyframes rvb-sheen   { 0%,100% { background-position: 100% 0; opacity: .35 } 50% { background-position: 0% 0; opacity: .7 } }
+@keyframes rvb-float   { 0%,100% { transform: translateY(0) rotate(-1deg) } 50% { transform: translateY(-8px) rotate(1deg) } }
+@keyframes rvb-shadow  { 0%,100% { transform: translateX(-50%) scaleX(1); opacity: .7 } 50% { transform: translateX(-50%) scaleX(.72); opacity: .3 } }
+@keyframes rvb-breathe { 0%,100% { transform: scale(1.035,.965) } 50% { transform: scale(.975,1.03) } }
+@keyframes rvb-wobble  { 0%,100% { transform: skewX(-2deg) } 50% { transform: skewX(2deg) } }
+@keyframes rvb-glint   { 0%,100% { opacity: .55; transform: translate(0,0) } 50% { opacity: 1; transform: translate(1.5px,-1px) } }
+@keyframes rvb-sheen   { 0%,100% { background-position: 100% 0; opacity: .45 } 50% { background-position: 0% 0; opacity: 1 } }
 @keyframes rvb-blink   { 0%,93%,100% { transform: scaleY(1) } 95% { transform: scaleY(.1) } 97% { transform: scaleY(1) } }
-@keyframes rvb-companion { 0%,100% { transform: translate(0,0) } 50% { transform: translate(-1px,-2.5px) } }
+@keyframes rvb-companion { 0%,100% { transform: translate(0,0) } 50% { transform: translate(-3px,-7px) } }
 @keyframes rvb-stray {
   0%   { opacity: 0;  transform: translate(0,0) scale(.6) }
   12%  { opacity: .9; transform: translate(0,-1px) scale(1) }
   70%  { opacity: .5 }
-  100% { opacity: 0;  transform: translate(3px,-10px) scale(1.15) }
+  100% { opacity: 0;  transform: translate(6px,-22px) scale(1.3) }
 }
 @media (prefers-reduced-motion: reduce) {
   .rvb, .rvb * { animation: none !important; }

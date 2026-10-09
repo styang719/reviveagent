@@ -62,13 +62,15 @@ export default function MobileChat() {
     <div className="relative h-full">
       <div className="absolute inset-0 overflow-y-auto px-4 pt-[148px] pb-[calc(var(--tab-h)+96px)]">
         {empty ? (
-          <div className="flex flex-col">
+          <div className="relative isolate flex flex-col">
+            {/* a soft, slowly drifting glow behind the greeting, like the dashboard's ask box; gone once the chat starts */}
+            <div aria-hidden="true" className="rv-ai-aurora rv-ai-aurora-strong pointer-events-none absolute -inset-x-3 -top-8 -bottom-6 -z-10 rounded-[40px]" />
             <h1 className="text-[22px] leading-[30px] font-semibold text-ink">
               {greetingWord(new Date().getHours())}, {AGENT.firstName}. How can we help you today?
             </h1>
             <p className="mt-2 text-[15px] text-ink-2">Ask about any home or anyone in your book.</p>
             {toCall > 0 && (
-              <Link to="/m/map" className="mt-5 flex items-center gap-3 rounded-[22px] bg-[var(--brand-primary-subtle)] p-4">
+              <Link to="/m/map" className="mt-5 flex items-center gap-3 rounded-[22px] border border-white/80 bg-white/55 p-4 shadow-[0_2px_10px_rgba(28,46,88,0.05)] backdrop-blur-sm">
                 <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-brand">
                   <Map className="size-5" />
                 </span>
@@ -83,7 +85,7 @@ export default function MobileChat() {
                 <button
                   key={s.label}
                   onClick={() => (s.run ? s.run() : ask(s.label))}
-                  className="flex items-center gap-3 rounded-[22px] bg-[#f1f2f5] px-4 py-3.5 text-left text-[15px] text-ink active:bg-line-soft"
+                  className="flex items-center gap-3 rounded-[22px] border border-white/80 bg-white/60 px-4 py-3.5 text-left text-[15px] text-ink shadow-[0_2px_10px_rgba(28,46,88,0.05)] backdrop-blur-sm active:bg-white/90"
                 >
                   <s.icon className="size-5 shrink-0 text-brand" />
                   {s.label}
