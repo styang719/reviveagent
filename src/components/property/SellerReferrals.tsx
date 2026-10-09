@@ -1,4 +1,4 @@
-import { ArrowRight, CircleDot, CircleX, Clock, Signature, UserRound } from 'lucide-react'
+import { ArrowRight, CircleDot, CircleX, Clock, Signature, UserRound, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
@@ -77,20 +77,25 @@ export function SellerReferrals({ opps }: { opps: Opportunity[] }) {
           </h2>
           <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{now.length}</span>
         </div>
-        <Link to="/leads/referrals" className="inline-flex h-10 items-center gap-1 rounded-xl border border-line bg-white pr-3 pl-5 text-[14px] font-medium text-ink-2 hover:bg-head">
-          View all {opps.length} <ArrowRight className="size-4" />
-        </Link>
       </div>
       <p className="mt-1.5 mb-5 text-[13px] text-muted">These need you now. Keep their status current so Revive keeps sending you homeowners.</p>
-      {now.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {now.map((o) => (
-            <ReferralCard key={o.id} o={o} />
-          ))}
-        </div>
-      ) : (
-        <p className="rounded-[28px] border border-dashed border-line px-6 py-5 text-[14px] text-muted">You’re all caught up. Every referral is up to date with Revive.</p>
-      )}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {now.length ? (
+          now.map((o) => <ReferralCard key={o.id} o={o} />)
+        ) : (
+          <p className="rounded-[28px] border border-dashed border-line px-6 py-5 text-[14px] text-muted sm:col-span-1 xl:col-span-3">You’re all caught up. Every referral is up to date with Revive.</p>
+        )}
+        {/* the way into every referral, as the last card in the row */}
+        <Link
+          to="/leads/referrals"
+          className="group flex min-h-40 flex-col items-center justify-center gap-3 rounded-[28px] border border-[var(--brand-primary-border-subtle)] bg-[var(--brand-primary-subtle)] p-6 text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-border-subtle)]"
+        >
+          <Users className="size-5" />
+          <span className="flex items-center gap-1.5 text-[16px] font-medium">
+            View all {opps.length} referrals <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+      </div>
     </section>
   )
 }
