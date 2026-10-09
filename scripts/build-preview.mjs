@@ -19,7 +19,6 @@ const js = files.filter((f) => f.endsWith('.js')).map((f) => readFileSync(`${dir
 const css = files.filter((f) => f.endsWith('.css')).map((f) => readFileSync(`${dir}/${f}`, 'utf8')).join('\n')
 const safeJs = js.replace(/<\/script/gi, '<\\/script')
 const html = `<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Revive Agent Prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +34,6 @@ console.log('preview/revive-prototype.html', (html.length / 1024).toFixed(0) + '
 // The mobile prototype: the same app, opened on /m and kept there (src/mobile/mode.ts reads the flag).
 const mobile = html
   .replace('<title>Revive Agent Prototype</title>', '<title>Revive Mobile Prototype</title>')
-  .replace('<div id="root"></div>', `<script>window.__REVIVE_MOBILE__ = true; if (!location.hash.startsWith('#/m')) location.hash = '#/m'</script>\n<div id="root"></div>`)
+  .replace('<div id="root"></div>', `<script>window.reviveMobileApp = true; if (!location.hash.startsWith('#/m')) location.hash = '#/m'</script>\n<div id="root"></div>`)
 writeFileSync('preview/revive-mobile.html', mobile)
 console.log('preview/revive-mobile.html', (mobile.length / 1024).toFixed(0) + ' KB')
