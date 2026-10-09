@@ -3,6 +3,7 @@ import { AdvisorCard } from '@/components/home/AdvisorCard'
 import { ProjectPulse } from '@/components/home/ProjectPulse'
 import { ReferralHero } from '@/components/home/ReferralHero'
 import { ReferralUpdates } from '@/components/home/ReferralUpdates'
+import { ReferEarn } from '@/components/home/ReferralCards'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { SetupTodo } from '@/components/home/ConnectBook'
 import { CaseStudies, ReviveAiIntro } from '@/components/home/NewAgentIntro'
@@ -83,6 +84,7 @@ export default function Home() {
             <RevivePathCard tier={tier} opps={opps} />
             <SetupTodo opps={opps} />
             <AdvisorCard />
+            <ReferEarn />
           </aside>
         </div>
       </div>
@@ -108,6 +110,7 @@ export default function Home() {
         <aside className="flex flex-col gap-5" aria-label="At a glance">
           <RevivePathCard tier={tier} opps={opps} />
           <AdvisorCard />
+          <ReferEarn />
         </aside>
       </div>
     </div>

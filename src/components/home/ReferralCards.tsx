@@ -1,6 +1,6 @@
-import { Gift } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 const LINK = 'https://revive.re/r/michelle-phillips'
 
@@ -21,8 +21,8 @@ function GiftArt({ className }: { className?: string }) {
         <text x="44" y="18.4" textAnchor="middle" fontSize="9" fontWeight="700" fill="#b9851a" fontFamily="inherit">$</text>
       </g>
       {/* sparkles */}
-      <path d="M17 12l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z" fill="#fff" opacity="0.85" />
-      <circle cx="55" cy="30" r="1.6" fill="#fff" opacity="0.7" />
+      <path d="M17 12l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z" fill="var(--brand-primary)" opacity="0.5" />
+      <circle cx="55" cy="30" r="1.6" fill="var(--brand-primary)" opacity="0.4" />
       {/* box */}
       <rect x="14" y="34" width="36" height="22" rx="3" fill="var(--teal)" />
       <rect x="11" y="27" width="42" height="9" rx="2.5" fill="#2fdcc1" />
@@ -34,29 +34,20 @@ function GiftArt({ className }: { className?: string }) {
   )
 }
 
-/** Refer & Earn, in the sidebar on every page. Collapsed, it's just the gift. */
-export function ReferEarn({ collapsed }: { collapsed?: boolean }) {
-  if (collapsed)
-    return (
-      <button onClick={copyLink} title="Refer & Earn: copy your referral link" className="mx-auto mb-4 grid size-10 place-items-center rounded-lg text-sb-ink hover:bg-white/8 hover:text-white">
-        <Gift className="size-4" />
-      </button>
-    )
+/** Refer & Earn, at the bottom of the dashboard's right column for every agent. */
+export function ReferEarn() {
   return (
-    <div className="relative mb-4 overflow-hidden rounded-xl bg-white/8 p-3.5 ring-1 ring-white/10">
+    <Card className="p-4">
       <div className="flex items-start gap-3">
         <GiftArt className="size-14 shrink-0" />
         <div className="min-w-0">
-          <p className="text-[15px] font-semibold text-white">Refer &amp; Earn</p>
-          <p className="mt-0.5 text-[12.5px] leading-[18px] text-sb-ink">Earn [AMOUNT] when an agent you refer closes their first Revive deal.</p>
+          <h2 className="text-[15px] font-semibold text-ink">Refer &amp; Earn</h2>
+          <p className="mt-1 text-sm text-ink-2">Know an agent who should work with Revive? Earn [AMOUNT] when they close their first Revive deal.</p>
         </div>
       </div>
-      <button
-        onClick={copyLink}
-        className={cn('mt-3 h-8 w-full rounded-lg bg-white text-[13px] font-medium text-navy transition-colors hover:bg-white/90')}
-      >
+      <Button variant="outline" size="sm" className="mt-3 w-full" onClick={copyLink}>
         Copy your referral link
-      </button>
-    </div>
+      </Button>
+    </Card>
   )
 }
