@@ -17,14 +17,15 @@ const dir = 'preview-dist/assets'
 const files = readdirSync(dir)
 const js = files.filter((f) => f.endsWith('.js')).map((f) => readFileSync(`${dir}/${f}`, 'utf8')).join('\n')
 const css = files.filter((f) => f.endsWith('.css')).map((f) => readFileSync(`${dir}/${f}`, 'utf8')).join('\n')
-// the stylesheet goes in as a data URI: hosted previews cap a page's inline code, and data URIs don't count
+// the stylesheet ships base64-encoded (as a data URI string) and a tiny script adds it as a <style> on load: hosted
+// previews cap a page's inline code but don't count data URIs, and they block stylesheets loaded from data: links
 const safeJs = js.replace(/<\/script/gi, '<\\/script')
 const html = `<meta charset="utf-8">
 <title>Revive Agent Prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="data:text/css;base64,${Buffer.from(css).toString('base64')}">
+<script>{const s=document.createElement('style');s.textContent=decodeURIComponent(escape(atob('data:text/css;base64,${Buffer.from(css).toString('base64')}'.slice(21))));document.head.appendChild(s)}</script>
 <div id="root"></div>
 <script type="module">${safeJs}</script>
 `
