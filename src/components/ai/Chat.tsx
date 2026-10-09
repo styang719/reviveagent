@@ -10,6 +10,7 @@ import { usePropertyModel } from '@/components/property/PropertyView'
 import { properties } from '@/data/properties'
 import { answer, runAiPath, type Block, type ChatMessage, type HereCtx } from '@/lib/ai'
 import { photoUrl } from '@/lib/assets'
+import { isMobileApp } from '@/mobile/mode'
 import { flowInput, startProject, startReport, rvHome, startRenovision } from '@/lib/flowEngine'
 import { suggestAddresses } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
@@ -84,6 +85,55 @@ function OppRow({ o, linked, children }: { o: { id: string }; linked: boolean; c
     </Link>
   ) : (
     <div className={cls}>{children}</div>
+  )
+}
+
+/** A project's status: where it is, what's waiting on the agent, the latest updates, and the way to the Project tab. */
+function ProjectBlock({ b }: { b: Extract<Block, { kind: 'project' }> }) {
+  const photo = photoUrl(b.photo)
+  const to = `${isMobileApp() ? '/m' : ''}/property/${b.propertyId}?tab=project`
+  return (
+    <div className="overflow-hidden rounded-xl border border-line bg-white">
+      <div className="flex gap-3 p-3">
+        {photo && <img src={photo} alt="" className="size-16 shrink-0 rounded-lg object-cover" />}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-semibold text-ink">{b.address}</p>
+          <p className="truncate text-[12.5px] text-muted">
+            {b.product} · {b.city}
+            {b.targetList ? ` · list ${money(b.targetList)}` : ''}
+          </p>
+          <div className="mt-2 flex items-center justify-between gap-2 text-[12.5px]">
+            <span className="truncate font-medium text-ink">{b.stageLabel}</span>
+            <span className="shrink-0 text-muted tabular-nums">
+              Step {b.step} of {b.steps}
+            </span>
+          </div>
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line-soft" aria-hidden="true">
+            <div className="h-full rounded-full bg-[var(--green)]" style={{ width: `${b.progressPct}%` }} />
+          </div>
+        </div>
+      </div>
+      {b.next && (
+        <p className="mx-3 mb-3 rounded-lg bg-[var(--brand-primary-subtle)] px-3 py-2 text-[13px] text-ink">
+          <span className="font-semibold text-brand">Waiting on you:</span> {b.next}
+        </p>
+      )}
+      {b.updates.length > 0 && (
+        <div className="border-t border-line-soft px-3 py-2.5">
+          <p className="text-[11.5px] font-semibold tracking-wide text-muted uppercase">Latest updates</p>
+          <ul className="mt-1 flex flex-col gap-0.5">
+            {b.updates.map((u) => (
+              <li key={u} className="text-[13px] text-ink-2">
+                • {u}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <Link to={to} className="flex items-center justify-center gap-1.5 border-t border-line-soft py-2.5 text-[13.5px] font-semibold text-brand hover:bg-head">
+        Open the project <ArrowRight className="size-3.5" />
+      </Link>
+    </div>
   )
 }
 
@@ -162,6 +212,7 @@ function Blocks({ blocks, onAsk, answered }: { blocks: Block[]; onAsk: (q: strin
       {blocks.map((b, i) => {
         if (b.kind === 'text') return <p key={i} className="text-[15px] leading-6 whitespace-pre-line text-ink">{b.text}</p>
         if (b.kind === 'property') return <PropertyBlock key={i} b={b} />
+        if (b.kind === 'project') return <ProjectBlock key={i} b={b} />
         if (b.kind === 'opps') return <OppsBlock key={i} ids={b.ids} />
         if (b.kind === 'draft') return <DraftBlock key={i} b={b} />
         if (b.kind === 'flow') return <FlowStepView key={i} step={b.step} refId={b.refId} answered={answered} />

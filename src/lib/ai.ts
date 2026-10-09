@@ -30,6 +30,21 @@ export type Block =
   | { kind: 'draft'; to: string; personId: string; body: string }
   | { kind: 'connect'; need: 'crm' | 'mls' }
   | { kind: 'suggestions'; items: string[] }
+  | {
+      kind: 'project' // a project's status card, linking to the home's Project tab
+      propertyId: string
+      address: string
+      city: string
+      photo?: string
+      product: string
+      stageLabel: string
+      progressPct: number
+      step: number // the current timeline step, 1-based
+      steps: number
+      next?: string // what's waiting on the agent
+      updates: string[] // latest first
+      targetList?: number
+    }
   | { kind: 'flow'; step: FlowStep; refId?: string } // an interactive step in a guided flow
 
 export type FlowStep =
@@ -109,6 +124,26 @@ function aduFit(p: Property) {
     : `Probably not. The lot leaves about ${spare.toLocaleString()} sqft beyond the house; a detached ADU usually needs 6,000+.`
 }
 
+function projectBlock(p: Property): Block {
+  const pr = p.project!
+  const cur = pr.timeline.findIndex((t) => t.state === 'current')
+  return {
+    kind: 'project',
+    propertyId: p.id,
+    address: p.address,
+    city: p.city,
+    photo: p.photo,
+    product: pr.product,
+    stageLabel: pr.stageLabel,
+    progressPct: pr.progressPct,
+    step: (cur < 0 ? pr.timeline.filter((t) => t.state === 'done').length : cur) + 1,
+    steps: pr.timeline.length,
+    next: pr.nextFromAgent,
+    updates: [...p.activity].reverse().slice(0, 3),
+    targetList: pr.targetList,
+  }
+}
+
 function propertyBlock(p: Property): Block {
   const vals = p.valueSources?.map((s) => s.value) ?? [p.valueNow]
   const best = [...p.scenarios].sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))[0]
@@ -180,6 +215,29 @@ export function answer(q: string, ctx: Ctx): Block[] {
       ? `Hi ${first},\n\nI ran a quick Revive AI report on ${p.address}. Homes like yours nearby are selling for more after a few targeted updates, about ${gain(topGain(p))} by Revive’s estimate, and Revive covers the work until closing.\n\nWant me to send you the full report? Happy to walk through it.\n\n${AGENT.firstName}`
       : `Hi ${first},\n\nIt’s been a while! I’ve been tracking what homes near you are selling for and thought you’d want to know. Want me to send a quick update?\n\n${AGENT.firstName}`
     return [{ kind: 'text', text: `Here’s a note to ${person.name}. Edit it, then send it from your CRM.` }, { kind: 'draft', to: person.name, personId: person.id, body }]
+  }
+
+  // "Give me a project update for 9 Cypress Ct" / "How's the Cypress project going?"
+  if (/\bprojects?\b/.test(t) && /(update|status|progress|going|where|how is|how s|latest|news)/.test(t)) {
+    const projects = ctx.opps.filter((o) => o.property.project)
+    if (!projects.length)
+      return [{ kind: 'text', text: 'You don’t have a Revive project yet. Start one from any home and I’ll keep you posted on every step.' }, { kind: 'suggestions', items: ['Start a Revive project'] }]
+    const named = home ? projects.find((o) => o.id === home.id) : projects.find((o) => t.includes(norm(o.property.address).split(' ').slice(1, 2)[0] ?? '__'))
+    if (home && !named) return [{ kind: 'text', text: `There’s no Revive project on ${home.address} yet. Want to start one?` }, { kind: 'suggestions', items: [`Start a project on ${home.address}`] }]
+    const pick = named ?? (projects.length === 1 ? projects[0] : undefined)
+    if (!pick)
+      return [
+        { kind: 'text', text: `You have ${projects.length} Revive projects. Which one?` },
+        { kind: 'suggestions', items: projects.map((o) => `Give me a project update for ${o.property.address}`) },
+      ]
+    const pr = pick.property.project!
+    const blocks: Block[] = [
+      { kind: 'text', text: `Here’s where ${pick.property.address} stands: ${pr.stageLabel.toLowerCase()}, ${pr.progressPct}% of the way to listing.${pr.nextFromAgent ? ` One thing is waiting on you: ${pr.nextFromAgent.charAt(0).toLowerCase()}${pr.nextFromAgent.slice(1)}.` : ''}` },
+      projectBlock(pick.property),
+    ]
+    const others = projects.filter((o) => o.id !== pick.id)
+    if (others.length) blocks.push({ kind: 'suggestions', items: others.map((o) => `Give me a project update for ${o.property.address}`) })
+    return blocks
   }
 
   // "Who should I call / who's likely to sell"
