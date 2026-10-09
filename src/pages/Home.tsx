@@ -1,6 +1,6 @@
 import { DiscussProperty } from '@/components/home/DiscussProperty'
 import { AdvisorCard } from '@/components/home/AdvisorCard'
-import { ProjectPulse } from '@/components/home/ProjectPulse'
+import { ReviveHomes, useReviveHomes } from '@/components/home/ReviveHomes'
 import { ReferralHero } from '@/components/home/ReferralHero'
 import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { ReferEarn } from '@/components/home/ReferralCards'
@@ -49,7 +49,11 @@ export default function Home() {
   // once both sources are in, the ranked list is the agent's book; the source panels would repeat it
   const bookDone = crm && mls && !importing
 
-  const whoToCall = feed.length > 0 && <TopOpportunities opps={feed.slice(0, FEED_SIZE)} />
+  // homes already moving with Revive get their own cards; Top opportunities is who to reach out to next
+  const reviveHomes = useReviveHomes(isNew ? [] : opps)
+  const inRevive = new Set(reviveHomes.map((i) => i.id))
+  const toCall = isNew ? feed : feed.filter((o) => !inRevive.has(o.id))
+  const whoToCall = toCall.length > 0 && <TopOpportunities opps={toCall.slice(0, FEED_SIZE)} />
 
   const greeting = (
     <header className="flex flex-wrap items-start justify-between gap-4">
@@ -101,9 +105,7 @@ export default function Home() {
           <ReviveAiIntro />
           {newReferral && <ReferralHero o={newReferral} />}
           {tier === 'partner' && <ReferralUpdates waiting={waiting} />}
-          {projects.map((o) => (
-            <ProjectPulse key={o.id} o={o} />
-          ))}
+          <ReviveHomes items={reviveHomes} />
           {whoToCall}
         </div>
 

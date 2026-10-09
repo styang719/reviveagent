@@ -189,6 +189,50 @@ const briefProperties: Property[] = [
     activity: ['Construction started · Sep 8', 'Week 4 photos uploaded · Oct 3'],
   },
 
+  // ---- Project in review with Revive (Active) ----
+  {
+    id: 'whitfield',
+    photo: 'comp-105-0',
+    address: '1290 Brigden Rd',
+    city: 'Pasadena',
+    lat: 34.1318,
+    lng: -118.1236,
+    homeType: 'Single family',
+    beds: 3, baths: 2, sqft: 1880, yearBuilt: 1952, lot: 7400,
+    ownerId: 'james',
+    ownerRole: 'Owner',
+    source: 'contacts',
+    minTier: 'active',
+    stage: 'project',
+    reportRun: true,
+    valueNow: 1240000,
+    valueAfter: 1352000,
+    valueSources: [
+      { name: 'Revive AI', value: 1240000 },
+      { name: 'Zillow', value: 1226000 },
+    ],
+    signals: ['Project submitted Oct 6, in review with Revive', 'Next from you: upload home photos before the site visit'],
+    facts: {},
+    scenarios: [{ product: 'Renovate to Sell', note: 'Kitchen, 2 baths and paint before listing', gain: 112000 }],
+    project: {
+      status: 'submitted',
+      product: 'Renovate to Sell',
+      stageLabel: 'Revive review · site visit Thursday',
+      progressPct: 20,
+      timeline: [
+        { label: 'Project submitted', state: 'done' },
+        { label: 'Revive review', state: 'current' },
+        { label: 'Offer terms', state: 'todo' },
+        { label: 'Agreement signed', state: 'todo' },
+        { label: 'Construction', state: 'todo' },
+        { label: 'Listed', state: 'todo' },
+      ],
+      nextFromAgent: 'Upload home photos before Thursday’s site visit',
+      docs: ['Project intake form'],
+    },
+    activity: ['Project submitted · Oct 6', 'Site visit booked for Thursday'],
+  },
+
   // ---- Reports you ran on homes outside your book ----
   {
     id: 'mission',
