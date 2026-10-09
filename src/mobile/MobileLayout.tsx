@@ -1,9 +1,9 @@
 import { House, Map, MessageCircle, MoreHorizontal, UserCheck } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { CrmDialog } from '@/components/home/ConnectBook'
-import { ReviveMark } from '@/components/shell/Logo'
+import { ReviveLogo, ReviveMark } from '@/components/shell/Logo'
 import { TIERS } from '@/data/tiers'
 import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
@@ -135,7 +135,15 @@ export function MobileLayout() {
         )}
       >
         {/* the map and the chat run edge to edge under the glass; other pages leave room so their last row clears it */}
-        <main ref={main} id="main" className={cn('relative min-h-0 flex-1 overflow-y-auto pt-[env(safe-area-inset-top)]', !fullBleed && 'pb-[calc(var(--tab-h)+16px)]')}>
+        {/* every page but the chat and the map carries the Revive bar */}
+        {!fullBleed && (
+          <header className="z-20 flex shrink-0 justify-center bg-navy pt-[env(safe-area-inset-top)]">
+            <Link to="/m" aria-label="Revive AI home" className="flex h-12 items-center">
+              <ReviveLogo className="h-6 w-auto" />
+            </Link>
+          </header>
+        )}
+        <main ref={main} id="main" className={cn('relative min-h-0 flex-1 overflow-y-auto', fullBleed ? 'pt-[env(safe-area-inset-top)]' : 'pb-[calc(var(--tab-h)+16px)]')}>
           <Outlet />
         </main>
         <TabBar />
