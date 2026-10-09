@@ -1,7 +1,6 @@
 import { DiscussProperty } from '@/components/home/DiscussProperty'
 import { AdvisorCard } from '@/components/home/AdvisorCard'
 import { ProjectPulse } from '@/components/home/ProjectPulse'
-import { ReferEarn } from '@/components/home/ReferralCards'
 import { ReferralHero } from '@/components/home/ReferralHero'
 import { ReferralUpdates } from '@/components/home/ReferralUpdates'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
@@ -109,7 +108,6 @@ export default function Home() {
         <aside className="flex flex-col gap-5" aria-label="At a glance">
           <RevivePathCard tier={tier} opps={opps} />
           <AdvisorCard />
-          {tier === 'partner' && <ReferEarn />}
         </aside>
       </div>
     </div>

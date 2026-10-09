@@ -5,6 +5,7 @@ import { AGENT } from '@/data/tiers'
 import { cn } from '@/lib/utils'
 import { ReviveLogo } from './Logo'
 import { QrCode } from './QrCode'
+import { ReferEarn } from '@/components/home/ReferralCards'
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -112,6 +113,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
       </nav>
 
       <div className="mt-auto px-4 pb-4">
+        <ReferEarn collapsed={collapsed} />
         {!collapsed && (
           <div className="mb-4 flex gap-4 border-b border-white/20 pb-5">
             <QrCode size={100} />
