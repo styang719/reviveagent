@@ -1,10 +1,13 @@
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles, UserRoundPen } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import openHouse from '@/assets/marketing/open-house.png'
 import postcard from '@/assets/marketing/postcard.png'
 import social from '@/assets/marketing/social-post.png'
+import { ProfileDialog } from '@/components/marketing/ProfileDialog'
 import { Button } from '@/components/ui/button'
+import { useDemo } from '@/store/demo'
 
 // Dashboard (connected new agent): marketing Revive drafts for the agent, branded with their photo,
 // name and license, ready to post, mail or print.
@@ -16,6 +19,8 @@ const ITEMS = [
 ]
 
 export function MarketingCenter() {
+  const profile = useDemo((s) => s.marketingProfile)
+  const [setup, setSetup] = useState(false)
   return (
     <section aria-labelledby="marketing-center">
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -30,6 +35,22 @@ export function MarketingCenter() {
           </Link>
         </Button>
       </div>
+      {/* one-time setup: the agent's photo, name and license go on every template */}
+      {!profile && (
+      <div className="mb-5 flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--brand-primary-border-subtle)] bg-[var(--brand-primary-subtle)] px-5 py-4">
+        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-brand">
+          <UserRoundPen className="size-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[15px] font-semibold text-ink">Set up your marketing profile</p>
+          <p className="text-[13.5px] text-ink-2">Add your photo, name, license and brokerage once. Every template comes out branded for you.</p>
+        </div>
+        <Button className="h-10 shrink-0" onClick={() => setSetup(true)}>
+          Set up profile <ArrowRight />
+        </Button>
+      </div>
+      )}
+      <ProfileDialog open={setup} onOpenChange={setSetup} />
       <div className="grid gap-4 sm:grid-cols-3">
         {ITEMS.map(({ name, body, img }) => (
           <article key={name} className="flex flex-col overflow-hidden rounded-xl border border-line bg-white shadow-card">

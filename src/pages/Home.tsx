@@ -80,7 +80,8 @@ export default function Home() {
                 {whoToCall}
               </>
             )}
-            {bookDone ? <MarketingCenter /> : <CaseStudies />}
+            {!bookDone && <CaseStudies />}
+            <MarketingCenter />
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">
             <RevivePathCard tier={tier} opps={opps} />

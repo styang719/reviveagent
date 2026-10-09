@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import openHouse from '@/assets/marketing/open-house.png'
 import postcard from '@/assets/marketing/postcard.png'
 import social from '@/assets/marketing/social-post.png'
+import { ProfileDialog } from '@/components/marketing/ProfileDialog'
 import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
 import { useOpportunities } from '@/lib/opportunities'
@@ -115,6 +116,7 @@ function ProjectCard({ p }: { p: ProjectRow }) {
 }
 
 export default function Marketing() {
+  const [profileOpen, setProfileOpen] = useState(false)
   const created = useDemo((s) => s.projects)
   const reports = useDemo((s) => s.reports)
   const opps = useOpportunities()
@@ -187,10 +189,11 @@ export default function Marketing() {
           <Button
             variant="outline"
             className="h-10"
-            onClick={() => toast('Your name, photo and license go on every template', { description: 'Profile editing comes in a later phase of the prototype.' })}
+            onClick={() => setProfileOpen(true)}
           >
             <Pencil /> Edit profile information
           </Button>
+          <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
         </div>
       </div>
 

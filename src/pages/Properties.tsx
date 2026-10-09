@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { AiLink } from '@/components/ai/AiLink'
+import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
 import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
@@ -269,6 +270,9 @@ export default function Properties() {
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             <ProjectsEmpty />
             <ReportsEmpty />
+          </div>
+          <div className="mt-12">
+            <CaseStudies />
           </div>
         </>
       ) : (
