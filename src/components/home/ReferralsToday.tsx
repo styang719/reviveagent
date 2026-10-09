@@ -39,7 +39,7 @@ export function ReferralsToday({ opps }: { opps: Opportunity[] }) {
             <li key={o.id}>
               <Link to={`/leads/referrals/${o.id}`} className="group flex flex-wrap items-center gap-x-5 gap-y-3 px-6 py-5 transition-colors hover:bg-head sm:flex-nowrap">
                 <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-[14px] text-ink">{initials(o.person?.name ?? o.property.address)}</span>
-                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="flex min-w-0 flex-1 flex-col gap-2">
                   <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="truncate text-[15.5px] font-medium text-[#1b2b4b]">{o.person?.name}</span>
                     <span className={cn('inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[12.5px]', st.cls)}>
