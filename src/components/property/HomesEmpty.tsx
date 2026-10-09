@@ -9,7 +9,7 @@ import { StartWithRevive } from './StartWithRevive'
 /** Projects with Revive, empty: how a project works, what it's worth, and the address search to start one. */
 export function ProjectsEmpty() {
   return (
-    <div className="flex flex-col rounded-2xl border border-[var(--brand-primary-border-subtle)] bg-[radial-gradient(120%_120%_at_100%_0%,var(--brand-primary-subtle)_0%,#fff_60%)] p-6 shadow-card">
+    <div className="flex min-w-0 flex-col rounded-2xl border border-[var(--brand-primary-border-subtle)] bg-[radial-gradient(120%_120%_at_100%_0%,var(--brand-primary-subtle)_0%,#fff_60%)] p-6 shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <h3 className="text-lg font-semibold text-ink">Start your first project with Revive</h3>
         <span className="rounded-full bg-ok-soft px-2.5 py-1 text-[12px] font-semibold text-[var(--green)]">+$62K avg upside nearby</span>
@@ -39,7 +39,7 @@ export function ProjectsEmpty() {
 /** Revive AI reports, empty: a peek at what a report holds, and a one-click way to run the first. */
 export function ReportsEmpty() {
   return (
-    <div className="flex flex-col rounded-2xl border border-[var(--brand-agent-border-subtle,#e0caf2)] bg-[radial-gradient(120%_120%_at_100%_0%,var(--brand-agent-subtle)_0%,#fff_60%)] p-6 shadow-card">
+    <div className="flex min-w-0 flex-col rounded-2xl border border-[var(--brand-agent-border-subtle,#e0caf2)] bg-[radial-gradient(120%_120%_at_100%_0%,var(--brand-agent-subtle)_0%,#fff_60%)] p-6 shadow-card">
       <h3 className="text-lg font-semibold text-ink">Run your first Revive AI report</h3>
       <p className="mt-1 text-[14px] leading-6 text-ink-2">Any address, about a minute. A branded report you can share with the homeowner to start the conversation.</p>
       {/* a peek at a report */}

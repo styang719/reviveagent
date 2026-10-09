@@ -268,7 +268,9 @@ function HomeSheet({ it, onClose, compsFrom }: { it: Item; onClose: () => void; 
 
 export default function MobileMap() {
   const all = useOpportunities()
-  const market = useMemo(() => areaHomes(), [])
+  // the market around the office, and around the agent's own homes (none yet for a new agent)
+  const market = useMemo(() => areaHomes(all.map((o) => o.property.id)), [all])
+  const hasBook = all.length > 0
   const [layers, setLayers] = useState<Set<Layer>>(() => new Set<Layer>(['opps', 'sold', 'active', 'pending']))
   const [filter, setFilter] = useState<Filter>('all')
   const [filters, setFilters] = useState(false)
@@ -292,14 +294,19 @@ export default function MobileMap() {
     } catch {
       /* storage blocked: show the tip anyway */
     }
-    const t = setTimeout(() => toast('Tip: press and hold anywhere on the map to look up that home.'), 900)
-    return () => clearTimeout(t)
+    let id: string | number | undefined
+    const t = setTimeout(() => (id = toast('Tip: press and hold anywhere on the map to look up that home.')), 900)
+    // a tip about the map goes away with the map
+    return () => {
+      clearTimeout(t)
+      if (id !== undefined) toast.dismiss(id)
+    }
   }, [])
 
   // everything the layers turn on (and the search matches)
   const items = useMemo<Item[]>(() => {
     const out: Item[] = []
-    if (layers.has('opps')) for (const o of all) if (passes(o, filter) && bounds.contains([o.property.lat, o.property.lng])) out.push({ kind: 'opp', id: o.id, o })
+    if (hasBook && layers.has('opps')) for (const o of all) if (passes(o, filter) && bounds.contains([o.property.lat, o.property.lng])) out.push({ kind: 'opp', id: o.id, o })
     for (const h of market) if (layers.has(h.status)) out.push({ kind: 'area', id: h.id, h })
     if (dropped) out.push({ kind: 'area', id: dropped.id, h: dropped })
     return needle ? out.filter((it) => textOf(it).some((f) => f?.toLowerCase().includes(needle))) : out
@@ -376,7 +383,7 @@ export default function MobileMap() {
   const showComps = (it: Item) => {
     const p = posOf(it)
     const sqft = it.kind === 'opp' ? it.o.property.sqft : it.h.sqft
-    const list = compsFor({ ...p, sqft, id: it.id })
+    const list = compsFor({ ...p, sqft, id: it.id }, market)
     setSheet(null)
     setComps({ subject: it, list })
     setActive(list[0]?.id ?? null)
@@ -402,7 +409,7 @@ export default function MobileMap() {
       <div className="absolute inset-0">
         <BaseMap center={ll(ME_DEMO)} zoom={14} zoomControl={false}>
           <Watch gotMap={setMap} viewChanged={(b, z) => setView({ b, z })} holdAt={(p) => {
-            const h = homeAt(p.lat, p.lng)
+            const h = homeAt(p.lat, p.lng, market)
             setDropped(h)
             setComps(null)
             setSheet({ kind: 'area', id: h.id, h })
@@ -449,7 +456,13 @@ export default function MobileMap() {
               )}
             </label>
             <div className="-mx-3 flex gap-2 overflow-x-auto px-3 [scrollbar-width:none]" role="group" aria-label="Map layers">
-              {LAYERS.map((l) => {
+              {/* a new agent has no opportunities yet: the map shows the market, and how to add theirs */}
+              {!hasBook && (
+                <Link to="/m/opportunities" className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-dashed border-[var(--brand-primary-border)] bg-white px-3.5 text-[13.5px] font-medium text-brand shadow-sm">
+                  + Connect to see your opportunities
+                </Link>
+              )}
+              {LAYERS.filter((l) => hasBook || l.k !== 'opps').map((l) => {
                 const on = layers.has(l.k)
                 return (
                   <button
@@ -463,10 +476,10 @@ export default function MobileMap() {
                   </button>
                 )
               })}
-              <button onClick={() => setFilters(true)} aria-label="Filter opportunities" className={cn('flex h-9 shrink-0 items-center gap-1.5 rounded-full border bg-white px-3 text-[13.5px] font-medium shadow-sm', filter !== 'all' ? 'border-brand text-brand' : 'border-line text-ink')}>
+              {hasBook && <button onClick={() => setFilters(true)} aria-label="Filter opportunities" className={cn('flex h-9 shrink-0 items-center gap-1.5 rounded-full border bg-white px-3 text-[13.5px] font-medium shadow-sm', filter !== 'all' ? 'border-brand text-brand' : 'border-line text-ink')}>
                 <SlidersHorizontal className="size-4" />
                 {filter !== 'all' ? FILTERS.find((f) => f.k === filter)?.label : 'Filters'}
-              </button>
+              </button>}
             </div>
           </>
         )}

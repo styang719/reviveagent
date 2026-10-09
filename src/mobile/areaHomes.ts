@@ -80,24 +80,27 @@ function cluster(key: string, lat: number, lng: number, city: string, ppsf: numb
   })
 }
 
-let cache: AreaHome[] | null = null
-/** Every sample market home: around the office, and a handful around each home in the book. */
-export function areaHomes(): AreaHome[] {
-  if (cache) return cache
+const cache = new Map<string, AreaHome[]>()
+/** The sample market: around the office, and a handful around each of the agent's own homes (pass their ids). */
+export function areaHomes(bookIds: string[] = []): AreaHome[] {
+  const key = [...bookIds].sort().join('|')
+  const hit = cache.get(key)
+  if (hit) return hit
   const office = AGENT.office
   const homes = [...cluster('office', office.lat, office.lng, 'Pasadena', 880, 54, 2.4)]
+  const mine = new Set(bookIds)
   for (const p of properties) {
-    if (miles(p, office) < 2) continue // already covered by the office set
+    if (!mine.has(p.id) || miles(p, office) < 2) continue // not theirs, or already covered by the office set
     homes.push(...cluster(p.id, p.lat, p.lng, p.city, Math.max(450, p.valueNow / Math.max(p.sqft, 800)), 7, 0.9))
   }
-  cache = homes
+  cache.set(key, homes)
   return homes
 }
 
 /** The 5 best comps for a home: recent sales within a mile, closest in size and distance first. */
-export function compsFor(home: { lat: number; lng: number; sqft?: number; id?: string }) {
+export function compsFor(home: { lat: number; lng: number; sqft?: number; id?: string }, market: AreaHome[]) {
   const sqft = home.sqft ?? 1800
-  return areaHomes()
+  return market
     .filter((h) => h.status === 'sold' && h.id !== home.id)
     .map((h) => ({ h, d: miles(home, h) }))
     .filter((x) => x.d <= 1.2)
@@ -107,9 +110,9 @@ export function compsFor(home: { lat: number; lng: number; sqft?: number; id?: s
 }
 
 /** Any spot on the map: the nearest street address, valued from the sales around it. */
-export function homeAt(lat: number, lng: number): AreaHome {
+export function homeAt(lat: number, lng: number, market: AreaHome[]): AreaHome {
   const r = rng(hash(`${lat.toFixed(4)},${lng.toFixed(4)}`))
-  const near = areaHomes()
+  const near = market
     .map((h) => ({ h, d: miles({ lat, lng }, h) }))
     .sort((a, b) => a.d - b.d)
     .slice(0, 6)

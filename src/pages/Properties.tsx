@@ -267,7 +267,7 @@ export default function Properties() {
       {firstVisit ? (
         // nothing here yet: say what each section is for, show the proof nearby, and make starting easy
         <>
-          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
             <ProjectsEmpty />
             <ReportsEmpty />
           </div>
