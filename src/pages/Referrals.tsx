@@ -6,7 +6,7 @@ import advisor from '@/assets/avatars/advisor-philip.svg'
 import mark from '@/assets/revive-mark.svg'
 import { ADVISOR } from '@/components/home/AdvisorCard'
 import { GRADES } from '@/components/home/PartnerStatusCard'
-import { REFERRAL_STATUS, ReferralCard } from '@/components/property/SellerReferrals'
+import { REACHED, REFERRAL_STATUS, ReferralCard } from '@/components/property/SellerReferrals'
 import { Button } from '@/components/ui/button'
 import { TIERS } from '@/data/tiers'
 import type { Referral } from '@/data/types'
@@ -19,8 +19,6 @@ import { cn, PAGE } from '@/lib/utils'
 // "Your leads" page.
 
 type Status = Referral['status']
-// how far each status got down the funnel (a lost referral had the visit and the meeting)
-const REACHED: Record<Status, number> = { new: 0, claimed: 1, contacted: 2, lost: 2, listing: 3 }
 const FUNNEL = ['Referral received', 'Home visit set', 'Met with homeowner', 'Signed listing agreement', 'On market']
 const LABEL = 'text-[12px] font-medium tracking-wide text-brand uppercase'
 
@@ -189,7 +187,7 @@ export default function Referrals() {
               </div>
               <div className="flex gap-2">
                 <Button className="h-12 flex-1 rounded-xl text-[15px]" asChild>
-                  <Link to={`/property/${next.id}`}>
+                  <Link to={`/leads/referrals/${next.id}`}>
                     <List /> View referral
                   </Link>
                 </Button>

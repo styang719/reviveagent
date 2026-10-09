@@ -7,6 +7,7 @@ import Opportunities from '@/pages/Opportunities'
 import Person from '@/pages/Person'
 import Properties from '@/pages/Properties'
 import Referrals from '@/pages/Referrals'
+import ReferralDetail from '@/pages/ReferralDetail'
 import CaseStudies from '@/pages/CaseStudies'
 import ReviveAI from '@/pages/ReviveAI'
 import Property from '@/pages/Property'
@@ -28,6 +29,7 @@ export const router = createRouter([
       { path: '/properties', element: <Properties /> },
       { path: '/leads', element: <LeadTracking /> },
       { path: '/leads/referrals', element: <Referrals /> },
+      { path: '/leads/referrals/:id', element: <ReferralDetail /> },
       { path: '/projects', element: <Navigate to="/properties" replace /> },
       { path: '/case-studies', element: <CaseStudies /> },
       { path: '/marketing', element: <Marketing /> },

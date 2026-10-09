@@ -46,7 +46,7 @@ export function ReferralHero({ o }: { o: Opportunity }) {
           Claim lead
         </Button>
         <Button variant="outline" asChild>
-          <Link to={`/property/${o.id}`}>View property</Link>
+          <Link to={`/leads/referrals/${o.id}`}>View referral</Link>
         </Button>
       </div>
     </section>

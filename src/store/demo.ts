@@ -72,6 +72,8 @@ interface DemoState {
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
   claimReferral: (propertyId: string) => void
   markReferralUpdated: (propertyId: string) => void
+  /** referral page: the agent's written update to Revive (also marks the referral up to date) */
+  postReferralUpdate: (propertyId: string, text: string) => void
   connectCrm: () => void
   markReportGenerated: () => void
   connectLicense: (license: string) => void
@@ -175,6 +177,8 @@ export const useDemo = create<DemoState>()(
         })),
       markReferralUpdated: (id) =>
         set((s) => ({ updated: { ...s.updated, [id]: Date.now() }, activity: withActivity(s, id, 'You sent Revive a status update') })),
+      postReferralUpdate: (id, text) =>
+        set((s) => ({ updated: { ...s.updated, [id]: Date.now() }, activity: withActivity(s, id, `You shared an update: “${text}”`) })),
       connectCrm: () => set({ crmConnected: true }),
       markReportGenerated: () => set({ reportGenerated: true }),
       addReport: (r, quiet) =>

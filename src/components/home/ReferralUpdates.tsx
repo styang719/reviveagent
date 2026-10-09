@@ -27,7 +27,7 @@ export function ReferralUpdates({ waiting }: { waiting: Opportunity[] }) {
         {waiting.map((o) => (
           <li key={o.id} className="flex flex-wrap items-center gap-3 px-3 py-2.5">
             <div className="min-w-0 flex-1">
-              <Link to={`/property/${o.id}`} className="text-sm font-medium text-ink hover:text-brand hover:underline">
+              <Link to={`/leads/referrals/${o.id}`} className="text-sm font-medium text-ink hover:text-brand hover:underline">
                 {o.property.address}
               </Link>
               <p className="text-xs text-muted">

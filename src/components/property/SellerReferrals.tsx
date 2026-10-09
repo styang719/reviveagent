@@ -14,6 +14,9 @@ export const REFERRAL_STATUS = {
   lost: { label: 'Unsuccessful', icon: CircleX, cls: 'border-[#fecaca] bg-bad-soft text-bad', body: 'Another agent won this listing. Share an update to help us understand what happened and learn from the opportunity.' },
 } as const
 
+/** How far each status got from referral to on market (a lost referral had the visit and the meeting). */
+export const REACHED = { new: 0, claimed: 1, contacted: 2, lost: 2, listing: 3 } as const
+
 /** New, or waiting on the agent's update: what Lead tracking leads with. */
 export const needsAction = (o: Opportunity) => !!o.referral && ((o.referral.status === 'new' && !o.referral.claimedAt) || o.referral.needsUpdateNow)
 
@@ -31,7 +34,7 @@ export function ReferralCard({ o }: { o: Opportunity }) {
   const Icon = st.icon
   return (
     <Link
-      to={`/property/${o.id}`}
+      to={`/leads/referrals/${o.id}`}
       className="group flex flex-col gap-5 rounded-[28px] border border-[var(--brand-primary-border-subtle)] bg-white p-6 transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.10)]"
     >
       <div className="flex flex-col gap-3">
