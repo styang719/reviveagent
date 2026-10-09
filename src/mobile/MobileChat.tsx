@@ -22,8 +22,10 @@ const STARTER_CARDS = [
   { icon: Users, label: STARTERS[1] },
   { icon: Sparkles, label: 'Visualize a renovation with RenoVision', run: () => startRenovision() },
 ]
-// a new agent's setup list already starts a report and a project, and there's no book to ask about yet
+// a new agent: no book to ask about yet, so the tiles are the first report and project, and RenoVision
 const NEW_AGENT_CARDS = [
+  { icon: FileText, label: 'Generate your first Revive AI report', run: () => startReport() },
+  { icon: Hammer, label: 'Start your first project', run: () => startProject() },
   { icon: Sparkles, label: 'Visualize a renovation with RenoVision', run: () => startRenovision() },
   { icon: Search, label: 'What’s 250 Elm St worth?', run: undefined },
 ]

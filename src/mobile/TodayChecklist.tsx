@@ -1,11 +1,10 @@
-import { Check, ChevronDown, ChevronRight, FileText, Hammer, IdCard, MessageSquareReply, PhoneCall, UserRound, Users } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, Hammer, IdCard, MessageSquareReply, PhoneCall, UserRound, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { attentionOf, attentionRank, img } from '@/components/home/TopOpportunities'
 import { needsAction } from '@/components/property/SellerReferrals'
 import { AGENT } from '@/data/tiers'
-import { startProject, startReport } from '@/lib/flowEngine'
 import { plural } from '@/lib/format'
 import { isActionable, useConnections, useOpportunities, type Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
@@ -141,17 +140,14 @@ export function TodayChecklist() {
 function SetupList({ opps }: { opps: Opportunity[] }) {
   const { crm, mls, license } = useConnections()
   const openCrm = useUi((s) => s.openCrm)
-  const reportGenerated = useDemo((s) => s.reportGenerated)
-  const project = useDemo((s) => Object.keys(s.projects).length > 0) || opps.some((o) => o.stage === 'project')
   const [open, setOpen] = useState<string | null>(null)
   const listings = opps.filter((o) => o.property.source === 'listings').length
   const contacts = opps.filter((o) => o.property.source === 'contacts').length
 
+  // just the two connections, each titled by what it gets them; the first report and project are tiles below
   const steps = [
-    { id: 'license', icon: IdCard, title: mls ? `Listings found (DRE #${license ?? ''})` : 'Add your license number', hint: mls ? plural(listings, 'active listing') + ' on the MLS' : 'Finds your listings and past sales · 30 sec', done: mls, run: () => setOpen(open === 'license' ? null : 'license'), expands: true },
-    { id: 'crm', icon: Users, title: crm ? `${AGENT.crm} connected` : 'Connect your CRM', hint: crm ? plural(contacts, 'contact') + ' with an address' : 'Finds homeowners worth a call · 1 min', done: crm, run: () => openCrm('') },
-    { id: 'report', icon: FileText, title: reportGenerated ? 'First Revive AI report generated' : 'Generate your first Revive AI report', hint: 'Any address: value, upside and the right product · 1 min', done: reportGenerated, run: () => startReport() },
-    { id: 'project', icon: Hammer, title: 'Start your first project', hint: 'Revive AI walks you through it · 3 min', done: project, run: () => startProject() },
+    { id: 'license', icon: IdCard, title: mls ? `Found ${plural(listings, 'listing')} you could sell for more` : 'Sell your listings for more', hint: mls ? `DRE #${license ?? ''} · from the MLS` : 'Add your license number · 30 sec', done: mls, run: () => setOpen(open === 'license' ? null : 'license'), expands: true },
+    { id: 'crm', icon: Users, title: crm ? `Found ${plural(contacts, 'homeowner')} worth a call` : 'Find homeowners ready to sell', hint: crm ? `${AGENT.crm} connected` : 'Connect your CRM · 1 min', done: crm, run: () => openCrm('') },
   ]
   const done = steps.filter((t) => t.done).length
   if (done === steps.length) return null
@@ -160,7 +156,7 @@ function SetupList({ opps }: { opps: Opportunity[] }) {
     <section aria-labelledby="setup-title" className="mt-4 rounded-[24px] border border-[var(--brand-primary-border-subtle)] bg-[linear-gradient(160deg,#eaf0fc_0%,#f1effc_100%)] p-2.5">
       <div className="flex items-center justify-between px-1.5 pt-0.5">
         <h2 id="setup-title" className="text-[15px] font-semibold text-ink">
-          Get set up
+          Get your opportunities
         </h2>
         <span className="rounded-full bg-white px-2 py-0.5 text-[12px] font-medium text-brand tabular-nums">
           {done} of {steps.length}
