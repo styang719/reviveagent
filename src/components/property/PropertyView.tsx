@@ -1,9 +1,14 @@
-import { ArrowRight, Check, FileText, Hammer, HousePlus, Megaphone, Share2, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowRight, Check, FileText, Hammer, HousePlus, Share2, Sparkles, Wand2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { SourceTag, StageTag } from '@/components/opportunity/Tags'
+import openHouse from '@/assets/marketing/open-house.webp'
+import postcard from '@/assets/marketing/postcard.webp'
+import social from '@/assets/marketing/social-post.webp'
 import { AiLink } from '@/components/ai/AiLink'
+import { TemplateCard } from '@/components/marketing/TemplateCard'
+import { isMobileApp } from '@/mobile/mode'
 import { LeadActivity } from './LeadActivity'
 import { NeighborhoodComps } from './NeighborhoodComps'
 import { RenoVisionGallery } from './RenoVisionGallery'
@@ -431,22 +436,34 @@ function ProjectTimeline({ title, steps, next, details, docs }: { title: string;
 }
 
 function Marketing({ m }: { m: Model }) {
+  // the Marketing center's templates, for this home's product: listing marketing once there's a project,
+  // conversation starters while it's a report
+  const product = m.created?.product ?? m.builtIn?.product ?? [...m.scenarios].sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))[0]?.product ?? 'Renovate to Sell'
   const items = m.created || m.builtIn
-    ? ['Coming-soon flyer', 'Before/after social post', 'Renovation story email', 'Open house kit']
-    : ['Renovation-potential one-pager', 'Report share card', 'Renovision preview']
+    ? [
+        { name: 'Coming soon', type: 'Postcard', img: postcard },
+        { name: 'Before & after', type: 'Socials', img: social },
+        { name: 'Open house', type: 'Flyer', img: openHouse },
+        { name: 'Renovation story', type: 'One pager', img: postcard },
+      ]
+    : [
+        { name: 'What it could sell for', type: 'One pager', img: postcard },
+        { name: 'Your home’s potential', type: 'Socials', img: social },
+        { name: 'Renovate with Revive', type: 'Playbook', img: openHouse },
+      ]
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {items.map((t) => (
-        <div key={t} className="flex items-center gap-3 rounded-xl border border-line p-4">
-          <span className="grid size-9 place-items-center rounded-lg bg-brand-soft text-brand">
-            <Megaphone className="size-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">{t}</p>
-            <p className="text-[12px] text-muted">For {m.address}, branded with your name</p>
-          </div>
-        </div>
-      ))}
+    <div>
+      <p className="mb-4 text-[13.5px] text-muted">
+        {product} templates for {m.address}, branded with your name.{' '}
+        <Link to={isMobileApp() ? "/m/marketing" : "/marketing"} className="font-medium text-brand">
+          Browse all in the Marketing center
+        </Link>
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {items.map((t) => (
+          <TemplateCard key={t.name} name={t.name} type={t.type} img={t.img} />
+        ))}
+      </div>
     </div>
   )
 }

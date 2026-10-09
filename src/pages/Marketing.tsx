@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Bookmark, ChevronDown, Home, LayoutGrid, MapPin, Pencil, QrCode, Search, Sofa, TrendingUp } from 'lucide-react'
+import { ArrowLeftRight, ChevronDown, Home, LayoutGrid, MapPin, Pencil, QrCode, Search, Sofa, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -6,6 +6,7 @@ import openHouse from '@/assets/marketing/open-house.webp'
 import postcard from '@/assets/marketing/postcard.webp'
 import social from '@/assets/marketing/social-post.webp'
 import { ProfileDialog } from '@/components/marketing/ProfileDialog'
+import { TemplateCard } from '@/components/marketing/TemplateCard'
 import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
 import { useOpportunities } from '@/lib/opportunities'
@@ -260,37 +261,21 @@ export default function Marketing() {
             {trending.map((t) => {
               const on = saved.has(t.i)
               return (
-                <article key={t.i} className="group relative overflow-hidden rounded-2xl border border-line bg-white shadow-card">
-                  <button
-                    type="button"
-                    className="block w-full text-left"
-                    onClick={() => toast.success(`${t.name} ${t.type.toLowerCase()} is ready`, { description: 'Branded with your photo, name and license.' })}
-                  >
-                    <div className="h-48 overflow-hidden bg-head">
-                      <img src={t.img} alt={`${t.name} ${t.type.toLowerCase()}`} className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    </div>
-                    <div className="flex items-center gap-2 p-3">
-                      <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-ink">{t.name}</span>
-                      <span className="shrink-0 rounded-full bg-line-soft px-3 py-1 text-[12px] font-medium text-ink">{t.type}</span>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={on ? 'Remove from saved' : 'Save template'}
-                    aria-pressed={on}
-                    onClick={() =>
-                      setSaved((s) => {
-                        const n = new Set(s)
-                        if (on) n.delete(t.i)
-                        else n.add(t.i)
-                        return n
-                      })
-                    }
-                    className={cn('absolute top-3 right-3 grid size-8 place-items-center rounded-lg shadow-sm', on ? 'bg-brand text-white' : 'bg-white/90 text-ink hover:bg-white')}
-                  >
-                    <Bookmark className={cn('size-3.5', on && 'fill-current')} />
-                  </button>
-                </article>
+                <TemplateCard
+                  key={t.i}
+                  name={t.name}
+                  type={t.type}
+                  img={t.img}
+                  saved={on}
+                  onSave={() =>
+                    setSaved((s) => {
+                      const n = new Set(s)
+                      if (on) n.delete(t.i)
+                      else n.add(t.i)
+                      return n
+                    })
+                  }
+                />
               )
             })}
           </div>
