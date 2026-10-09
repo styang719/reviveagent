@@ -10,6 +10,7 @@ import { MarketingCenter } from '@/components/home/MarketingCenter'
 import { YourBook } from '@/components/home/YourBook'
 import { TopOpportunities } from '@/components/home/TopOpportunities'
 import { AGENT, TIERS } from '@/data/tiers'
+import { greetingWord } from '@/lib/greeting'
 import { useNow } from '@/hooks/useNow'
 import { isActionable, useConnections, useOpportunities } from '@/lib/opportunities'
 import { useUi } from '@/store/ui'
@@ -17,10 +18,6 @@ import { PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
 const FEED_SIZE = 5
-
-function greetingWord(h: number) {
-  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
-}
 
 export default function Home() {
   const tier = useDemo((s) => s.tier)

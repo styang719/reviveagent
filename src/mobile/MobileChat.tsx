@@ -6,6 +6,7 @@ import { AGENT } from '@/data/tiers'
 import { STARTERS } from '@/lib/ai'
 import { rvHome, startHome, startProject, startRenovision, startReport } from '@/lib/flowEngine'
 import { useOpportunities, isActionable } from '@/lib/opportunities'
+import { greetingWord } from '@/lib/greeting'
 import { cn } from '@/lib/utils'
 import { useChatDrawer } from './ChatDrawer'
 import { useUi } from '@/store/ui'
@@ -62,7 +63,9 @@ export default function MobileChat() {
       <div className="absolute inset-0 overflow-y-auto px-4 pt-[148px] pb-[calc(var(--tab-h)+96px)]">
         {empty ? (
           <div className="flex flex-col">
-            <h1 className="text-[26px] leading-8 font-semibold text-ink">Hi {AGENT.firstName}, what can I help with?</h1>
+            <h1 className="text-[22px] leading-[30px] font-semibold text-ink">
+              {greetingWord(new Date().getHours())}, {AGENT.firstName}. How can we help you today?
+            </h1>
             <p className="mt-2 text-[15px] text-ink-2">Ask about any home or anyone in your book.</p>
             {toCall > 0 && (
               <Link to="/m/map" className="mt-5 flex items-center gap-3 rounded-[22px] bg-[var(--brand-primary-subtle)] p-4">
