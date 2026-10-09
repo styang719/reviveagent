@@ -45,6 +45,18 @@ const briefPeople: Person[] = [
     activity: ['Referral claimed · Sep 29'],
   },
   {
+    id: 'ruth', name: 'Ruth Alvarez', relationship: 'Revive referral', source: 'Revive referral', since: 'Referred by Revive · Aug 27',
+    lastTouchDays: 3, reviveScore: 79,
+    notes: [{ text: 'Signed the listing agreement Sep 20. Renovate to Sell before listing.', date: 'Sep 20' }],
+    activity: ['Referral claimed · Aug 27', 'Listing agreement signed · Sep 20'],
+  },
+  {
+    id: 'victor', name: 'Victor Hale', relationship: 'Revive referral', source: 'Revive referral', since: 'Referred by Revive · Sep 4',
+    lastTouchDays: 20, reviveScore: 61,
+    notes: [{ text: 'Went with another agent after the listing appointment.', date: 'Sep 17' }],
+    activity: ['Referral claimed · Sep 4', 'Listing appointment · Sep 15'],
+  },
+  {
     id: 'grace', name: 'Grace Nguyen', relationship: 'Revive referral', source: 'Revive referral', since: 'Referred by Revive · Sep 12',
     lastTouchDays: 4, reviveScore: 72,
     notes: [{ text: 'Listing appointment Oct 2. Comparing two agents.', date: 'Sep 26' }],

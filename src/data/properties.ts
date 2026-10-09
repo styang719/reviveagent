@@ -302,6 +302,38 @@ const briefProperties: Property[] = [
     scenarios: [{ product: 'Renovate to Sell', note: 'Kitchen, baths, landscaping', gain: 81000 }],
     activity: ['Referral claimed · Sep 12', 'Listing appointment · Oct 2'],
   },
+
+  // ---- Closed Revive referrals (Partner): one signed, one lost to another agent ----
+  {
+    id: 'hastings',
+    photo: 'comp-103-0',
+    address: '540 Hastings Ranch Dr',
+    city: 'Pasadena',
+    lat: 34.1667, lng: -118.0896,
+    homeType: 'Single family', beds: 4, baths: 2, sqft: 2050, yearBuilt: 1961, lot: 8600,
+    ownerId: 'ruth', ownerRole: 'Seller', source: 'revive', minTier: 'partner', stage: 'project', reportRun: true,
+    valueNow: 1480000, valueAfter: 1590000,
+    valueSources: [{ name: 'Revive AI', value: 1480000 }, { name: 'Zillow', value: 1462000 }],
+    signals: ['Revive referral, listing agreement signed Sep 20', 'Renovate to Sell before listing'],
+    facts: {},
+    scenarios: [{ product: 'Renovate to Sell', note: 'Kitchen, floors and paint', gain: 110000 }],
+    activity: ['Referral claimed · Aug 27', 'Listing agreement signed · Sep 20'],
+  },
+  {
+    id: 'sierra',
+    photo: 'comp-103-2',
+    address: '2215 Sierra Madre Blvd',
+    city: 'San Marino',
+    lat: 34.1312, lng: -118.1067,
+    homeType: 'Single family', beds: 3, baths: 2, sqft: 1820, yearBuilt: 1948, lot: 7600,
+    ownerId: 'victor', ownerRole: 'Owner', source: 'revive', minTier: 'partner', stage: 'interested', reportRun: true,
+    valueNow: 1610000, valueAfter: 1672000,
+    valueSources: [{ name: 'Revive AI', value: 1610000 }, { name: 'Redfin', value: 1598000 }],
+    signals: ['Revive referral, listed with another agent'],
+    facts: { otherBrokerage: true },
+    scenarios: [{ product: 'Renovate to Sell', note: 'Cosmetic refresh', gain: 62000 }],
+    activity: ['Referral claimed · Sep 4', 'Listing appointment · Sep 15'],
+  },
 ]
 
 export const properties: Property[] = [...briefProperties, ...contactProperties]

@@ -90,6 +90,7 @@ export interface Referral {
   expiresInHours: number // exclusivity window
   status: 'new' | 'claimed' | 'contacted' | 'listing' | 'lost'
   needsUpdate: boolean // Revive requires agent status updates
+  referredDaysAgo: number
 }
 
 export interface CrmEvent {

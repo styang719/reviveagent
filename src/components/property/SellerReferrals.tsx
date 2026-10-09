@@ -1,103 +1,93 @@
-import { ArrowRight, CalendarClock, CircleDot, Clock, Signpost, UserRound } from 'lucide-react'
+import { ArrowRight, CircleDot, CircleX, Clock, Signature, UserRound } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { useNow } from '@/hooks/useNow'
-import { useDemo } from '@/store/demo'
 import type { Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
 
-// Lead tracking > Your seller referrals from Revive: homeowners Revive sent this agent. Each card leads with the
-// address (this is the Homes page), then the homeowner, where the referral stands and the one thing to do.
+// Seller referrals from Revive. Lead tracking shows only the ones that need the agent now (new, or waiting on
+// an update to Revive); "View all" opens the referrals page with every referral and how they're converting.
 
-const STATUS = {
-  new: { label: 'New', icon: CircleDot, cls: 'border-hot-line bg-hot-soft text-hot-ink', body: 'Revive just sent you this homeowner. Claim it within 24 hours to keep the lead.' },
-  claimed: { label: 'Scheduled', icon: Clock, cls: 'border-[#fde3a7] bg-[#fef8e6] text-[var(--amber)]', body: 'Get ready for the home visit. Review the listing details and prepare for your conversation with the homeowner.' },
-  contacted: { label: 'Met', icon: UserRound, cls: 'border-[var(--brand-primary-border)] bg-[var(--brand-primary-subtle)] text-brand', body: 'Tell us how the home visit went so we can understand the opportunity and what happens next.' },
-  listing: { label: 'Listed', icon: Signpost, cls: 'border-[var(--teal-soft)] bg-ok-soft text-[var(--green)]', body: 'You’re listing it. Keep Revive posted as offers come in.' },
-  lost: { label: 'Closed', icon: CalendarClock, cls: 'border-line bg-head text-ink-2', body: 'This referral is closed.' },
+export const REFERRAL_STATUS = {
+  new: { label: 'New', icon: CircleDot, cls: 'border-hot-line bg-hot-soft text-hot-ink', body: 'Revive just sent you this homeowner. Reach out within 24 hours, while they’re expecting your call.' },
+  claimed: { label: 'Scheduled', icon: Clock, cls: 'border-[#ffe4c6] bg-[#fffbeb] text-[#a95d05]', body: 'Get ready for the home visit. Review the listing details and prepare for your conversation with the homeowner.' },
+  contacted: { label: 'Met', icon: UserRound, cls: 'border-[var(--brand-primary-border-subtle)] bg-[var(--brand-primary-subtle)] text-brand', body: 'Tell us how the home visit went so we can understand the opportunity and what happens next.' },
+  listing: { label: 'Signed', icon: Signature, cls: 'border-[var(--brand-primary-border-subtle)] bg-[var(--brand-primary-subtle)] text-brand', body: 'You won the listing! Share your experience to help us learn what worked and improve the experience for agents.' },
+  lost: { label: 'Unsuccessful', icon: CircleX, cls: 'border-[#fecaca] bg-bad-soft text-bad', body: 'Another agent won this listing. Share an update to help us understand what happened and learn from the opportunity.' },
 } as const
 
-const when = (o: Opportunity) => {
-  const s = o.person?.since ?? ''
-  const d = s.split(' · ').pop()
-  return d === 'today' ? 'Referred today' : d ? `Referred ${d}` : ''
+/** New, or waiting on the agent's update: what Lead tracking leads with. */
+export const needsAction = (o: Opportunity) => !!o.referral && ((o.referral.status === 'new' && !o.referral.claimedAt) || o.referral.needsUpdateNow)
+
+const ago = (d: number) => (d === 0 ? 'Today' : d === 1 ? 'Yesterday' : `${d} days ago`)
+const initials = (s: string) =>
+  s
+    .split(' ')
+    .map((x) => x[0])
+    .slice(0, 2)
+    .join('')
+
+export function ReferralCard({ o }: { o: Opportunity }) {
+  const r = o.referral!
+  const st = REFERRAL_STATUS[r.status]
+  const Icon = st.icon
+  return (
+    <Link
+      to={`/property/${o.id}`}
+      className="group flex flex-col gap-5 rounded-[28px] border border-[var(--brand-primary-border-subtle)] bg-white p-6 transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.10)]"
+    >
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-[14px] text-ink">{initials(o.person?.name ?? o.property.address)}</span>
+          <span className={cn('inline-flex h-10 items-center gap-3 rounded-xl border pr-4 pl-3 text-[14px]', st.cls)}>
+            <Icon className="size-4" /> {st.label}
+          </span>
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-[16px] font-medium text-[#1b2b4b]">{o.person?.name ?? o.property.address}</p>
+          <p className="truncate text-[14px] text-faint">
+            {o.property.address}, {o.property.city}
+          </p>
+        </div>
+        <p className="text-[14px] leading-5 text-ink-2">{st.body}</p>
+      </div>
+      <div className="mt-auto flex items-center justify-between gap-2 text-[14px] font-medium">
+        <span className="text-ink-2">{ago(r.referredDaysAgo)}</span>
+        <span className="flex items-center gap-2 text-brand">
+          See details <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+        </span>
+      </div>
+    </Link>
+  )
 }
 
 export function SellerReferrals({ opps }: { opps: Opportunity[] }) {
-  const claim = useDemo((s) => s.claimReferral)
-  const markUpdated = useDemo((s) => s.markReferralUpdated)
-  const now = useNow(30_000)
+  const now = opps.filter(needsAction)
   if (!opps.length) return null
   return (
     <section className="mt-8" aria-labelledby="referrals-title">
-      <div className="flex items-center gap-2.5">
-        <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
-          <UserRound className="size-4" />
-        </span>
-        <h2 id="referrals-title" className="text-xl font-semibold text-ink">
-          Your seller referrals from Revive
-        </h2>
-        <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{opps.length}</span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
+            <UserRound className="size-4" />
+          </span>
+          <h2 id="referrals-title" className="text-xl font-semibold text-ink">
+            Your seller referrals from Revive
+          </h2>
+          <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{now.length}</span>
+        </div>
+        <Link to="/leads/referrals" className="inline-flex h-10 items-center gap-1 rounded-xl border border-line bg-white pr-3 pl-5 text-[14px] font-medium text-ink-2 hover:bg-head">
+          View all {opps.length} <ArrowRight className="size-4" />
+        </Link>
       </div>
-      <p className="mt-1.5 mb-5 text-[13px] text-muted">Homeowners nearby who are ready to sell, sent to you first. Keep their status current to keep them coming.</p>
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        {opps.map((o) => {
-          const r = o.referral!
-          const st = STATUS[r.status]
-          const first = o.person?.name.split(' ')[0] ?? 'the homeowner'
-          // the one thing this referral needs, right on the card
-          const act =
-            r.status === 'new' && !r.claimedAt && r.expiresAt > now
-              ? { label: `Claim lead · ${Math.max(1, Math.round((r.expiresAt - now) / 3_600_000))} hrs left`, run: () => (claim(o.id), toast.success('Lead claimed', { description: `Revive let ${first} know you’ll reach out today.` })) }
-              : r.needsUpdateNow
-                ? { label: 'Send Revive an update', run: () => (markUpdated(o.id), toast.success('Update sent to Revive')) }
-                : null
-          const Icon = st.icon
-          const initials = (o.person?.name ?? o.property.address)
-            .split(' ')
-            .map((x) => x[0])
-            .slice(0, 2)
-            .join('')
-          return (
-            <Link
-              key={o.id}
-              to={`/property/${o.id}`}
-              className={cn('group flex flex-col rounded-2xl border bg-white p-5 shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]', act ? 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]' : 'border-[var(--brand-primary-border-subtle)]')}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className="grid size-12 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-[14px] font-medium text-ink">{initials}</span>
-                <span className={cn('inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-medium', st.cls)}>
-                  <Icon className="size-4" /> {st.label}
-                </span>
-              </div>
-              <p className="mt-4 text-[17px] font-semibold text-navy">{o.property.address}</p>
-              <p className="text-[13.5px] text-muted">
-                {o.person?.name} · {o.property.city}
-              </p>
-              <p className="mt-3 text-[14px] leading-6 text-ink-2">{st.body}</p>
-              {act && (
-                <Button
-                  className="mt-4 h-10 self-start"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    act.run()
-                  }}
-                >
-                  {act.label}
-                </Button>
-              )}
-              <div className="mt-auto flex items-center justify-between gap-2 pt-5 text-[13.5px]">
-                <span className="text-muted">{when(o)}</span>
-                <span className="flex items-center gap-1 font-medium text-brand">
-                  See details <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </div>
-            </Link>
-          )
-        })}
-      </div>
+      <p className="mt-1.5 mb-5 text-[13px] text-muted">These need you now. Keep their status current so Revive keeps sending you homeowners.</p>
+      {now.length ? (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          {now.map((o) => (
+            <ReferralCard key={o.id} o={o} />
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-[28px] border border-dashed border-line px-6 py-5 text-[14px] text-muted">You’re all caught up. Every referral is up to date with Revive.</p>
+      )}
     </section>
   )
 }
