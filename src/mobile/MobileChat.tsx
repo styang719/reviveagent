@@ -27,7 +27,8 @@ const NEW_AGENT_CARDS = [
   { icon: FileText, label: 'Generate your first Revive AI report', run: () => startReport() },
   { icon: Hammer, label: 'Start your first project', run: () => startProject() },
   { icon: Sparkles, label: 'Visualize a renovation with RenoVision', run: () => startRenovision() },
-  { icon: Search, label: 'What’s 250 Elm St worth?', run: undefined },
+  // no address of theirs yet: the tile opens the message bar for any address they have in mind
+  { icon: Search, label: 'What’s any home worth? Type an address', run: () => document.getElementById('ai-input-dock')?.focus() },
 ]
 
 export default function MobileChat() {
