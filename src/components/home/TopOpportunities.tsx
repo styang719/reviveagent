@@ -306,7 +306,7 @@ function Steps({ out }: { out: Outreach }) {
  * agent's lead form and kept reading. Null when there's nothing new. Replies are handled by the outreach strip.
  */
 export function useLeadSignal(o: Opportunity): string | null {
-  return leadSignal(o, useDemo((s) => s.activity[o.id]))
+  return leadSignal(o, useDemo((s) => s.activity[o.id])) ?? crmSignal(o)
 }
 export function leadSignal(o: Opportunity, logged?: string[]): string | null {
   const first = o.person ? firstName(o.person.name) : 'The homeowner'
@@ -320,8 +320,31 @@ export function leadSignal(o: Opportunity, logged?: string[]): string | null {
   return null
 }
 
+/**
+ * The same, from what the CRM synced: a reply the agent hasn't answered (the rule the "waiting on you" line
+ * uses), or an email they opened more than once in the last 2 weeks. Single or older opens stay in the timeline.
+ */
+export function crmSignal(o: Opportunity): string | null {
+  const first = o.person ? firstName(o.person.name) : 'The homeowner'
+  const days = o.property.facts.repliedUnansweredDays
+  const hist = o.person?.history ?? []
+  const when = (d: number) => (d === 0 ? 'today' : d < 14 ? `${d} days ago` : `${Math.round(d / 7)} weeks ago`)
+  if (days !== undefined && days <= 60) {
+    const h = hist.find((x) => x.inbound)
+    const quote = h?.body?.replace(/^"|"$/g, '')
+    return `${first} replied ${when(days)} and is waiting on you${quote ? `: “${quote}”` : ''} · synced from Follow Up Boss`
+  }
+  const opened = hist.find((x) => x.kind === 'email' && x.daysAgo <= 14 && x.tag && /twice|\d+ times/.test(x.tag))
+  if (opened) {
+    const times = /(\d+) times/.exec(opened.tag!)?.[1] ?? '2'
+    return `${first} opened “${opened.title.replace(/^Emailed: /, '')}” ${times === '2' ? 'twice' : `${times} times`}, last ${when(opened.daysAgo)} · synced from Follow Up Boss`
+  }
+  return null
+}
+
 /** Same test without hooks, for sorting a list: a reply waiting, or fresh lead activity not yet followed up. */
-export const needsAttention = (o: Opportunity, out: Outreach | undefined, logged?: string[]) => (!!out?.reply && !out.answeredAt) || (!!leadSignal(o, logged) && !out)
+export const needsAttention = (o: Opportunity, out: Outreach | undefined, logged?: string[]) =>
+  (!!out?.reply && !out.answeredAt) || (!!(leadSignal(o, logged) ?? crmSignal(o)) && !out)
 
 /** True when a card should stand out: a reply waiting on the agent, or fresh lead activity. */
 export function useNeedsAttention(o: Opportunity) {
@@ -338,7 +361,11 @@ export function LeadStrip({ o, text, onMessage }: { o: Opportunity; text: string
     <div onClick={stop} onKeyDown={stop} className="col-span-full cursor-default rounded-xl border border-[var(--brand-primary-border-subtle)] bg-[var(--brand-primary-subtle)] p-3.5">
       <p className="flex flex-wrap items-center gap-2 text-[13.5px] font-semibold text-ink">
         <Eye className="size-4 text-brand" /> Lead activity
-        <span className="rounded-md bg-ok-soft px-1.5 py-0.5 text-[11px] font-semibold text-[var(--green)]">Engaged</span>
+        {/ replied /.test(text) && /waiting on you/.test(text) ? (
+          <span className="rounded-md bg-[var(--brand-primary)] px-1.5 py-0.5 text-[11px] font-semibold text-white">Replied</span>
+        ) : (
+          <span className="rounded-md bg-ok-soft px-1.5 py-0.5 text-[11px] font-semibold text-[var(--green)]">Engaged</span>
+        )}
       </p>
       <p className="mt-1.5 text-[13.5px] leading-5 text-ink-2">{text}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -530,7 +557,7 @@ export function TopOpportunities({ opps }: { opps: Opportunity[] }) {
   const outreach = useDemo((s) => s.outreach)
   const done = opps.filter((o) => checked[o.id]).length
   const emailed = opps.filter((o) => outreach[o.id]).length
-  const replied = opps.filter((o) => outreach[o.id]?.reply && !outreach[o.id]?.answeredAt).length
+  const replied = opps.filter((o) => (outreach[o.id]?.reply && !outreach[o.id]?.answeredAt) || (!outreach[o.id] && o.property.facts.repliedUnansweredDays !== undefined && o.property.facts.repliedUnansweredDays <= 60)).length
   const open = opps.find((o) => o.id === openId) ?? null
   // a reply waiting on the agent comes first; everything else keeps its rank
   const activity = useDemo((s) => s.activity)
