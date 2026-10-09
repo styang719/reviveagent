@@ -1,4 +1,4 @@
-import { ArrowRight, CircleDot, CircleX, Clock, Signature, UserRound, Users } from 'lucide-react'
+import { ArrowRight, CalendarClock, CircleDot, CircleX, Clock, MessageSquareDot, PhoneCall, Signature, UserRound, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,16 @@ export const REFERRAL_STATUS = {
 /** How far each status got from referral to on market (a lost referral had the visit and the meeting). */
 export const REACHED = { new: 0, claimed: 1, contacted: 2, lost: 2, listing: 3 } as const
 
+/** The one thing to do now, short enough for the card's action box. */
+const actionFor = (status: keyof typeof REFERRAL_STATUS, first: string) =>
+  status === 'new'
+    ? `Call ${first} within 24 hours. They’re expecting you.`
+    : status === 'claimed'
+      ? 'Prep for the home visit: review the listing details.'
+      : status === 'contacted'
+        ? 'Tell Revive how the home visit went.'
+        : 'Share an update with Revive.'
+
 /** New, or waiting on the agent's update: what Lead tracking leads with. */
 export const needsAction = (o: Opportunity) => !!o.referral && ((o.referral.status === 'new' && !o.referral.claimedAt) || o.referral.needsUpdateNow)
 
@@ -32,6 +42,7 @@ export function ReferralCard({ o }: { o: Opportunity }) {
   const r = o.referral!
   const st = REFERRAL_STATUS[r.status]
   const Icon = st.icon
+  const ActionIcon = r.status === 'new' ? PhoneCall : r.status === 'claimed' ? CalendarClock : MessageSquareDot
   return (
     <Link
       to={`/leads/referrals/${o.id}`}
@@ -50,7 +61,15 @@ export function ReferralCard({ o }: { o: Opportunity }) {
             {o.property.address}, {o.property.city}
           </p>
         </div>
-        <p className="text-[14px] leading-5 text-ink-2">{st.body}</p>
+        {needsAction(o) ? (
+          // what to do now, in the same gray strip as Lead activity; fixed height so cards line up
+          <p className="flex min-h-[84px] items-start gap-2.5 rounded-xl bg-head px-3.5 py-3 text-[14px] leading-5 text-ink-2">
+            <ActionIcon className="mt-0.5 size-4 shrink-0 text-brand" />
+            <span className="line-clamp-3">{actionFor(r.status, o.person?.name.split(' ')[0] ?? 'the homeowner')}</span>
+          </p>
+        ) : (
+          <p className="text-[14px] leading-5 text-ink-2">{st.body}</p>
+        )}
       </div>
       <div className="mt-auto flex items-center justify-between gap-2 text-[14px] font-medium">
         <span className="text-ink-2">{ago(r.referredDaysAgo)}</span>
