@@ -71,19 +71,19 @@ const subjectIcon = L.divIcon({
 })
 
 /** Hands the Leaflet map out, and reports what's in view. */
-function Watch({ onMap, onView, onHold }: { onMap: (m: L.Map) => void; onView: (b: L.LatLngBounds, z: number) => void; onHold: (p: L.LatLng) => void }) {
+function Watch({ gotMap, viewChanged, holdAt }: { gotMap: (m: L.Map) => void; viewChanged: (b: L.LatLngBounds, z: number) => void; holdAt: (p: L.LatLng) => void }) {
   const map = useMap()
   useEffect(() => {
-    onMap(map)
-    const t = setTimeout(() => (map.invalidateSize(), onView(map.getBounds(), map.getZoom())), 150)
+    gotMap(map)
+    const t = setTimeout(() => (map.invalidateSize(), viewChanged(map.getBounds(), map.getZoom())), 150)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map])
   useMapEvents({
-    moveend: () => onView(map.getBounds(), map.getZoom()),
+    moveend: () => viewChanged(map.getBounds(), map.getZoom()),
     // long-press on a phone (and right-click on a computer): any spot becomes a home to look at
     contextmenu: (e) => {
-      if (Number.isFinite(e.latlng?.lat)) onHold(e.latlng)
+      if (Number.isFinite(e.latlng?.lat)) holdAt(e.latlng)
     },
   })
   return null
@@ -160,7 +160,7 @@ function Card({ it, wide, onOpen, distMi }: { it: Item; wide?: boolean; onOpen: 
 }
 
 /** A home's card: the numbers, then comps, Revive AI, or (for the agent's own homes) the home's page. */
-function HomeSheet({ it, onClose, onComps }: { it: Item; onClose: () => void; onComps: () => void }) {
+function HomeSheet({ it, onClose, compsFrom }: { it: Item; onClose: () => void; compsFrom: () => void }) {
   const navigate = useNavigate()
   const o = it.kind === 'opp' ? it.o : null
   const h = it.kind === 'area' ? it.h : null
@@ -249,7 +249,7 @@ function HomeSheet({ it, onClose, onComps }: { it: Item; onClose: () => void; on
         </dl>
 
         <div className="mt-4 flex flex-col gap-2.5">
-          <button onClick={onComps} className="flex h-12 items-center justify-center gap-2 rounded-full bg-navy text-[15px] font-semibold text-white">
+          <button onClick={compsFrom} className="flex h-12 items-center justify-center gap-2 rounded-full bg-navy text-[15px] font-semibold text-white">
             <LayoutGrid className="size-[18px]" /> See comps nearby
           </button>
           <button onClick={ask} className="flex h-12 items-center justify-center gap-2 rounded-full border border-line text-[15px] font-semibold text-ink">
@@ -401,7 +401,7 @@ export default function MobileMap() {
     <div className="relative h-full [&_.leaflet-bottom]:mb-[var(--tab-h)]">
       <div className="absolute inset-0">
         <BaseMap center={ll(ME_DEMO)} zoom={14} zoomControl={false}>
-          <Watch onMap={setMap} onView={(b, z) => setView({ b, z })} onHold={(p) => {
+          <Watch gotMap={setMap} viewChanged={(b, z) => setView({ b, z })} holdAt={(p) => {
             const h = homeAt(p.lat, p.lng)
             setDropped(h)
             setComps(null)
@@ -555,7 +555,7 @@ export default function MobileMap() {
         </>
       )}
 
-      {sheet && <HomeSheet it={sheet} onClose={() => setSheet(null)} onComps={() => showComps(sheet)} />}
+      {sheet && <HomeSheet it={sheet} onClose={() => setSheet(null)} compsFrom={() => showComps(sheet)} />}
     </div>
   )
 }
