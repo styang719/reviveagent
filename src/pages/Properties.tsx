@@ -52,7 +52,7 @@ function ProjectCard({ p }: { p: ProjectRow }) {
   const pct = p.pct ?? Math.round(((p.step + 0.5) / p.steps) * 100)
   return (
     <article className="group flex overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]">
-      <Link to={to} tabIndex={-1} aria-hidden="true" className="relative w-32 shrink-0 self-stretch overflow-hidden bg-line-soft sm:w-auto sm:aspect-square">
+      <Link to={to} tabIndex={-1} aria-hidden="true" className="relative w-32 shrink-0 self-stretch overflow-hidden bg-line-soft sm:w-56 xl:w-60">
         {p.photo && <img src={img(p.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
         <span className="absolute top-2.5 left-2.5 max-w-[calc(100%-20px)] truncate rounded-full bg-black/50 px-2.5 py-1 text-[11.5px] font-medium text-white backdrop-blur-sm">{p.product}</span>
       </Link>
@@ -275,7 +275,7 @@ export default function Properties() {
         <>
       <Section
         title="Projects with Revive"
-        grid="lg:grid-cols-2 2xl:grid-cols-3"
+        grid="lg:grid-cols-2"
         hint="From review with Revive to construction to listing. Opens the project."
         count={projects.filter((p) => match(p.address, p.city, p.product)).length}
         empty={{ text: 'No projects yet. Start one from any report.', cta: 'Start a project', to: '/ai?flow=project' }}

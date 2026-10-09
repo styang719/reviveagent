@@ -49,7 +49,7 @@ export interface Property {
   sqft: number
   yearBuilt: number
   lot?: number
-  photo?: string // key into src/assets/photos (illustrative photos from the Contacts page)
+  photo?: string // photo key, mapped to an AI-generated home exterior in src/lib/assets.ts
   ownerId?: string // Person
   ownerRole: 'Owner' | 'Seller'
   source: Source
