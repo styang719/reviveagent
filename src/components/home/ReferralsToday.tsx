@@ -37,24 +37,25 @@ export function ReferralsToday({ opps }: { opps: Opportunity[] }) {
           const st = REFERRAL_STATUS[o.referral!.status]
           return (
             <li key={o.id}>
-              <Link to={`/leads/referrals/${o.id}`} className="group flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 transition-colors hover:bg-head sm:flex-nowrap">
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-[13px] text-ink">{initials(o.person?.name ?? o.property.address)}</span>
-                <span className="min-w-0 flex-1 sm:w-64 sm:flex-none">
-                  <span className="flex items-center gap-2">
-                    <span className="truncate text-[15px] font-medium text-[#1b2b4b]">{o.person?.name}</span>
-                    <span className={cn('inline-flex shrink-0 items-center gap-1 rounded-lg border px-2 py-0.5 text-[12px]', st.cls)}>
-                      <st.icon className="size-3" /> {st.label}
+              <Link to={`/leads/referrals/${o.id}`} className="group flex flex-wrap items-center gap-x-5 gap-y-3 px-6 py-5 transition-colors hover:bg-head sm:flex-nowrap">
+                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-[14px] text-ink">{initials(o.person?.name ?? o.property.address)}</span>
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="truncate text-[15.5px] font-medium text-[#1b2b4b]">{o.person?.name}</span>
+                    <span className={cn('inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[12.5px]', st.cls)}>
+                      <st.icon className="size-3.5" /> {st.label}
                     </span>
                   </span>
-                  <span className="block truncate text-[13px] text-faint">
+                  <span className="truncate text-[13.5px] text-faint">
                     {o.property.address}, {o.property.city}
                   </span>
                 </span>
-                <span className="flex min-w-0 basis-full items-center gap-2 rounded-lg bg-head px-3 py-2 text-[13.5px] text-ink-2 sm:flex-1 sm:basis-auto">
-                  <Icon className="size-4 shrink-0 text-brand" />
-                  <span className="sm:truncate">{action}</span>
+                {/* the next step, sized to its text */}
+                <span className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-head px-4 py-2.5 text-[14px] font-medium text-ink max-sm:basis-full">
+                  <Icon className="size-4 text-brand" />
+                  {action}
                 </span>
-                <ChevronRight className="hidden size-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 sm:block" />
+                <ChevronRight className="hidden size-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 sm:block" />
               </Link>
             </li>
           )
