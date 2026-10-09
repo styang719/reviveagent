@@ -31,6 +31,11 @@ export function LeadActivity({ o, footer }: { o: Opportunity; footer?: React.Rea
   const logged = useDemo((s) => s.activity[o.id])
   if (!o.person) return null
   const first = firstName(o.person.name)
+  const initials = o.person.name
+    .split(' ')
+    .map((x) => x[0])
+    .slice(0, 2)
+    .join('')
   const items: Item[] = []
 
   if (out?.reply) items.push({ key: 'reply', icon: MessageCircle, text: `${first} replied to your email`, quote: out.reply.text, when: ago(out.reply.at, now), hot: true })
@@ -58,14 +63,17 @@ export function LeadActivity({ o, footer }: { o: Opportunity; footer?: React.Rea
         <h2 id="lead-activity" className="text-[15px] font-semibold text-ink">
           Lead activity
         </h2>
-        <span className="text-[12.5px] text-muted">What {first} has done with your report and emails</span>
       </div>
       {items.length ? (
         <ul className="mt-3 flex flex-col gap-2.5">
           {items.slice(0, 4).map(({ key, icon: Icon, text, quote, when, hot }) => (
             <li key={key} className="flex items-start gap-3">
-              <span className={cn('grid size-8 shrink-0 place-items-center rounded-full', hot ? 'bg-[var(--brand-primary)] text-white' : 'bg-[var(--brand-primary-subtle)] text-brand')}>
-                <Icon className="size-4" />
+              {/* who did it, with what they did as a small badge */}
+              <span className="relative shrink-0">
+                <span className="grid size-8 place-items-center rounded-full bg-head text-[11.5px] font-semibold text-ink-2 ring-1 ring-line">{initials}</span>
+                <span className={cn('absolute -right-1 -bottom-1 grid size-4 place-items-center rounded-full ring-2 ring-white', hot ? 'bg-[var(--brand-primary)] text-white' : 'bg-[var(--brand-primary-subtle)] text-brand')}>
+                  <Icon className="size-2.5" />
+                </span>
               </span>
               <div className="min-w-0 flex-1 pt-1">
                 <div className="flex items-baseline justify-between gap-3">
