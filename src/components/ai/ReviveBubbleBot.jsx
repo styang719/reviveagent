@@ -7,7 +7,7 @@
  *
  * CSS keyframes only. Each motion runs on its own period, so the loop never visibly lines up:
  *
- *   float    4.2s   the bot rises 8px with a slight sway and settles; the shadow below shrinks and fades as it rises
+ *   float    4.2s   the bot rises (8px at 104px wide, in proportion at other sizes) with a slight sway and settles; the shadow below shrinks and fades as it rises
  *   breathe  2.6s   squash and stretch from the base (~0.97 ↔ 1.03), like a liquid bubble
  *   wobble   4.7s   a ±2° skew, out of phase with the breath, so the membrane seems to ripple
  *   shimmer  3.9s   the highlights pulse 0.55 ↔ 1 and slide; a sheen drifts across the glass
@@ -41,7 +41,7 @@ const css = `
 .rvb-stray   { opacity: 0; animation: rvb-stray 4.4s ease-out infinite; }
 .rvb-stray-2 { animation-duration: 5.9s; animation-delay: 2.1s; }
 
-@keyframes rvb-float   { 0%,100% { transform: translateY(0) rotate(-1deg) } 50% { transform: translateY(-8px) rotate(1deg) } }
+@keyframes rvb-float   { 0%,100% { transform: translateY(0) rotate(-1deg) } 50% { transform: translateY(calc(var(--rvb-lift, 8px) * -1)) rotate(1deg) } }
 @keyframes rvb-shadow  { 0%,100% { transform: translateX(-50%) scaleX(1); opacity: .7 } 50% { transform: translateX(-50%) scaleX(.72); opacity: .3 } }
 @keyframes rvb-breathe { 0%,100% { transform: scale(1.035,.965) } 50% { transform: scale(.975,1.03) } }
 @keyframes rvb-wobble  { 0%,100% { transform: skewX(-2deg) } 50% { transform: skewX(2deg) } }
@@ -53,7 +53,7 @@ const css = `
   0%   { opacity: 0;  transform: translate(0,0) scale(.6) }
   12%  { opacity: .9; transform: translate(0,-1px) scale(1) }
   70%  { opacity: .5 }
-  100% { opacity: 0;  transform: translate(6px,-22px) scale(1.3) }
+  100% { opacity: 0;  transform: translate(calc(var(--rvb-lift, 8px) * .75), calc(var(--rvb-lift, 8px) * -2.75)) scale(1.3) }
 }
 @media (prefers-reduced-motion: reduce) {
   .rvb, .rvb * { animation: none !important; }
@@ -64,7 +64,7 @@ const css = `
 /** The bot alone. `size` is its width in px. */
 export function ReviveBubbleBot({ size = 104, className = '', title = 'Revive AI' }) {
   return (
-    <div className={`rvb ${className}`} style={{ position: 'relative', display: 'inline-block', width: size, height: size * 1.08, '--rvb-body': `url(${BODY})` }} role="img" aria-label={title}>
+    <div className={`rvb ${className}`} style={{ position: 'relative', display: 'inline-block', width: size, height: size * 1.08, '--rvb-body': `url(${BODY})`, '--rvb-lift': `${Math.max(2.5, size * 0.077).toFixed(1)}px` }} role="img" aria-label={title}>
       <style>{css}</style>
 
       {/* shadow: shrinks and fades as the bot rises */}
