@@ -48,7 +48,7 @@ function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => voi
       id={`opp-${o.id}`}
       className={cn(
         'relative border-b border-line-soft',
-        attention === 'reply' && 'my-2 rounded-xl border border-[var(--brand-primary)] bg-white shadow-card ring-1 ring-[var(--brand-primary)]',
+        attention === 'reply' && 'my-2 rounded-xl border border-[var(--brand-primary-border)] bg-white shadow-card ring-1 ring-[var(--brand-primary-border)]',
         active && 'bg-[var(--brand-primary-subtle)]/60',
       )}
     >

@@ -372,36 +372,33 @@ export function useNeedsAttention(o: Opportunity) {
 }
 
 /**
- * The lead-activity version of the reply strip. A reply waiting on the agent stands out (brand border, their
- * words, a primary Reply button); engagement (opens, a lead-form report) stays quiet with a secondary Follow up.
+ * The lead-activity version of the reply strip. A reply waiting on the agent gets the blue box and a primary
+ * Email button; engagement (opens, a lead-form report) stays quiet with a secondary Follow up.
  */
 export function LeadStrip({ o, text, onMessage }: { o: Opportunity; text: string; onMessage: () => void }) {
   const stop = (e: React.SyntheticEvent) => e.stopPropagation()
   const first = o.person ? firstName(o.person.name) : 'them'
   const call = () => toast.success(`Call request sent to ${ADVISOR.first} at Revive`, { description: `He’ll reach out within one business day to walk through ${o.property.address} with you.` })
-  if (isReplySignal(text)) {
-    const m = /^(.*?): “(.*)”( · .*)?$/.exec(text)
+  if (isReplySignal(text))
     return (
-      <div onClick={stop} onKeyDown={stop} className="col-span-full cursor-default rounded-xl border-2 border-[var(--brand-primary)] bg-[var(--brand-primary-subtle)] p-4">
-        <p className="flex flex-wrap items-center gap-2 text-[14px] font-semibold text-ink">
-          <Reply className="size-4 text-brand" /> {m ? m[1] : text}
+      <div onClick={stop} onKeyDown={stop} className="col-span-full cursor-default rounded-xl border border-[var(--brand-primary-border-subtle)] bg-[var(--brand-primary-subtle)] p-3.5">
+        <p className="flex flex-wrap items-center gap-2 text-[13.5px] font-semibold text-ink">
+          <Eye className="size-4 text-brand" /> Lead activity
           <span className="rounded-md bg-[var(--brand-primary)] px-1.5 py-0.5 text-[11px] font-semibold text-white">Replied</span>
         </p>
-        {m && <p className="mt-2 rounded-lg bg-white px-3.5 py-2.5 text-[14px] leading-5 text-ink shadow-card">“{m[2]}”</p>}
+        <p className="mt-1.5 text-[13.5px] leading-5 text-ink-2">{text}</p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {o.person && (
             <Button size="sm" onClick={onMessage}>
-              <Reply /> Reply to {first}
+              <Mail /> Email {first}
             </Button>
           )}
           <Button size="sm" variant="outline" onClick={call}>
             Book a call with Revive
           </Button>
-          {m?.[3] && <span className="ml-auto text-[12px] text-muted">{m[3].replace(/^ · /, '')}</span>}
         </div>
       </div>
     )
-  }
   return (
     <div onClick={stop} onKeyDown={stop} className="col-span-full flex cursor-default flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-head px-3.5 py-2.5">
       <p className="flex min-w-0 flex-1 basis-64 items-start gap-2 text-[13px] leading-5 text-ink-2">
@@ -512,7 +509,7 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
         className={cn(
           'group grid cursor-pointer grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md',
           '@[600px]:grid-cols-[auto_56px_minmax(0,1.35fr)_minmax(124px,0.95fr)_minmax(76px,0.7fr)_minmax(118px,1fr)_44px] @[600px]:gap-x-3.5',
-          attention === 'reply' && 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]',
+          attention === 'reply' && 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]',
           done && 'bg-head shadow-none',
           active && 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]',
         )}
