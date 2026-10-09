@@ -339,8 +339,20 @@
   background: linear-gradient(120deg, #f6f8fc, #fbf9fd 50%, #f8f3fb);
   border: 1px solid var(--brand-agent-border-subtle);
 }
-/* the mobile chat's empty state: the same glow, a little stronger and quicker */
-.rv-ai-aurora-strong { opacity: 1; filter: blur(14px) saturate(1.4); animation-duration: 8s; }
+/* the chat's empty state (mobile and desktop): a lighter, bluer glow that fades out toward its edges */
+.rv-chat-glow {
+  background:
+    radial-gradient(45% 60% at 22% 35%, rgba(62, 98, 182, 0.16), transparent 70%),
+    radial-gradient(40% 55% at 78% 30%, rgba(108, 140, 214, 0.14), transparent 70%),
+    radial-gradient(45% 55% at 60% 75%, rgba(62, 98, 182, 0.10), transparent 70%),
+    radial-gradient(35% 45% at 30% 80%, rgba(176, 128, 224, 0.08), transparent 70%);
+  background-size: 180% 180%;
+  filter: blur(16px);
+  -webkit-mask-image: radial-gradient(closest-side, #000 45%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 45%, transparent 100%);
+  animation: rv-aurora 10s ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) { .rv-chat-glow { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .rv-ai-aurora { animation: none; } }
 
 

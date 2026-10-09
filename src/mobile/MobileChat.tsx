@@ -64,7 +64,7 @@ export default function MobileChat() {
         {empty ? (
           <div className="relative isolate flex flex-col">
             {/* a soft, slowly drifting glow behind the greeting, like the dashboard's ask box; gone once the chat starts */}
-            <div aria-hidden="true" className="rv-ai-aurora rv-ai-aurora-strong pointer-events-none absolute -inset-x-3 -top-8 -bottom-6 -z-10 rounded-[40px]" />
+            <div aria-hidden="true" className="rv-chat-glow pointer-events-none absolute -inset-x-8 -top-12 -bottom-10 -z-10 rounded-[40px]" />
             <h1 className="text-[22px] leading-[30px] font-semibold text-ink">
               {greetingWord(new Date().getHours())}, {AGENT.firstName}. How can we help you today?
             </h1>
