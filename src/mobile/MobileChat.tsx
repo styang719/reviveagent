@@ -1,4 +1,4 @@
-import { FileText, Hammer, Menu, Plus, Sparkles, SquarePen, Users } from 'lucide-react'
+import { FileText, Hammer, Menu, Plus, Search, Sparkles, SquarePen, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
@@ -9,6 +9,7 @@ import { greetingWord } from '@/lib/greeting'
 import { cn } from '@/lib/utils'
 import { useChatDrawer } from './ChatDrawer'
 import { TodayChecklist } from './TodayChecklist'
+import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 
 // Mobile home: Revive AI, full screen. The conversation scrolls under a white fade at the top (Revive in the
@@ -21,10 +22,16 @@ const STARTER_CARDS = [
   { icon: Users, label: STARTERS[1] },
   { icon: Sparkles, label: 'Visualize a renovation with RenoVision', run: () => startRenovision() },
 ]
+// a new agent's setup list already starts a report and a project, and there's no book to ask about yet
+const NEW_AGENT_CARDS = [
+  { icon: Sparkles, label: 'Visualize a renovation with RenoVision', run: () => startRenovision() },
+  { icon: Search, label: 'What’s 250 Elm St worth?', run: undefined },
+]
 
 export default function MobileChat() {
   const chat = useUi((s) => s.chat)
   const clearChat = useUi((s) => s.clearChat)
+  const tier = useDemo((s) => s.tier)
   const { ask, thinking } = useAsk()
   const empty = chat.length === 0
   const end = useRef<HTMLDivElement>(null)
@@ -71,7 +78,7 @@ export default function MobileChat() {
             <TodayChecklist />
             {/* the generic prompts, as a grid of tiles */}
             <div className="mt-2.5 grid grid-cols-2 gap-2.5">
-              {STARTER_CARDS.map((s) => (
+              {(tier === 'new' ? NEW_AGENT_CARDS : STARTER_CARDS).map((s) => (
                 <button
                   key={s.label}
                   onClick={() => (s.run ? s.run() : ask(s.label))}
