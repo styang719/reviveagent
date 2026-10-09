@@ -145,7 +145,7 @@ export default function MobileMap() {
   useEffect(() => setActive(null), [filter, needle])
 
   return (
-    <div className="relative h-full">
+    <div className="relative h-full [&_.leaflet-bottom]:mb-[var(--tab-h)]">
       <div className="absolute inset-0">
         <BaseMap center={[AGENT.office.lat, AGENT.office.lng]} zoom={11} bounds={shown.map(pt)} zoomControl={false}>
           <Fit pts={shown.map(pt)} k={`${filter}|${needle}`} />
@@ -189,7 +189,7 @@ export default function MobileMap() {
       </div>
 
       {/* count and the list / map switch */}
-      <div className="absolute inset-x-0 bottom-[148px] z-[500] flex items-center justify-between px-3">
+      <div className="absolute inset-x-0 bottom-[calc(148px+var(--tab-h))] z-[500] flex items-center justify-between px-3">
         <span className="rounded-full bg-white/95 px-3 py-1.5 text-[12.5px] font-medium text-ink-2 shadow-sm">
           {shown.length} {shown.length === 1 ? 'home' : 'homes'}
         </span>
@@ -202,7 +202,7 @@ export default function MobileMap() {
       <div
         ref={row}
         onScroll={onScroll}
-        className="absolute inset-x-0 bottom-3 z-[500] flex snap-x snap-mandatory gap-3 overflow-x-auto px-[calc(50%-150px)] pb-1 [scrollbar-width:none]"
+        className="absolute inset-x-0 bottom-[calc(12px+var(--tab-h))] z-[500] flex snap-x snap-mandatory gap-3 overflow-x-auto px-[calc(50%-150px)] pb-1 [scrollbar-width:none]"
       >
         {shown.map((o) => (
           <div key={o.id} data-opp={o.id} className={cn('transition-transform', o.id === activeOpp?.id ? 'scale-100' : 'scale-95 opacity-90')}>
@@ -233,7 +233,7 @@ export default function MobileMap() {
               <MapIcon className="size-4" /> Map
             </button>
           </div>
-          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 pb-[calc(12px+var(--tab-h))]">
             {shown.map((o) => (
               <Card key={o.id} o={o} wide />
             ))}

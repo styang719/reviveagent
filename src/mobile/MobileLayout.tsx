@@ -26,7 +26,8 @@ const TABS = [
 function TabBar() {
   const { pathname } = useLocation()
   return (
-    <nav aria-label="Main" className="relative z-30 shrink-0 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    // frosted glass, floating over the page so content scrolls under it
+    <nav aria-label="Main" className="absolute inset-x-3 bottom-[calc(8px+env(safe-area-inset-bottom))] z-[700] rounded-[28px] border border-white/70 bg-white/55 shadow-[0_8px_32px_rgba(28,46,88,0.16),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl backdrop-saturate-150">
       <ul className="grid grid-cols-5">
         {TABS.map((t) => {
           const Icon = t.icon
@@ -38,7 +39,7 @@ function TabBar() {
                   to={t.to}
                   aria-label={t.label}
                   className={cn(
-                    '-mt-6 grid size-16 place-items-center rounded-full border-4 border-white shadow-[0_8px_24px_rgba(28,46,88,0.25)] transition-transform active:scale-95',
+                    '-mt-5 grid size-16 place-items-center rounded-full border-4 border-white/80 shadow-[0_8px_24px_rgba(28,46,88,0.25)] transition-transform active:scale-95',
                     active ? 'bg-navy text-white' : 'bg-[var(--brand-primary)] text-white',
                   )}
                 >
@@ -123,8 +124,9 @@ export function MobileLayout() {
 
   if (wide) return <PhoneShell />
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-white">
-      <main ref={main} id="main" className="relative min-h-0 flex-1 overflow-y-auto pt-[env(safe-area-inset-top)]">
+    <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-white [--tab-h:calc(84px+env(safe-area-inset-bottom))]">
+      {/* the map runs edge to edge under the glass tab bar; other pages leave room so their last row clears it */}
+      <main ref={main} id="main" className={cn('relative min-h-0 flex-1 overflow-y-auto pt-[env(safe-area-inset-top)]', !pathname.startsWith('/m/map') && 'pb-[var(--tab-h)]')}>
         <Outlet />
       </main>
       <TabBar />
