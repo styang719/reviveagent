@@ -1,4 +1,4 @@
-import { ArrowRight, Check, FileText, Hammer, HousePlus, Megaphone, Share2, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, FileText, Hammer, HousePlus, Megaphone, Share2, Sparkles, Wand2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -84,8 +84,8 @@ export function usePropertyModel(id: string, address?: string): Model | null {
 const TABS: { id: PropertyTab; label: string }[] = [
   { id: 'report', label: 'Revive AI report' },
   { id: 'project', label: 'Project' },
-  { id: 'renovision', label: 'RenoVision' },
   { id: 'marketing', label: 'Marketing' },
+  { id: 'renovision', label: 'RenoVision' },
 ]
 
 const aiPath = (flow: 'report' | 'project', m: Model) =>
@@ -160,10 +160,22 @@ export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab
             onClick={() => onTab(t.id)}
             className={cn(
               '-mb-px border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
-              tab === t.id ? 'border-[var(--brand-primary)] text-ink' : 'border-transparent text-muted hover:text-ink',
+              t.id === 'renovision'
+                ? cn('ml-1 inline-flex items-center gap-1.5', tab === t.id ? 'border-[var(--brand-agent)] text-[var(--brand-agent)]' : 'border-transparent text-[var(--brand-agent)]/80 hover:text-[var(--brand-agent)]')
+                : tab === t.id
+                  ? 'border-[var(--brand-primary)] text-ink'
+                  : 'border-transparent text-muted hover:text-ink',
             )}
           >
-            {t.label}
+            {t.id === 'renovision' ? (
+              <>
+                <Wand2 className="size-4" />
+                <span className="bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-agent)] bg-clip-text text-transparent">RenoVision</span>
+                <span className="rounded-full bg-[var(--brand-agent-subtle)] px-1.5 py-px text-[10px] font-bold tracking-wide text-[var(--brand-agent)] uppercase">New</span>
+              </>
+            ) : (
+              t.label
+            )}
           </button>
         ))}
       </div>

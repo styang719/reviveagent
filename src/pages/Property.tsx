@@ -7,7 +7,7 @@ import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 import { Placeholder } from './Placeholder'
 
-const TABS: PropertyTab[] = ['report', 'project', 'renovision', 'marketing']
+const TABS: PropertyTab[] = ['report', 'project', 'marketing', 'renovision']
 
 export default function Property() {
   const { id = '' } = useParams()
