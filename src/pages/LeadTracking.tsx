@@ -1,5 +1,7 @@
-import { Eye, FileText, Mail, MailCheck, Reply, Search, Send, UserRound } from 'lucide-react'
+import { ArrowRight, Eye, FileText, Mail, MailCheck, Reply, Search, Send, UserRound } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { img, leadSignal, OppDrawer } from '@/components/home/TopOpportunities'
 import { MessageDialog } from '@/components/opportunity/MessageDialog'
 import { SellerReferrals } from '@/components/property/SellerReferrals'
@@ -8,6 +10,7 @@ import { useNow } from '@/hooks/useNow'
 import { ago, firstName } from '@/lib/format'
 import { useOpportunities, type Opportunity } from '@/lib/opportunities'
 import { cn, PAGE } from '@/lib/utils'
+import type { Tier } from '@/data/types'
 import { useDemo, type Outreach } from '@/store/demo'
 
 // Lead tracking: seller referrals from Revive (their actions live on the cards), then Lead activity:
@@ -121,21 +124,7 @@ export default function LeadTracking() {
       {refs.length ? (
         <SellerReferrals opps={refs} />
       ) : (
-        !needle && (
-          <div className="mt-8 flex items-start gap-3 rounded-xl border border-dashed border-line px-5 py-5">
-            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
-              <UserRound className="size-4" />
-            </span>
-            <div>
-              <p className="text-[14.5px] font-semibold text-ink">No seller referrals yet</p>
-              <p className="mt-1 text-[13.5px] text-ink-2">
-                {tier === 'partner'
-                  ? 'New referrals from Revive show up here first.'
-                  : 'Revive Partners get seller leads: homeowners nearby who are ready to sell, sent to them first. Close two deals with Revive to become a Partner.'}
-              </p>
-            </div>
-          </div>
-        )
+        !needle && <ReferralsEmpty tier={tier} opps={opps} />
       )}
 
       <section className="mt-10" aria-labelledby="lead-activity-all">
@@ -151,7 +140,7 @@ export default function LeadTracking() {
         </div>
         <p className="mt-1.5 text-[13px] text-muted">From your opportunities: emails and reports you sent with Revive, the lead form, and activity synced from Follow Up Boss.</p>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className={cn('mt-4 flex flex-wrap items-center justify-between gap-3', !rows.length && 'hidden')}>
           <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Filter lead activity">
             {FILTERS.map((f) => {
               const n = f.k === 'all' ? rows.length : rows.filter((r) => r.kind === f.k).length
@@ -220,14 +209,106 @@ export default function LeadTracking() {
             )}
           </div>
         ) : (
-          <p className="mt-3 rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">
-            {needle ? `No leads match “${q.trim()}”.` : 'Share a Revive AI report or email a homeowner from Opportunities, and you’ll see here when they open or reply.'}
-          </p>
+          needle || rows.length ? (
+            <p className="mt-3 rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">{needle ? `No leads match “${q.trim()}”.` : 'Nothing in this filter yet.'}</p>
+          ) : (
+            <ActivityEmpty />
+          )
         )}
       </section>
 
       <OppDrawer o={open} onClose={() => setOpenId(null)} />
       {msg?.person && <MessageDialog o={msg} open onOpenChange={(v) => !v && setMsgId(null)} />}
+    </div>
+  )
+}
+
+/** No referrals yet: keep the section, and show the path to Partner (same card as the dashboard) next to what a referral looks like. */
+function ReferralsEmpty({ tier, opps }: { tier: Tier; opps: Opportunity[] }) {
+  const partner = tier === 'partner'
+  return (
+    <section className="mt-8" aria-labelledby="referrals-title">
+      <div className="flex items-center gap-2.5">
+        <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
+          <UserRound className="size-4" />
+        </span>
+        <h2 id="referrals-title" className="text-xl font-semibold text-ink">
+          Your seller referrals from Revive
+        </h2>
+        <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">0</span>
+      </div>
+      <p className="mt-1.5 mb-5 text-[13px] text-muted">
+        {partner ? 'New referrals from Revive show up here first, exclusive to you for 24 hours.' : 'Homeowners nearby who are ready to sell, sent to Revive Partners first. Here’s what one looks like.'}
+      </p>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {!partner && <RevivePathCard tier={tier} opps={opps} />}
+        <div className="relative rounded-xl border border-dashed border-line bg-white p-5" aria-label="Example seller referral">
+          <span className="absolute top-3 right-3 rounded-full bg-line-soft px-2 py-0.5 text-[11px] font-semibold tracking-wide text-muted uppercase">Example</span>
+          <div className="pointer-events-none select-none" aria-hidden="true">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--teal-soft)] px-2.5 py-1 text-[11.5px] font-semibold text-navy">New referral · 23 hrs left</span>
+            <p className="mt-3 text-[16px] font-semibold text-ink">1482 Linden Ave</p>
+            <p className="text-[13px] text-muted">Dana Whitfield · 3 bd · 2 ba · 1,720 sqft</p>
+            <div className="mt-4 grid grid-cols-3 gap-3 border-y border-line-soft py-3 text-[12px] text-muted">
+              <span>Est. value<b className="block text-[15px] font-semibold text-ink">$1.24M</b></span>
+              <span>Timeline<b className="block text-[15px] font-semibold text-ink">2–4 mo</b></span>
+              <span>Wants<b className="block text-[15px] font-semibold text-ink">Sell 360</b></span>
+            </div>
+            <p className="mt-3 text-[13px] leading-5 text-ink-2">“We’re thinking about selling this spring and want to know what to fix first.”</p>
+            <div className="mt-4 flex gap-2">
+              <span className="inline-flex h-8 items-center rounded-lg bg-[var(--brand-primary)] px-3 text-[13px] font-medium text-white">Claim lead</span>
+              <span className="inline-flex h-8 items-center rounded-lg border border-line px-3 text-[13px] font-medium text-ink">Pass</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const SAMPLES: { addr: string; who: string; kind: Kind; label: string; icon: typeof Mail; text: string; when: string }[] = [
+  { addr: '2210 Hillcrest Rd', who: 'Maria Lopez', kind: 'reply', label: 'Replied', icon: Reply, text: '“Thanks! Could we talk this week about the kitchen?”', when: '12 min ago' },
+  { addr: '87 Ashby Ct', who: 'Tom Reyes', kind: 'opened', label: 'Opened report', icon: Eye, text: 'Opened the Revive AI report you shared, 3 times', when: '2 hours ago' },
+  { addr: '415 Grove St', who: 'Priya Shah', kind: 'engaged', label: 'Ran a report', icon: FileText, text: 'Ran a Revive AI report through your lead form', when: 'Yesterday' },
+  { addr: '960 Marin Ave', who: 'Ben Carter', kind: 'sent', label: 'Emailed', icon: Mail, text: '“What your home could sell for after a refresh” · not opened yet', when: '2 days ago' },
+]
+
+/** No activity yet: show what will land here, faded, with one clear way to start. */
+function ActivityEmpty() {
+  return (
+    <div className="relative mt-3 overflow-hidden rounded-xl border border-line bg-white shadow-card">
+      <ul aria-hidden="true" className="pointer-events-none select-none opacity-55">
+        {SAMPLES.map((r, i) => {
+          const Icon = r.icon
+          return (
+            <li key={r.addr} className={cn('flex items-center gap-3 py-2.5 pr-3 pl-4', i > 0 && 'border-t border-line-soft')}>
+              <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[var(--brand-primary-subtle)] text-[12px] font-semibold text-brand">
+                {r.who.split(' ').map((w) => w[0]).join('')}
+              </span>
+              <span className="w-48 min-w-0 shrink-0">
+                <span className="block truncate text-[14px] font-semibold text-ink">{r.addr}</span>
+                <span className="block truncate text-[12.5px] text-muted">{r.who}</span>
+              </span>
+              <span className={cn('inline-flex w-[128px] shrink-0 items-center gap-1.5 truncate rounded-md px-2 py-1 text-[12px] font-semibold', PILL[r.kind])}>
+                <Icon className="size-3.5 shrink-0" /> <span className="truncate">{r.label}</span>
+              </span>
+              <span className="hidden min-w-0 flex-1 truncate text-[13px] text-ink-2 md:block">{r.text}</span>
+              <span className="hidden w-[112px] shrink-0 text-right text-[12px] text-muted lg:block">{i > 0 && r.when}</span>
+            </li>
+          )
+        })}
+      </ul>
+      <span className="absolute top-3 right-3 rounded-full bg-line-soft px-2 py-0.5 text-[11px] font-semibold tracking-wide text-muted uppercase">Example</span>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line bg-[var(--brand-primary-subtle)] px-5 py-4">
+        <div className="min-w-0">
+          <p className="text-[15px] font-semibold text-ink">See who’s ready to talk</p>
+          <p className="mt-0.5 text-[13.5px] text-ink-2">Share a Revive AI report or email a homeowner, and you’ll see here the moment they open it or reply.</p>
+        </div>
+        <Button asChild className="shrink-0">
+          <Link to="/opportunities">
+            Send your first report <ArrowRight />
+          </Link>
+        </Button>
+      </div>
     </div>
   )
 }
