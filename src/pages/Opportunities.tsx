@@ -14,6 +14,7 @@ import { photoUrl } from '@/lib/assets'
 import { money, plural } from '@/lib/format'
 import { useOpportunities, type Opportunity } from '@/lib/opportunities'
 import { cn, PAGE } from '@/lib/utils'
+import { YourBook } from '@/components/home/YourBook'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 
@@ -99,6 +100,7 @@ export default function Opportunities() {
   const outreach = useDemo((s) => s.outreach)
   const activity = useDemo((s) => s.activity)
   const openCrm = useUi((s) => s.openCrm)
+  const importing = useUi((s) => s.importing)
   const [params] = useSearchParams()
   const [filter, setFilter] = useState<Filter>(() => (FILTERS.some((f) => f.k === params.get('filter')) ? (params.get('filter') as Filter) : 'go'))
   const [sort, setSort] = useState<Sort>('recommended')
@@ -156,15 +158,16 @@ export default function Opportunities() {
   const names = stats.now.map((o) => (o.person ? o.person.name.split(' ')[0] : o.property.address))
   const nameList = names.length > 2 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names.join(' and ')
 
-  if (!all.length)
+  // nothing connected yet (or importing right now): the same connect cards as the dashboard, with examples
+  if (!all.length || importing)
     return (
       <div className={PAGE}>
-        <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-line px-5 py-4">
-          <p className="text-[14px] text-ink-2">Connect your MLS listings or your CRM and Revive ranks who to call first.</p>
-          <Button asChild>
-            <Link to="/">Connect on your dashboard</Link>
-          </Button>
+        <header className="border-b border-line pb-6">
+          <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
+          <p className="mt-1 text-[15px] text-ink-2">Your listings and contacts, enriched with property and market data, ranked by who to call first.</p>
+        </header>
+        <div className="mt-8">
+          <YourBook opps={all} />
         </div>
       </div>
     )
