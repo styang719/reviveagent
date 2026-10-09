@@ -1,6 +1,7 @@
-import { ArrowRight, Calendar, Search, Sparkles } from 'lucide-react'
+import { ArrowRight, ImagePlus, MessageSquareDot, Search, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { AiLink } from '@/components/ai/AiLink'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
 import { Button } from '@/components/ui/button'
@@ -28,6 +29,7 @@ interface ProjectRow {
   step: number // index of the current step
   next?: string
   target?: string
+  pct?: number // construction progress, when known
 }
 
 interface ReportRow {
@@ -42,51 +44,65 @@ interface ReportRow {
   designs?: number // RenoVision designs saved on this home
 }
 
+/** Figma "Property card": square photo with the product badge, then progress, what's next and one action. */
 function ProjectCard({ p }: { p: ProjectRow }) {
-  const pct = Math.round(((p.step + (p.status === 'active' ? 0.5 : 0.2)) / p.steps) * 100)
+  const to = `/property/${p.id}?tab=project`
+  const active = p.status === 'active'
+  const photos = !!p.next && /photo/i.test(p.next)
+  const pct = p.pct ?? Math.round(((p.step + 0.5) / p.steps) * 100)
   return (
-    <Link
-      to={`/property/${p.id}?tab=project`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
-    >
-      <div className="relative h-40 overflow-hidden bg-line-soft">
+    <article className="group flex overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]">
+      <Link to={to} tabIndex={-1} aria-hidden="true" className="relative w-32 shrink-0 self-stretch overflow-hidden bg-line-soft sm:w-auto sm:aspect-square">
         {p.photo && <img src={img(p.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-        <span
-          className={cn(
-            'absolute top-3 left-3 rounded-full px-2.5 py-1 text-[11.5px] font-semibold shadow-sm',
-            p.status === 'active' ? 'bg-[var(--brand-primary)] text-white' : 'bg-white text-ink',
-          )}
-        >
-          {p.status === 'active' ? 'In construction' : 'In review with Revive'}
-        </span>
-      </div>
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div>
-          <p className="truncate text-[15px] font-semibold text-ink">{p.address}</p>
-          <p className="text-[12.5px] text-muted">
-            {p.city} · {p.product}
+        <span className="absolute top-2.5 left-2.5 max-w-[calc(100%-20px)] truncate rounded-full bg-black/50 px-2.5 py-1 text-[11.5px] font-medium text-white backdrop-blur-sm">{p.product}</span>
+      </Link>
+      <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
+        <div className="min-w-0">
+          <Link to={to} className="block truncate text-[15px] font-semibold text-ink hover:text-brand">
+            {p.address}
+          </Link>
+          <p className="truncate text-[13px] text-muted">
+            {p.city}
+            {p.target && <> · {p.target}</>}
           </p>
         </div>
         <div>
-          <div className="flex items-baseline justify-between gap-2 text-[12px]">
-            <span className="truncate font-medium text-ink-2">{p.stage}</span>
-            <span className="shrink-0 text-muted tabular-nums">
-              Step {p.step + 1} of {p.steps}
-            </span>
+          <div className="flex items-baseline justify-between gap-2 text-[13px]">
+            <span className="truncate font-medium text-ink">{active ? 'Construction progress' : 'In review with Revive'}</span>
+            <span className="shrink-0 text-muted tabular-nums">{active ? `${pct}%` : `${p.step + 1}/${p.steps}`}</span>
           </div>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line-soft">
-            <div className="h-full rounded-full bg-[var(--brand-primary)]" style={{ width: `${pct}%` }} />
-          </div>
+          {active ? (
+            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-line-soft" role="progressbar" aria-label="Construction progress" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+              <div className="h-full rounded-full bg-[var(--green)]" style={{ width: `${pct}%` }} />
+            </div>
+          ) : (
+            <div className="mt-1.5 flex gap-1" role="progressbar" aria-label="Project steps" aria-valuenow={p.step + 1} aria-valuemin={1} aria-valuemax={p.steps}>
+              {Array.from({ length: p.steps }, (_, i) => (
+                <span key={i} className={cn('h-2 flex-1 rounded-full', i <= p.step ? 'bg-[var(--brand-primary)]' : 'bg-line-soft')} />
+              ))}
+            </div>
+          )}
+          <p className="mt-1.5 truncate text-[12px] text-muted">{p.stage}</p>
         </div>
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3 text-[12.5px]">
-          <span className="flex min-w-0 items-center gap-1.5 text-ink-2">
-            <Calendar className="size-3.5 shrink-0 text-muted" />
-            <span className="truncate">{p.next ?? 'Nothing waiting on you'}</span>
-          </span>
-          {p.target && <span className="shrink-0 font-semibold text-ink tabular-nums">{p.target}</span>}
-        </div>
+        <p className="flex min-h-9 items-start gap-2 text-[12.5px] leading-[18px] text-ink-2">
+          {photos ? <ImagePlus className="mt-px size-3.5 shrink-0 text-brand" /> : <MessageSquareDot className="mt-px size-3.5 shrink-0 text-brand" />}
+          <span className="line-clamp-2">{p.next ?? 'Nothing waiting on you'}</span>
+        </p>
+        {photos ? (
+          <button
+            type="button"
+            onClick={() => toast.success('Photos added', { description: `Revive will have them before the site visit at ${p.address}.` })}
+            className="mt-auto flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-line-soft text-[12.5px] font-medium text-ink transition-colors hover:bg-line"
+          >
+            <ImagePlus className="size-3.5" /> Upload home photos
+          </button>
+        ) : (
+          <Link to={to} className="mt-auto flex h-8 w-full items-center justify-center rounded-lg bg-line-soft text-[12.5px] font-medium text-ink transition-colors hover:bg-line">
+            {active ? 'View updates' : 'Open project'}
+          </Link>
+        )}
       </div>
-    </Link>
+    </article>
   )
 }
 
@@ -131,7 +147,7 @@ function ReportCard({ r }: { r: ReportRow }) {
   )
 }
 
-function Section({ title, hint, count, children, empty, emptyNode }: { title: string; hint: string; count: number; children: React.ReactNode; empty: { text: string; cta: string; to: string }; emptyNode?: React.ReactNode }) {
+function Section({ title, hint, count, children, empty, emptyNode, grid = 'sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' }: { title: string; hint: string; count: number; children: React.ReactNode; empty: { text: string; cta: string; to: string }; emptyNode?: React.ReactNode; grid?: string }) {
   return (
     <section className="mt-10">
       <div className="flex items-center gap-2.5">
@@ -140,7 +156,7 @@ function Section({ title, hint, count, children, empty, emptyNode }: { title: st
       </div>
       <p className="mt-1.5 mb-5 text-[13px] text-muted">{hint}</p>
       {count ? (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">{children}</div>
+        <div className={cn('grid gap-5', grid)}>{children}</div>
       ) : emptyNode ? (
         emptyNode
       ) : (
@@ -198,6 +214,7 @@ export default function Properties() {
           step,
           next: pr.nextFromAgent,
           target: pr.targetList ? `List ${money(pr.targetList)}` : undefined,
+          pct: pr.status === 'active' ? pr.progressPct : undefined,
         }
       }),
   ]
@@ -258,6 +275,7 @@ export default function Properties() {
         <>
       <Section
         title="Projects with Revive"
+        grid="lg:grid-cols-2 2xl:grid-cols-3"
         hint="From review with Revive to construction to listing. Opens the project."
         count={projects.filter((p) => match(p.address, p.city, p.product)).length}
         empty={{ text: 'No projects yet. Start one from any report.', cta: 'Start a project', to: '/ai?flow=project' }}
