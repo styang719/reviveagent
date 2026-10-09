@@ -18,7 +18,7 @@ export const REFERRAL_STATUS = {
 export const REACHED = { new: 0, claimed: 1, contacted: 2, lost: 2, listing: 3 } as const
 
 /** The one thing to do now, short enough for the card's action box. */
-const actionFor = (status: keyof typeof REFERRAL_STATUS, first: string) =>
+export const actionFor = (status: keyof typeof REFERRAL_STATUS, first: string) =>
   status === 'new'
     ? `Call ${first} within 24 hours. They’re expecting you.`
     : status === 'claimed'
@@ -31,7 +31,7 @@ const actionFor = (status: keyof typeof REFERRAL_STATUS, first: string) =>
 export const needsAction = (o: Opportunity) => !!o.referral && ((o.referral.status === 'new' && !o.referral.claimedAt) || o.referral.needsUpdateNow)
 
 const ago = (d: number) => (d === 0 ? 'Today' : d === 1 ? 'Yesterday' : `${d} days ago`)
-const initials = (s: string) =>
+export const initials = (s: string) =>
   s
     .split(' ')
     .map((x) => x[0])
