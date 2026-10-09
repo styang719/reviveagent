@@ -373,7 +373,7 @@ export function useNeedsAttention(o: Opportunity) {
 
 /**
  * The lead-activity version of the reply strip. A reply waiting on the agent gets the blue box and a primary
- * Email button; engagement (opens, a lead-form report) stays quiet with a secondary Follow up.
+ * Email button; engagement (opens, a lead-form report) stays quiet with an outline Follow up.
  */
 export function LeadStrip({ o, text, onMessage }: { o: Opportunity; text: string; onMessage: () => void }) {
   const stop = (e: React.SyntheticEvent) => e.stopPropagation()
@@ -405,16 +405,11 @@ export function LeadStrip({ o, text, onMessage }: { o: Opportunity; text: string
         <Eye className="mt-0.5 size-3.5 shrink-0 text-muted" />
         <span>{text}</span>
       </p>
-      <div className="flex shrink-0 items-center gap-1.5">
-        {o.person && (
-          <Button size="sm" variant="secondary" className="bg-line text-ink hover:bg-[#d8dadf]" onClick={onMessage}>
-            <Mail /> Follow up
-          </Button>
-        )}
-        <Button size="sm" variant="ghost" className="text-ink-2" onClick={call}>
-          Book a call with Revive
+      {o.person && (
+        <Button size="sm" variant="outline" className="shrink-0" onClick={onMessage}>
+          <Mail /> Follow up
         </Button>
-      </div>
+      )}
     </div>
   )
 }
