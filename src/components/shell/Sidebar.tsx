@@ -1,7 +1,7 @@
 import { ChevronRight, Inbox, LayoutDashboard, MapPinHouse, Megaphone, PanelLeft, TrendingUp, UserCheck } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import avatar from '@/assets/avatar-michelle.jpg'
-import { AiAvatar } from '@/components/ai/Chat'
+import aiNav from '@/assets/revive-ai-nav.webp'
 import { AGENT } from '@/data/tiers'
 import { cn } from '@/lib/utils'
 import { ReviveLogo } from './Logo'
@@ -33,7 +33,7 @@ function ReviveAiItem({ collapsed }: { collapsed: boolean }) {
     >
       {({ isActive }) => (
         <>
-          <AiAvatar className={cn('-mx-1 size-7 drop-shadow-none', !isActive && 'opacity-90')} />
+          <img src={aiNav} alt="" aria-hidden="true" className={cn('-mx-0.5 size-6 shrink-0 object-contain', !isActive && 'opacity-90')} />
           {!collapsed && <span className={cn('flex-1', isActive ? 'rv-ai-text' : 'rv-ai-text-rest')}>Revive AI</span>}
         </>
       )}
