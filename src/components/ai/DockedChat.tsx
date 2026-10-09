@@ -109,9 +109,9 @@ export function DockedChat() {
         onClick={() => setOpen(true)}
         aria-label={unfinished ? `${label} (in progress)` : label}
         title={label}
-        className="group fixed right-5 bottom-5 z-[60] grid size-12 place-items-center rounded-full shadow-xl ring-4 ring-white transition-transform hover:scale-105"
+        className="group fixed right-5 bottom-5 z-[60] grid size-14 place-items-center rounded-full bg-white shadow-xl ring-1 ring-line transition-transform hover:scale-105"
       >
-        <AiAvatar className="size-12 rounded-full" />
+        <AiAvatar className="size-10 drop-shadow-none" />
         {unfinished && <span className="absolute -top-0.5 -right-0.5 size-3.5 rounded-full border-2 border-white bg-hot" aria-hidden="true" />}
         <span className="pointer-events-none absolute right-14 max-w-64 truncate rounded-lg bg-navy px-2.5 py-1.5 text-[12.5px] font-medium whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
           {label}
@@ -127,7 +127,7 @@ export function DockedChat() {
     >
       <header className="flex items-center justify-between gap-2 border-b border-line bg-[var(--brand-agent-subtle)]/50 px-4 py-2.5">
         <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-ink">
-          <AiAvatar className="size-7 rounded-lg" />
+          <AiAvatar className="size-7" />
           <span className="truncate">{hasChat ? (title ?? 'Revive AI') : here ? `Revive AI · ${here.label}` : 'Revive AI'}</span>
         </p>
         <div className="flex items-center gap-1">

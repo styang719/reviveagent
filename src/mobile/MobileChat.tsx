@@ -99,7 +99,7 @@ export default function MobileChat() {
             <SquarePen className="size-[22px]" strokeWidth={1.75} />
           </button>
           <span className="flex flex-col items-center">
-            <AiAvatar className="size-[68px] rounded-full shadow-[0_8px_22px_rgba(97,70,180,0.22)] ring-4 ring-white" />
+            <AiAvatar className="size-[68px] drop-shadow-[0_8px_14px_rgba(97,70,180,0.25)]" />
             <span className="-mt-2.5 rounded-full border border-white/80 bg-white/85 px-3 py-[3px] text-[13px] font-semibold text-ink shadow-[0_4px_14px_rgba(28,46,88,0.12)] backdrop-blur-xl">
               Revive AI
             </span>

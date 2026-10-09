@@ -33,7 +33,7 @@ function ReviveAiItem({ collapsed }: { collapsed: boolean }) {
     >
       {({ isActive }) => (
         <>
-          <AiAvatar className={cn('-mx-1 size-7 rounded-lg shadow-none', !isActive && 'opacity-90')} />
+          <AiAvatar className={cn('-mx-1 size-7 drop-shadow-none', !isActive && 'opacity-90')} />
           {!collapsed && <span className={cn('flex-1', isActive ? 'rv-ai-text' : 'rv-ai-text-rest')}>Revive AI</span>}
         </>
       )}

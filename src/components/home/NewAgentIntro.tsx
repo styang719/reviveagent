@@ -46,7 +46,7 @@ export function ReviveAiIntro() {
   return (
     <section aria-labelledby="ai-intro" className="rv-ai-card rounded-2xl p-6 shadow-card sm:p-7">
       <div className="flex items-start gap-4">
-        <AiAvatar className="size-12 rounded-2xl" />
+        <AiAvatar className="size-12" />
         <div className="min-w-0 flex-1">
           <h2 id="ai-intro" className="text-lg font-semibold text-ink sm:text-xl">
             Ask Revive about any home

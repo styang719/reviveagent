@@ -25,9 +25,9 @@ import { FlowStepView } from './FlowSteps'
 let seq = 0
 const uid = () => `m${Date.now()}-${seq++}`
 
-/** Revive AI's face: the glass house, on its own lavender so it reads at every size. */
+/** Revive AI's face: the glass house, cut out so it sits on any background. */
 export function AiAvatar({ className }: { className?: string }) {
-  return <img src={aiAvatar} alt="" aria-hidden="true" className={cn('size-8 shrink-0 rounded-[30%] bg-[#edeffb] object-cover shadow-[0_2px_8px_rgba(97,70,180,0.18)]', className)} />
+  return <img src={aiAvatar} alt="" aria-hidden="true" className={cn('size-8 shrink-0 object-contain drop-shadow-[0_2px_4px_rgba(97,70,180,0.18)]', className)} />
 }
 
 function PropertyBlock({ b }: { b: Extract<Block, { kind: 'property' }> }) {
