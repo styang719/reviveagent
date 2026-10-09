@@ -1,14 +1,14 @@
-import { FileText, Hammer, Map, Menu, Plus, Sparkles, SquarePen, Users } from 'lucide-react'
+import { FileText, Hammer, Menu, Plus, Sparkles, SquarePen, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
 import { AGENT } from '@/data/tiers'
 import { STARTERS } from '@/lib/ai'
 import { rvHome, startHome, startProject, startRenovision, startReport } from '@/lib/flowEngine'
-import { useOpportunities, isActionable } from '@/lib/opportunities'
 import { greetingWord } from '@/lib/greeting'
 import { cn } from '@/lib/utils'
 import { useChatDrawer } from './ChatDrawer'
+import { TodayChecklist } from './TodayChecklist'
 import { useUi } from '@/store/ui'
 
 // Mobile home: Revive AI, full screen. The conversation scrolls under a white fade at the top (Revive in the
@@ -26,8 +26,6 @@ export default function MobileChat() {
   const chat = useUi((s) => s.chat)
   const clearChat = useUi((s) => s.clearChat)
   const { ask, thinking } = useAsk()
-  const opps = useOpportunities()
-  const toCall = opps.filter(isActionable).length
   const empty = chat.length === 0
   const end = useRef<HTMLDivElement>(null)
   const [menu, setMenu] = useState(false)
@@ -60,34 +58,28 @@ export default function MobileChat() {
     'pointer-events-auto grid size-12 place-items-center rounded-full border border-white/80 bg-white/80 text-ink shadow-[0_6px_20px_rgba(28,46,88,0.12)] backdrop-blur-xl active:scale-95'
   return (
     <div className="relative h-full">
-      <div className="absolute inset-0 overflow-y-auto px-4 pt-[148px] pb-[calc(var(--tab-h)+96px)]">
+      <div className="absolute inset-0 overflow-y-auto px-4 pt-[116px] pb-[calc(var(--tab-h)+96px)]">
         {empty ? (
           <div className="relative isolate flex flex-col">
             {/* a soft, slowly drifting glow behind the greeting, like the dashboard's ask box; gone once the chat starts */}
             <div aria-hidden="true" className="rv-chat-glow pointer-events-none absolute -inset-x-8 -top-12 -bottom-10 -z-10 rounded-[40px]" />
-            <h1 className="text-[22px] leading-[30px] font-semibold text-ink">
-              {greetingWord(new Date().getHours())}, {AGENT.firstName}. How can we help you today?
+            <h1 className="text-center text-[22px] leading-[30px] font-semibold text-ink">
+              {greetingWord(new Date().getHours())}, {AGENT.firstName}.
+              <br />
+              How can we help you today?
             </h1>
-            <p className="mt-2 text-[15px] text-ink-2">Ask about any home or anyone in your book.</p>
-            {toCall > 0 && (
-              <Link to="/m/map" className="mt-5 flex items-center gap-3 rounded-[22px] border border-white/80 bg-white/55 p-4 shadow-[0_2px_10px_rgba(28,46,88,0.05)] backdrop-blur-sm">
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-brand">
-                  <Map className="size-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-semibold text-ink">{toCall} opportunities worth a conversation</span>
-                  <span className="block text-[13px] text-ink-2">See them on the map</span>
-                </span>
-              </Link>
-            )}
-            <div className="mt-5 flex flex-col gap-2.5">
+            <TodayChecklist />
+            {/* the generic prompts, as a grid of tiles */}
+            <div className="mt-2.5 grid grid-cols-2 gap-2.5">
               {STARTER_CARDS.map((s) => (
                 <button
                   key={s.label}
                   onClick={() => (s.run ? s.run() : ask(s.label))}
-                  className="flex items-center gap-3 rounded-[22px] border border-white/80 bg-white/60 px-4 py-3.5 text-left text-[15px] text-ink shadow-[0_2px_10px_rgba(28,46,88,0.05)] backdrop-blur-sm active:bg-white/90"
+                  className="flex min-h-[84px] flex-col justify-between gap-1.5 rounded-[22px] border border-white/80 bg-white/60 p-3.5 text-left text-[14px] leading-[19px] font-medium text-ink shadow-[0_2px_10px_rgba(28,46,88,0.05)] backdrop-blur-sm active:bg-white/90"
                 >
-                  <s.icon className="size-5 shrink-0 text-brand" />
+                  <span className="grid size-8 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-brand">
+                    <s.icon className="size-4" />
+                  </span>
                   {s.label}
                 </button>
               ))}
@@ -100,7 +92,7 @@ export default function MobileChat() {
       </div>
 
       {/* top: the conversation fades out under Revive */}
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[168px] bg-gradient-to-b from-white from-55% via-white/85 to-transparent">
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[112px] bg-gradient-to-b from-white from-70% to-transparent">
         <div className="flex items-start justify-between px-4 pt-3">
           <button onClick={() => openDrawer(true)} className={circle} aria-label="Chats">
             <Menu className="size-[22px]" strokeWidth={1.75} />
@@ -146,6 +138,7 @@ export default function MobileChat() {
           disabled={thinking}
           compact
           pill
+          placeholder="Ask about any home or anyone"
           leading={
             <button
               type="button"

@@ -4,14 +4,12 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { CrmDialog } from '@/components/home/ConnectBook'
 import wordmark from '@/assets/revive-wordmark.svg'
-import { ReviveMark } from '@/components/shell/Logo'
-import { TIERS } from '@/data/tiers'
-import type { Tier } from '@/data/types'
+import { DEMO_BAR_HEIGHT, DemoBar } from '@/components/shell/DemoBar'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
+import { useUi } from '@/store/ui'
 import { ChatDrawer, useChatDrawer } from './ChatDrawer'
 import { inPhoneFrame, PHONE_FRAME_NAME, setMobileApp } from './mode'
-import { ViewSwitch } from './ViewSwitch'
 
 // Mobile prototype shell: Revive AI is home, the map sits in the middle of the tab bar, and Homes, Leads and
 // More hold the rest. On a wide screen the app runs inside a phone frame (an iframe, so every page lays out
@@ -59,55 +57,49 @@ function TabBar() {
   )
 }
 
-/** Wide screens: the phone, plus the demo scenarios beside it. */
+/** Wide screens: the desktop demo bar on top, and the phone, scaled to fill the rest of the window. */
 function PhoneShell() {
-  const tier = useDemo((s) => s.tier)
-  const setTier = useDemo((s) => s.setTier)
-  const setNewAgent = useDemo((s) => s.setNewAgent)
   const frame = useRef<HTMLIFrameElement>(null)
   const { pathname, search } = useLocation()
   const [src] = useState(() => `${window.location.pathname}${window.location.search}#${pathname}${search}`)
-  const pick = (t: Tier) => {
-    if (t === 'new') setNewAgent(false)
-    else setTier(t)
-    // the phone is its own window: reload it so it reads the new scenario
-    setTimeout(() => frame.current?.contentWindow?.location.reload(), 50)
-  }
+  const [scale, setScale] = useState(1)
+
+  // the phone is its own window: when the demo bar changes the scenario (or resets), reload it so it reads the change
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | undefined
+    const reload = () => {
+      clearTimeout(t)
+      t = setTimeout(() => frame.current?.contentWindow?.location.reload(), 80)
+    }
+    const offDemo = useDemo.subscribe(reload)
+    const offUi = useUi.subscribe((s, prev) => {
+      if (s.threads !== prev.threads && s.threads.length === 0) reload() // Reset demo clears the chats
+    })
+    return () => (clearTimeout(t), offDemo(), offUi())
+  }, [])
+
+  // as big as the window allows, at the phone's own proportions (390×844 plus the bezel)
+  useEffect(() => {
+    const fit = () => setScale(Math.max(0.5, Math.min((window.innerHeight - DEMO_BAR_HEIGHT - 32) / 868, (window.innerWidth - 32) / 414)))
+    fit()
+    window.addEventListener('resize', fit)
+    return () => window.removeEventListener('resize', fit)
+  }, [])
+
   return (
-    <div className="relative flex min-h-[100dvh] items-center justify-center gap-16 bg-[radial-gradient(120%_120%_at_0%_0%,var(--brand-primary-subtle)_0%,#fff_55%)] p-8">
-      <div className="hidden max-w-xs flex-col gap-6 lg:flex">
-        <ViewSwitch tone="light" />
-        <span className="grid size-12 place-items-center rounded-2xl bg-navy">
-          <ReviveMark className="h-7 w-auto" />
-        </span>
-        <div>
-          <h1 className="text-2xl font-semibold text-ink">Revive, mobile</h1>
-          <p className="mt-2 text-[15px] leading-6 text-ink-2">Revive AI is home. The map in the middle of the tab bar shows every opportunity, like Redfin or Zillow. Homes, Leads and More hold the rest.</p>
-        </div>
-        <div>
-          <p className="text-[12px] font-semibold tracking-wide text-muted uppercase">Demo scenario</p>
-          <div className="mt-2 flex flex-col gap-1.5" role="radiogroup" aria-label="Demo scenario">
-            {(Object.keys(TIERS) as Tier[]).map((t) => (
-              <button
-                key={t}
-                role="radio"
-                aria-checked={tier === t}
-                onClick={() => pick(t)}
-                className={cn('rounded-xl border px-4 py-2.5 text-left text-[14px] font-medium', tier === t ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-subtle)] text-brand' : 'border-line bg-white text-ink-2 hover:bg-head')}
-              >
-                {TIERS[t].demoLabel}
-              </button>
-            ))}
+    <div className="flex min-h-[100dvh] flex-col bg-[radial-gradient(120%_120%_at_0%_0%,var(--brand-primary-subtle)_0%,#fff_55%)]">
+      <DemoBar />
+      <div className="flex flex-1 items-start justify-center pt-4">
+        <div style={{ width: 414 * scale, height: 868 * scale }}>
+          <div
+            className="h-[868px] w-[414px] origin-top-left overflow-hidden rounded-[52px] border-[12px] border-navy bg-white shadow-[0_30px_80px_rgba(28,46,88,0.35)]"
+            style={{ transform: `scale(${scale})` }}
+          >
+            <iframe ref={frame} name={PHONE_FRAME_NAME} title="Revive mobile prototype" src={src} className="size-full border-0" />
           </div>
         </div>
-        <p className="text-[12.5px] text-faint">Sample data. Open this page on your phone to use it full screen.</p>
       </div>
-      <div className="absolute top-4 left-4 lg:hidden">
-        <ViewSwitch tone="light" />
-      </div>
-      <div className="relative h-[844px] max-h-[calc(100dvh-64px)] w-[390px] shrink-0 overflow-hidden rounded-[52px] border-[12px] border-navy bg-white shadow-[0_30px_80px_rgba(28,46,88,0.35)]">
-        <iframe ref={frame} name={PHONE_FRAME_NAME} title="Revive mobile prototype" src={src} className="size-full border-0" />
-      </div>
+      <Toaster position="top-center" richColors closeButton />
     </div>
   )
 }

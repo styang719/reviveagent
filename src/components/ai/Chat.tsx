@@ -300,6 +300,7 @@ export function Composer({
   compact = false,
   pill = false,
   leading,
+  placeholder,
 }: {
   onAsk: (q: string) => void
   disabled?: boolean
@@ -307,6 +308,7 @@ export function Composer({
   compact?: boolean
   pill?: boolean
   leading?: ReactNode
+  placeholder?: string // the pill's resting prompt (default "Message")
 }) {
   const [draft, setDraft] = useState('')
   const [active, setActive] = useState(0)
@@ -408,10 +410,10 @@ export function Composer({
           aria-activedescendant={open ? `${listId}-${active}` : undefined}
           aria-autocomplete={awaiting === 'address' ? 'list' : undefined}
           autoComplete="off"
-          placeholder={pill ? (awaiting === 'address' ? 'Start typing the address' : 'Message') : awaiting === 'address' ? 'Start typing the address' : hereAddr && compact ? `Ask about ${hereAddr}` : 'Ask Revive AI anything'}
+          placeholder={pill ? (awaiting === 'address' ? 'Start typing the address' : (placeholder ?? 'Message')) : awaiting === 'address' ? 'Start typing the address' : hereAddr && compact ? `Ask about ${hereAddr}` : 'Ask Revive AI anything'}
           className={cn(
             'max-h-40 min-h-10 flex-1 resize-none bg-transparent py-2 text-ink outline-none',
-            pill ? 'py-[9px] text-[16px] placeholder:text-faint' : cn('placeholder:text-faint', compact ? 'text-sm' : 'text-[15px]'),
+            pill ? 'py-[9px] text-[16px] placeholder:text-[14.5px] placeholder:text-faint' : cn('placeholder:text-faint', compact ? 'text-sm' : 'text-[15px]'),
           )}
         />
         {pill && !draft.trim() ? (
