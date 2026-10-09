@@ -1,5 +1,5 @@
-import { ArrowRight, ArrowUp, Copy, MapPin } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowRight, ArrowUp, Copy, MapPin, Mic } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Estimate, Reasons } from '@/components/opportunity/OpportunityCard'
@@ -94,7 +94,8 @@ function OppsBlock({ ids }: { ids: string[] }) {
   const opps = useOpportunities()
   const isProperty = useIsProperty()
   return (
-    <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
+    // narrow (the phone, a slim dock): the estimate moves under the address instead of squeezing it
+    <ul className="@container divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
       {ids
         .map((id) => opps.find((o) => o.id === id))
         .filter((o) => !!o)
@@ -108,8 +109,13 @@ function OppsBlock({ ids }: { ids: string[] }) {
                   {o.property.address} <span className="font-normal text-muted">· {o.person?.name ?? o.property.city}</span>
                 </p>
                 <Reasons o={o} max={2} />
+                <div className="mt-1.5 @sm:hidden">
+                  <Estimate o={o} align="left" />
+                </div>
               </div>
-              <Estimate o={o} />
+              <div className="hidden @sm:block">
+                <Estimate o={o} />
+              </div>
             </OppRow>
           </li>
         ))}
@@ -289,7 +295,22 @@ export function Thread({ onAsk, thinking, compact = false }: { onAsk: (q: string
   )
 }
 
-export function Composer({ onAsk, disabled, autoFocus = false, compact = false }: { onAsk: (q: string) => void; disabled?: boolean; autoFocus?: boolean; compact?: boolean }) {
+/** `pill`: the mobile glass message bar, with `leading` (the + button) on the left and a mic until there's text. */
+export function Composer({
+  onAsk,
+  disabled,
+  autoFocus = false,
+  compact = false,
+  pill = false,
+  leading,
+}: {
+  onAsk: (q: string) => void
+  disabled?: boolean
+  autoFocus?: boolean
+  compact?: boolean
+  pill?: boolean
+  leading?: ReactNode
+}) {
   const [draft, setDraft] = useState('')
   const [active, setActive] = useState(0)
   const [dismissed, setDismissed] = useState(false)
@@ -345,12 +366,18 @@ export function Composer({ onAsk, disabled, autoFocus = false, compact = false }
         </ul>
       )}
       <form
-        className="flex w-full items-end gap-2 rounded-2xl border border-line bg-white p-2 pl-4 shadow-card focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10"
+        className={cn(
+          'flex w-full items-end gap-2',
+          pill
+            ? 'rounded-[28px] border border-white/80 bg-white/70 p-1.5 shadow-[0_8px_28px_rgba(28,46,88,0.14),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-xl backdrop-saturate-150'
+            : 'rounded-2xl border border-line bg-white p-2 pl-4 shadow-card focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10',
+        )}
         onSubmit={(e) => {
           e.preventDefault()
           sendText(open ? suggestions[active].value : draft)
         }}
       >
+        {leading}
         <label htmlFor={compact ? 'ai-input-dock' : 'ai-input'} className="sr-only">
           {awaiting === 'address' ? 'Property address' : 'Ask Revive AI'}
         </label>
@@ -384,12 +411,26 @@ export function Composer({ onAsk, disabled, autoFocus = false, compact = false }
           aria-activedescendant={open ? `${listId}-${active}` : undefined}
           aria-autocomplete={awaiting === 'address' ? 'list' : undefined}
           autoComplete="off"
-          placeholder={awaiting === 'address' ? 'Start typing the address' : hereAddr && compact ? `Ask about ${hereAddr}` : 'Ask Revive AI anything'}
-          className={cn('max-h-40 min-h-10 flex-1 resize-none bg-transparent py-2 text-ink outline-none placeholder:text-faint', compact ? 'text-sm' : 'text-[15px]')}
+          placeholder={pill ? (awaiting === 'address' ? 'Start typing the address' : 'Message') : awaiting === 'address' ? 'Start typing the address' : hereAddr && compact ? `Ask about ${hereAddr}` : 'Ask Revive AI anything'}
+          className={cn(
+            'max-h-40 min-h-10 flex-1 resize-none bg-transparent py-2 text-ink outline-none',
+            pill ? 'py-[9px] text-[16px] placeholder:text-faint' : cn('placeholder:text-faint', compact ? 'text-sm' : 'text-[15px]'),
+          )}
         />
-        <button type="submit" disabled={!draft.trim() || disabled} className="rv-ai-btn grid size-10 shrink-0 place-items-center rounded-xl text-white disabled:opacity-40" aria-label="Send">
-          <ArrowUp className="size-5" />
-        </button>
+        {pill && !draft.trim() ? (
+          <button type="button" onClick={() => toast('Voice input is coming soon')} className="grid size-10 shrink-0 place-items-center rounded-full text-faint" aria-label="Dictate">
+            <Mic className="size-[22px]" strokeWidth={1.75} />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={!draft.trim() || disabled}
+            className={cn('grid size-10 shrink-0 place-items-center text-white disabled:opacity-40', pill ? 'rounded-full bg-navy' : 'rv-ai-btn rounded-xl')}
+            aria-label="Send"
+          >
+            <ArrowUp className="size-5" />
+          </button>
+        )}
       </form>
     </div>
   )

@@ -1,4 +1,4 @@
-import { House, Map, MoreHorizontal, Sparkles, UserCheck } from 'lucide-react'
+import { House, Map, MessageCircle, MoreHorizontal, UserCheck } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -16,9 +16,9 @@ import { ViewSwitch } from './ViewSwitch'
 // at phone width); on a phone it runs full screen.
 
 const TABS = [
-  { to: '/m', label: 'Revive AI', icon: Sparkles, end: true },
+  { to: '/m', label: 'Revive AI', icon: MessageCircle, end: true },
   { to: '/m/properties', label: 'Homes', icon: House },
-  { to: '/m/map', label: 'Map', icon: Map, center: true },
+  { to: '/m/map', label: 'Map', icon: Map },
   { to: '/m/leads', label: 'Leads', icon: UserCheck },
   { to: '/m/more', label: 'More', icon: MoreHorizontal },
 ] as const
@@ -26,32 +26,28 @@ const TABS = [
 function TabBar() {
   const { pathname } = useLocation()
   return (
-    // frosted glass, floating over the page so content scrolls under it
-    <nav aria-label="Main" className="absolute inset-x-3 bottom-[calc(8px+env(safe-area-inset-bottom))] z-[700] rounded-[28px] border border-white/70 bg-white/55 shadow-[0_8px_32px_rgba(28,46,88,0.16),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl backdrop-saturate-150">
+    // frosted glass pill, floating over the page so content scrolls under it; icons only, the current tab sits in a soft pill
+    <nav
+      aria-label="Main"
+      className="absolute inset-x-4 bottom-[calc(10px+env(safe-area-inset-bottom))] z-[700] rounded-full border border-white/80 bg-white/75 p-1.5 shadow-[0_10px_36px_rgba(28,46,88,0.14),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-xl backdrop-saturate-150"
+    >
       <ul className="grid grid-cols-5">
         {TABS.map((t) => {
           const Icon = t.icon
           const active = t.to === '/m' ? pathname === '/m' || pathname === '/m/' || pathname === '/m/ai' : pathname.startsWith(t.to)
-          if ('center' in t)
-            return (
-              <li key={t.to} className="flex justify-center">
-                <NavLink
-                  to={t.to}
-                  aria-label={t.label}
-                  className={cn(
-                    '-mt-5 grid size-16 place-items-center rounded-full border-4 border-white/80 shadow-[0_8px_24px_rgba(28,46,88,0.25)] transition-transform active:scale-95',
-                    active ? 'bg-navy text-white' : 'bg-[var(--brand-primary)] text-white',
-                  )}
-                >
-                  <Icon className="size-7" />
-                </NavLink>
-              </li>
-            )
           return (
             <li key={t.to}>
-              <NavLink to={t.to} end={'end' in t} className={cn('flex flex-col items-center gap-1 pt-2.5 pb-2 text-[11px] font-medium', active ? 'text-brand' : 'text-muted')}>
-                <Icon className="size-[22px]" />
-                {t.label}
+              <NavLink
+                to={t.to}
+                end={'end' in t}
+                aria-label={t.label}
+                title={t.label}
+                className={cn(
+                  'grid h-12 place-items-center rounded-full transition-colors active:scale-95',
+                  active ? 'bg-[rgba(28,46,88,0.07)] text-ink' : 'text-ink-2',
+                )}
+              >
+                <Icon className="size-6" strokeWidth={active ? 2 : 1.75} />
               </NavLink>
             </li>
           )
@@ -122,13 +118,16 @@ export function MobileLayout() {
   const main = useRef<HTMLElement>(null)
   useEffect(() => main.current?.scrollTo(0, 0), [pathname])
 
+  const fullBleed = /^\/m(\/ai|\/map)?\/?$/.test(pathname)
   if (wide) return <PhoneShell />
   return (
-    <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-white [--tab-h:calc(84px+env(safe-area-inset-bottom))]">
-      {/* the map runs edge to edge under the glass tab bar; other pages leave room so their last row clears it */}
-      <main ref={main} id="main" className={cn('relative min-h-0 flex-1 overflow-y-auto pt-[env(safe-area-inset-top)]', !pathname.startsWith('/m/map') && 'pb-[var(--tab-h)]')}>
+    <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-white [--tab-h:calc(72px+env(safe-area-inset-bottom))]">
+      {/* the map and the chat run edge to edge under the glass; other pages leave room so their last row clears it */}
+      <main ref={main} id="main" className={cn('relative min-h-0 flex-1 overflow-y-auto pt-[env(safe-area-inset-top)]', !fullBleed && 'pb-[calc(var(--tab-h)+16px)]')}>
         <Outlet />
       </main>
+      {/* content fades out behind the tab bar */}
+      {!fullBleed && <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[650] h-[calc(var(--tab-h)+24px)] bg-gradient-to-t from-white via-white/70 to-transparent" />}
       <TabBar />
       <CrmDialog />
       <Toaster position="top-center" richColors closeButton />
