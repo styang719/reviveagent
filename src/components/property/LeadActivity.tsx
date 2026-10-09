@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { MessageDialog } from '@/components/opportunity/MessageDialog'
 import { Eye, FileText, Mail, MessageCircle, MousePointerClick } from 'lucide-react'
 import { useNow } from '@/hooks/useNow'
 import { ago, firstName } from '@/lib/format'
@@ -27,6 +29,7 @@ const iconFor = (t: string) => (/repl/i.test(t) ? MessageCircle : /report/i.test
 /** `footer`: where the report came from (generated when, or the button to generate it), at the bottom of the box. */
 export function LeadActivity({ o, footer }: { o: Opportunity; footer?: React.ReactNode }) {
   const now = useNow(20_000)
+  const [msg, setMsg] = useState(false)
   const out = useDemo((s) => s.outreach[o.id])
   const logged = useDemo((s) => s.activity[o.id])
   if (!o.person) return null
@@ -59,22 +62,25 @@ export function LeadActivity({ o, footer }: { o: Opportunity; footer?: React.Rea
   return (
     <section aria-labelledby="lead-activity" className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
       <div className="p-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="lead-activity" className="text-[15px] font-semibold text-ink">
           Lead activity
         </h2>
+        <button
+          type="button"
+          onClick={() => setMsg(true)}
+          aria-label={`Message ${o.person.name}`}
+          title={`Message ${first}`}
+          className="ml-auto grid size-9 place-items-center rounded-xl border border-line bg-white text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)]"
+        >
+          <Mail className="size-[17px]" />
+        </button>
       </div>
       {items.length ? (
         <ul className="mt-3 flex flex-col gap-2.5">
-          {items.slice(0, 4).map(({ key, icon: Icon, text, quote, when, hot }) => (
+          {items.slice(0, 4).map(({ key, text, quote, when, hot }) => (
             <li key={key} className="flex items-start gap-3">
-              {/* who did it, with what they did as a small badge */}
-              <span className="relative shrink-0">
-                <span className="grid size-8 place-items-center rounded-full bg-head text-[11.5px] font-semibold text-ink-2 ring-1 ring-line">{initials}</span>
-                <span className={cn('absolute -right-1 -bottom-1 grid size-4 place-items-center rounded-full ring-2 ring-white', hot ? 'bg-[var(--brand-primary)] text-white' : 'bg-[var(--brand-primary-subtle)] text-brand')}>
-                  <Icon className="size-2.5" />
-                </span>
-              </span>
+              <span className={cn('grid size-8 shrink-0 place-items-center rounded-full text-[11.5px] font-semibold ring-1', hot ? 'bg-[var(--brand-primary)] text-white ring-[var(--brand-primary)]' : 'bg-head text-ink-2 ring-line')}>{initials}</span>
               <div className="min-w-0 flex-1 pt-1">
                 <div className="flex items-baseline justify-between gap-3">
                   <p className="text-[13.5px] font-medium text-ink">{text}</p>
@@ -89,6 +95,7 @@ export function LeadActivity({ o, footer }: { o: Opportunity; footer?: React.Rea
         <p className="mt-2 text-[13.5px] text-muted">{first} hasn’t opened anything yet. Share the report and you’ll see here when they do.</p>
       )}
       </div>
+      {msg && <MessageDialog o={o} open={msg} onOpenChange={setMsg} />}
       {footer && <div className="border-t border-line bg-[var(--brand-agent-subtle)]/50 px-4 py-2.5">{footer}</div>}
     </section>
   )

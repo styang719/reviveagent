@@ -168,7 +168,7 @@ export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab
       </div>
 
       <div role="tabpanel">
-        {tab === 'report' && <Report m={m} compact={compact} />}
+        {tab === 'report' && <Report m={m} />}
         {tab === 'project' && <Project m={m} />}
         {tab === 'marketing' && <Marketing m={m} />}
       </div>
@@ -247,7 +247,7 @@ function TopOptions({ m }: { m: Model }) {
   )
 }
 
-function Report({ m, compact }: { m: Model; compact: boolean }) {
+function Report({ m }: { m: Model }) {
   const r = m.report
   const best = [...m.scenarios].sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))[0]
   return (
@@ -300,29 +300,7 @@ function Report({ m, compact }: { m: Model; compact: boolean }) {
 
 
 
-      {m.opp && m.opp.reasons.length > 0 && (
-        <section>
-          <h2 className="text-[15px] font-semibold text-ink">Why now</h2>
-          <ul className="mt-2 flex flex-col gap-1 text-sm text-ink-2">
-            {m.opp.reasons.map((x) => (
-              <li key={x} className="flex gap-2">
-                <Check className="mt-0.5 size-4 shrink-0 text-ok" /> {x}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
-      {m.opp && m.opp.activity.length > 0 && (
-        <section>
-          <h2 className="text-[15px] font-semibold text-ink">Activity</h2>
-          <ul className="mt-2 flex flex-col gap-1.5 text-sm text-ink-2">
-            {m.opp.activity.slice(0, 6).map((x) => (
-              <li key={x}>{x}</li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {r && (r.selling || r.goal) && (
         <section className="grid gap-2 sm:grid-cols-2">
@@ -331,16 +309,6 @@ function Report({ m, compact }: { m: Model; compact: boolean }) {
         </section>
       )}
 
-      {m.photos.length > 0 && (
-        <section>
-          <h2 className="text-[15px] font-semibold text-ink">Photos in this report</h2>
-          <div className={cn('mt-2 grid gap-2', compact ? 'grid-cols-3' : 'grid-cols-3 sm:grid-cols-5')}>
-            {m.photos.map((u, i) => (
-              <img key={u.slice(-40) + i} src={u} alt="" className="aspect-square w-full rounded-lg object-cover" />
-            ))}
-          </div>
-        </section>
-      )}
 
       <NeighborhoodComps id={m.id} address={m.address} city={m.city} valueNow={m.valueNow} sqft={m.sqft} comps={m.comps} />
     </div>
