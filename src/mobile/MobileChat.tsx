@@ -2,8 +2,7 @@ import { FileText, Gift, Hammer, Map, Plus, Sparkles, SquarePen, Users } from 'l
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Composer, Thread, useAsk } from '@/components/ai/Chat'
-import { ReviveMark } from '@/components/shell/Logo'
+import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
 import { AGENT } from '@/data/tiers'
 import { STARTERS } from '@/lib/ai'
 import { rvHome, startHome, startProject, startRenovision, startReport } from '@/lib/flowEngine'
@@ -100,9 +99,7 @@ export default function MobileChat() {
             <SquarePen className="size-[22px]" strokeWidth={1.75} />
           </button>
           <span className="flex flex-col items-center">
-            <span className="grid size-[60px] place-items-center rounded-full bg-[radial-gradient(circle_at_30%_25%,#3b5aa8_0%,var(--color-navy,#1c2e58)_70%)] shadow-[0_8px_22px_rgba(28,46,88,0.28)] ring-4 ring-white">
-              <ReviveMark className="h-7 w-auto" />
-            </span>
+            <AiAvatar className="size-[68px] rounded-full shadow-[0_8px_22px_rgba(97,70,180,0.22)] ring-4 ring-white" />
             <span className="-mt-2.5 rounded-full border border-white/80 bg-white/85 px-3 py-[3px] text-[13px] font-semibold text-ink shadow-[0_4px_14px_rgba(28,46,88,0.12)] backdrop-blur-xl">
               Revive AI
             </span>

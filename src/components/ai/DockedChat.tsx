@@ -1,4 +1,4 @@
-import { MapPin, Maximize2, Minus, Sparkles, SquarePen } from 'lucide-react'
+import { MapPin, Maximize2, Minus, SquarePen } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDemo } from '@/store/demo'
@@ -6,6 +6,7 @@ import { isAbout, useUi } from '@/store/ui'
 import { rvHome, startDiscuss, startHome, startProject, startRenovision, startReport } from '@/lib/flowEngine'
 import { STARTERS } from '@/lib/ai'
 import { Composer, Thread, useAsk, useHereCtx } from './Chat'
+import { AiAvatar } from './Chat'
 
 // The conversation follows the agent: when Revive AI opens a result page, the chat docks in the
 // corner so they can keep asking ("add a kitchen scenario", "start a project from this") without
@@ -110,9 +111,7 @@ export function DockedChat() {
         title={label}
         className="group fixed right-5 bottom-5 z-[60] grid size-12 place-items-center rounded-full shadow-xl ring-4 ring-white transition-transform hover:scale-105"
       >
-        <span className="rv-ai-tile grid size-12 place-items-center rounded-full text-white">
-          <Sparkles className="size-5" />
-        </span>
+        <AiAvatar className="size-12 rounded-full" />
         {unfinished && <span className="absolute -top-0.5 -right-0.5 size-3.5 rounded-full border-2 border-white bg-hot" aria-hidden="true" />}
         <span className="pointer-events-none absolute right-14 max-w-64 truncate rounded-lg bg-navy px-2.5 py-1.5 text-[12.5px] font-medium whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
           {label}
@@ -128,9 +127,7 @@ export function DockedChat() {
     >
       <header className="flex items-center justify-between gap-2 border-b border-line bg-[var(--brand-agent-subtle)]/50 px-4 py-2.5">
         <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-ink">
-          <span className="rv-ai-tile grid size-6 shrink-0 place-items-center rounded-md text-white">
-            <Sparkles className="size-3.5" />
-          </span>
+          <AiAvatar className="size-7 rounded-lg" />
           <span className="truncate">{hasChat ? (title ?? 'Revive AI') : here ? `Revive AI · ${here.label}` : 'Revive AI'}</span>
         </p>
         <div className="flex items-center gap-1">

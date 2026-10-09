@@ -2,6 +2,7 @@ import { ArrowRight, ArrowUp, Copy, MapPin, Mic } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import aiAvatar from '@/assets/revive-ai-avatar.webp'
 import { Estimate, Reasons } from '@/components/opportunity/OpportunityCard'
 import { UrgencyTag } from '@/components/opportunity/Tags'
 import { Button } from '@/components/ui/button'
@@ -16,7 +17,6 @@ import { useConnections, useIsProperty, useOpportunities } from '@/lib/opportuni
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
-import { Sparkles } from 'lucide-react'
 import { FlowStepView } from './FlowSteps'
 
 // The Revive AI conversation: thread + composer. Used on the Revive AI page and, in hand-off
@@ -25,12 +25,9 @@ import { FlowStepView } from './FlowSteps'
 let seq = 0
 const uid = () => `m${Date.now()}-${seq++}`
 
+/** Revive AI's face: the glass house, on its own lavender so it reads at every size. */
 export function AiAvatar({ className }: { className?: string }) {
-  return (
-    <span className={cn('rv-ai-tile grid size-8 shrink-0 place-items-center rounded-lg text-white', className)} aria-hidden="true">
-      <Sparkles className="size-4" />
-    </span>
-  )
+  return <img src={aiAvatar} alt="" aria-hidden="true" className={cn('size-8 shrink-0 rounded-[30%] bg-[#edeffb] object-cover shadow-[0_2px_8px_rgba(97,70,180,0.18)]', className)} />
 }
 
 function PropertyBlock({ b }: { b: Extract<Block, { kind: 'property' }> }) {

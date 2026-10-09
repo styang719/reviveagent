@@ -6,6 +6,7 @@ import { STARTERS } from '@/lib/ai'
 import { suggestAddresses } from '@/lib/flows'
 import { cn } from '@/lib/utils'
 import { photoUrl } from '@/lib/assets'
+import { AiAvatar } from '@/components/ai/Chat'
 
 // Context for a brand-new agent, so Home has something useful before anything is connected:
 // what Revive AI does (works with no setup), what Revive has done nearby, and what each part
@@ -45,9 +46,7 @@ export function ReviveAiIntro() {
   return (
     <section aria-labelledby="ai-intro" className="rv-ai-card rounded-2xl p-6 shadow-card sm:p-7">
       <div className="flex items-start gap-4">
-        <span className="rv-ai-tile grid size-11 shrink-0 place-items-center rounded-xl text-white" aria-hidden="true">
-          <Sparkles className="size-5" />
-        </span>
+        <AiAvatar className="size-12 rounded-2xl" />
         <div className="min-w-0 flex-1">
           <h2 id="ai-intro" className="text-lg font-semibold text-ink sm:text-xl">
             Ask Revive about any home
