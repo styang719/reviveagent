@@ -20,7 +20,7 @@ Deploys as a static SPA (Vercel: `vercel.json`; Netlify: `public/_redirects`).
 
 ## Demo controls
 
-The demo bar has four scenarios: **New agent · 0 deals** (nothing connected), **New agent · MLS & CRM connected** (license and CRM already connected, so Home shows the real listings and contacts), **Active · 1 deal** and **Partner · 2+ deals**.
+The demo bar has three scenarios: **New agent · 0 deals** (nothing connected; connecting the license and CRM from Home shows the real listings and contacts), **Active · 1 deal** and **Partner · 2+ deals**.
 
 - **Demo bar** (top): switch *New agent · 0 deals / Active · 1 deal / Partner · 2+ deals*. Everything re-renders instantly.
 - **Reset demo** clears connections, stage changes, claims and activity (keeps the current tier).

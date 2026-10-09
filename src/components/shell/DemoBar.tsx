@@ -12,13 +12,12 @@ export function DemoBar() {
   const tier = useDemo((s) => s.tier)
   const setTier = useDemo((s) => s.setTier)
   const setNewAgent = useDemo((s) => s.setNewAgent)
-  const connected = useDemo((s) => !!s.license && s.crmConnected)
   const setImporting = useUi((s) => s.setImporting)
 
-  // New agent comes in two states: nothing connected yet, and MLS + CRM already connected
+  // New agent starts with nothing connected (connecting from the dashboard shows the connected state);
+  // Active stands in for a connected agent with their book, so it has no separate button
   const scenarios: { key: string; label: string; on: boolean; pick: () => void }[] = [
-    { key: 'new', label: TIERS.new.demoLabel, on: tier === 'new' && !connected, pick: () => setNewAgent(false) },
-    { key: 'new-connected', label: 'New agent · MLS & CRM connected', on: tier === 'new' && connected, pick: () => setNewAgent(true) },
+    { key: 'new', label: TIERS.new.demoLabel, on: tier === 'new', pick: () => setNewAgent(false) },
     ...(Object.keys(TIERS) as Tier[])
       .filter((t) => t !== 'new')
       .map((t) => ({ key: t, label: TIERS[t].demoLabel, on: tier === t, pick: () => setTier(t) })),
