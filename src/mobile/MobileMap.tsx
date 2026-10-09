@@ -336,16 +336,16 @@ export default function MobileMap() {
     let d = Infinity
     for (const c of Array.from(el.children) as HTMLElement[]) {
       const cm = c.offsetLeft + c.offsetWidth / 2
-      if (c.dataset.item && Math.abs(cm - mid) < d) {
+      if (c.dataset.mapcard && Math.abs(cm - mid) < d) {
         d = Math.abs(cm - mid)
-        best = c.dataset.item
+        best = c.dataset.mapcard
       }
     }
     if (best && best !== active) setActive(best)
   }
   const pick = (id: string) => {
     setActive(id)
-    const el = row.current?.querySelector<HTMLElement>(`[data-item="${CSS.escape(id)}"]`)
+    const el = row.current?.querySelector<HTMLElement>(`[data-mapcard="${CSS.escape(id)}"]`)
     if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
     else {
       // a pin outside the row (e.g. far from the middle): open its card straight away
@@ -494,7 +494,7 @@ export default function MobileMap() {
         className="absolute inset-x-0 bottom-[calc(12px+var(--tab-h))] z-[500] flex snap-x snap-mandatory gap-3 overflow-x-auto px-[calc(50%-150px)] pb-1 [scrollbar-width:none]"
       >
         {rowItems.map((it) => (
-          <div key={it.id} data-item={it.id} className={cn('transition-transform', it.id === selected ? 'scale-100' : 'scale-95 opacity-90')}>
+          <div key={it.id} data-mapcard={it.id} className={cn('transition-transform', it.id === selected ? 'scale-100' : 'scale-95 opacity-90')}>
             <Card it={it} onOpen={() => setSheet(it)} distMi={comps && it.kind === 'area' ? (it.h as AreaHome & { distMi?: number }).distMi : undefined} />
           </div>
         ))}
