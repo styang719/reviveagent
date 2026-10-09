@@ -1,4 +1,4 @@
-import { ArrowRight, Eye, ImagePlus, MessageSquareDot, Sparkles } from 'lucide-react'
+import { ArrowRight, Eye, ImagePlus, Mail, MessageSquareDot, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -61,18 +61,17 @@ export function useReviveHomes(opps: Opportunity[]): Item[] {
 }
 
 const ACTION = 'flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-line-soft text-[12.5px] font-medium text-ink transition-colors hover:bg-line'
-const AI_ACTION = 'flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-agent-subtle)] text-[12.5px] font-medium text-[var(--brand-agent)] transition-colors hover:bg-[var(--brand-agent-border-subtle)]'
 const src = (photo?: string) => (photo ? (photo.startsWith('data:') ? photo : photoUrl(photo)) : undefined)
 const who = (city: string, o?: Opportunity) => `${city}${o?.person ? ` · ${o.person.name}` : ''}`
 
-function Photo({ to, photo, badge, tone = 'dark', className }: { to: string; photo?: string; badge: React.ReactNode; tone?: 'dark' | 'ai'; className?: string }) {
+function Photo({ to, photo, badge, tone = 'dark', className }: { to: string; photo?: string; badge: React.ReactNode; tone?: 'dark' | 'brand'; className?: string }) {
   return (
     <Link to={to} tabIndex={-1} aria-hidden="true" className={cn('relative block aspect-video shrink-0 overflow-hidden bg-line-soft', className)}>
       {photo && <img src={src(photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
       <span
         className={cn(
           'absolute top-2.5 left-2.5 inline-flex max-w-[calc(100%-20px)] items-center gap-1 truncate rounded-full px-2.5 py-1 text-[11.5px] font-medium backdrop-blur-sm',
-          tone === 'ai' ? 'bg-[var(--brand-agent)]/85 text-white' : 'bg-black/50 text-white',
+          tone === 'brand' ? 'bg-[var(--brand-primary)] text-white' : 'bg-black/50 text-white',
         )}
       >
         {badge}
@@ -92,10 +91,10 @@ function Title({ to, title, city }: { to: string; title: string; city: string })
   )
 }
 
-function Note({ icon: Icon, children, tone }: { icon: typeof Eye; children: React.ReactNode; tone?: 'brand' | 'ai' }) {
+function Note({ icon: Icon, children, tone }: { icon: typeof Eye; children: React.ReactNode; tone?: 'brand' }) {
   return (
     <p className="flex min-h-9 items-start gap-2 text-[12.5px] leading-[18px] text-ink-2">
-      <Icon className={cn('mt-px size-3.5 shrink-0', tone === 'brand' ? 'text-brand' : tone === 'ai' ? 'text-[var(--brand-agent)]' : 'text-muted')} />
+      <Icon className={cn('mt-px size-3.5 shrink-0', tone === 'brand' ? 'text-brand' : 'text-muted')} />
       <span className="line-clamp-2">{children}</span>
     </p>
   )
@@ -180,38 +179,33 @@ function FollowUp({ o, className }: { o: Opportunity; className: string }) {
   return (
     <>
       <button type="button" className={className} onClick={() => setMsg(true)}>
-        Follow up with {o.person.name.split(' ')[0]}
+        <Mail className="size-3.5" /> Follow up with {o.person.name.split(' ')[0]}
       </button>
       {msg && <MessageDialog o={o} open={msg} onOpenChange={setMsg} />}
     </>
   )
 }
 
-/** A report reads as the same card as a project, in Revive AI purple: purple badge and outline, value tiles instead of progress. */
+/** A report reads as the same card as a project: a Revive-blue badge and outline, value today -> potential, and
+ * the homeowner's activity in the same gray strip as Lead activity on Top opportunities. */
 function ReportCard({ o, signal }: { o: Opportunity; signal: string }) {
   const to = `/property/${o.id}?tab=report`
   return (
-    <article className={cn(CARD, 'border-[var(--brand-agent-border)]')}>
-      <Photo to={to} photo={o.property.photo} tone="ai" badge={<><Sparkles className="size-3" /> Revive AI report</>} />
+    <article className={cn(CARD, 'border-[var(--brand-primary-border)]')}>
+      <Photo to={to} photo={o.property.photo} tone="brand" badge={<><Sparkles className="size-3" /> Revive AI report</>} />
       <div className="flex flex-1 flex-col gap-3 p-4">
         <Title to={to} title={o.property.address} city={who(o.property.city, o)} />
-        {/* same shape as a project's progress: one label row, then a bar (today's value against the potential) */}
-        <div>
-          <div className="flex items-baseline justify-between gap-2 text-[13px]">
-            <span className="flex min-w-0 items-center gap-1 truncate font-medium text-ink tabular-nums">
-              {money(o.property.valueNow)} <ArrowRight className="size-3 shrink-0 text-muted" /> {money(o.property.valueNow + o.gain)}
-            </span>
-            <span className="shrink-0 font-semibold text-[var(--green)] tabular-nums">{gain(o.gain)}</span>
-          </div>
-          <div className="mt-1.5 flex h-2 overflow-hidden rounded-full bg-line-soft" role="img" aria-label={`Value today ${money(o.property.valueNow)}, potential ${money(o.property.valueNow + o.gain)}`}>
-            <span className="bg-[var(--brand-agent-border)]" style={{ width: `${Math.round((o.property.valueNow / (o.property.valueNow + o.gain)) * 100)}%` }} />
-            <span className="flex-1 bg-[var(--green)]" />
-          </div>
+        <div className="flex items-baseline justify-between gap-2 text-[13px]">
+          <span className="flex min-w-0 items-center gap-1 truncate font-medium text-ink tabular-nums">
+            {money(o.property.valueNow)} <ArrowRight className="size-3 shrink-0 text-muted" /> {money(o.property.valueNow + o.gain)}
+          </span>
+          <span className="shrink-0 font-semibold text-[var(--green)] tabular-nums">{gain(o.gain)}</span>
         </div>
-        <Note icon={Eye} tone="ai">
-          {signal}
-        </Note>
-        <FollowUp o={o} className={cn(AI_ACTION, 'mt-auto')} />
+        <p className="flex items-start gap-2 rounded-lg bg-head px-3 py-2 text-[12.5px] leading-[18px] text-ink-2">
+          <Eye className="mt-px size-3.5 shrink-0 text-muted" />
+          <span className="line-clamp-2">{signal}</span>
+        </p>
+        <FollowUp o={o} className={cn(ACTION, 'mt-auto')} />
       </div>
     </article>
   )
