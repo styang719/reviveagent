@@ -342,43 +342,79 @@ export function crmSignal(o: Opportunity): string | null {
   return null
 }
 
-/** Same test without hooks, for sorting a list: a reply waiting, or fresh lead activity not yet followed up. */
-export const needsAttention = (o: Opportunity, out: Outreach | undefined, logged?: string[]) =>
-  (!!out?.reply && !out.answeredAt) || (!!(leadSignal(o, logged) ?? crmSignal(o)) && !out)
+/** A lead signal that is a reply waiting on the agent (vs. engagement: opens, lead-form reports). */
+export const isReplySignal = (text: string) => / replied .*waiting on you/.test(text)
 
+/**
+ * How much a row should stand out: 'reply' (a reply waiting on the agent: strongest), 'engaged' (fresh lead
+ * activity not yet followed up: quieter), or null.
+ */
+export function attentionOf(o: Opportunity, out: Outreach | undefined, logged?: string[]): 'reply' | 'engaged' | null {
+  if (out?.reply && !out.answeredAt) return 'reply'
+  if (out) return null
+  const signal = leadSignal(o, logged) ?? crmSignal(o)
+  return signal ? (isReplySignal(signal) ? 'reply' : 'engaged') : null
+}
+const RANK = { reply: 2, engaged: 1 } as const
+/** For sorting a list: replies waiting first, then engaged leads, then everything else. */
+export const attentionRank = (o: Opportunity, out: Outreach | undefined, logged?: string[]) => {
+  const a = attentionOf(o, out, logged)
+  return a ? RANK[a] : 0
+}
+export const needsAttention = (o: Opportunity, out: Outreach | undefined, logged?: string[]) => !!attentionOf(o, out, logged)
+
+export function useAttention(o: Opportunity) {
+  return attentionOf(o, useDemo((s) => s.outreach[o.id]), useDemo((s) => s.activity[o.id]))
+}
 /** True when a card should stand out: a reply waiting on the agent, or fresh lead activity. */
 export function useNeedsAttention(o: Opportunity) {
-  const out = useDemo((s) => s.outreach[o.id])
-  const signal = useLeadSignal(o)
-  return (!!out?.reply && !out.answeredAt) || (!!signal && !out)
+  return !!useAttention(o)
 }
 
-/** The lead-activity version of the reply strip: what they did, and the two ways to follow up. */
+/**
+ * The lead-activity version of the reply strip. A reply waiting on the agent stands out (brand border, their
+ * words, a primary Reply button); engagement (opens, a lead-form report) stays quiet with a secondary Follow up.
+ */
 export function LeadStrip({ o, text, onMessage }: { o: Opportunity; text: string; onMessage: () => void }) {
   const stop = (e: React.SyntheticEvent) => e.stopPropagation()
   const first = o.person ? firstName(o.person.name) : 'them'
-  return (
-    <div onClick={stop} onKeyDown={stop} className="col-span-full cursor-default rounded-xl border border-[var(--brand-primary-border-subtle)] bg-[var(--brand-primary-subtle)] p-3.5">
-      <p className="flex flex-wrap items-center gap-2 text-[13.5px] font-semibold text-ink">
-        <Eye className="size-4 text-brand" /> Lead activity
-        {/ replied /.test(text) && /waiting on you/.test(text) ? (
+  const call = () => toast.success(`Call request sent to ${ADVISOR.first} at Revive`, { description: `He’ll reach out within one business day to walk through ${o.property.address} with you.` })
+  if (isReplySignal(text)) {
+    const m = /^(.*?): “(.*)”( · .*)?$/.exec(text)
+    return (
+      <div onClick={stop} onKeyDown={stop} className="col-span-full cursor-default rounded-xl border-2 border-[var(--brand-primary)] bg-[var(--brand-primary-subtle)] p-4">
+        <p className="flex flex-wrap items-center gap-2 text-[14px] font-semibold text-ink">
+          <Reply className="size-4 text-brand" /> {m ? m[1] : text}
           <span className="rounded-md bg-[var(--brand-primary)] px-1.5 py-0.5 text-[11px] font-semibold text-white">Replied</span>
-        ) : (
-          <span className="rounded-md bg-ok-soft px-1.5 py-0.5 text-[11px] font-semibold text-[var(--green)]">Engaged</span>
-        )}
+        </p>
+        {m && <p className="mt-2 rounded-lg bg-white px-3.5 py-2.5 text-[14px] leading-5 text-ink shadow-card">“{m[2]}”</p>}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {o.person && (
+            <Button size="sm" onClick={onMessage}>
+              <Reply /> Reply to {first}
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={call}>
+            Book a call with Revive
+          </Button>
+          {m?.[3] && <span className="ml-auto text-[12px] text-muted">{m[3].replace(/^ · /, '')}</span>}
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div onClick={stop} onKeyDown={stop} className="col-span-full flex cursor-default flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-head px-3.5 py-2.5">
+      <p className="flex min-w-0 flex-1 basis-64 items-start gap-2 text-[13px] leading-5 text-ink-2">
+        <Eye className="mt-0.5 size-3.5 shrink-0 text-muted" />
+        <span>{text}</span>
       </p>
-      <p className="mt-1.5 text-[13.5px] leading-5 text-ink-2">{text}</p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5">
         {o.person && (
-          <Button size="sm" onClick={onMessage}>
-            <Mail /> Email {first}
+          <Button size="sm" variant="secondary" className="bg-line text-ink hover:bg-[#d8dadf]" onClick={onMessage}>
+            <Mail /> Follow up
           </Button>
         )}
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => toast.success(`Call request sent to ${ADVISOR.first} at Revive`, { description: `He’ll reach out within one business day to walk through ${o.property.address} with you.` })}
-        >
+        <Button size="sm" variant="ghost" className="text-ink-2" onClick={call}>
           Book a call with Revive
         </Button>
       </div>
@@ -462,7 +498,7 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
   const out = useDemo((s) => s.outreach[o.id])
   const waiting = !!out?.reply && !out.answeredAt
   const signal = useLeadSignal(o)
-  const attention = useNeedsAttention(o)
+  const attention = useAttention(o)
   return (
     <li id={`opp-${o.id}`}>
       <div
@@ -476,7 +512,7 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
         className={cn(
           'group grid cursor-pointer grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md',
           '@[600px]:grid-cols-[auto_56px_minmax(0,1.35fr)_minmax(124px,0.95fr)_minmax(76px,0.7fr)_minmax(118px,1fr)_44px] @[600px]:gap-x-3.5',
-          attention && 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]',
+          attention === 'reply' && 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]',
           done && 'bg-head shadow-none',
           active && 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]',
         )}
@@ -561,7 +597,7 @@ export function TopOpportunities({ opps }: { opps: Opportunity[] }) {
   const open = opps.find((o) => o.id === openId) ?? null
   // a reply waiting on the agent comes first; everything else keeps its rank
   const activity = useDemo((s) => s.activity)
-  const rows = [...opps].sort((a, b) => Number(needsAttention(b, outreach[b.id], activity[b.id])) - Number(needsAttention(a, outreach[a.id], activity[a.id])))
+  const rows = [...opps].sort((a, b) => attentionRank(b, outreach[b.id], activity[b.id]) - attentionRank(a, outreach[a.id], activity[a.id]))
 
   return (
     <section aria-labelledby="top-opps">

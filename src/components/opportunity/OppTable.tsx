@@ -1,6 +1,6 @@
 import { Mail, MailCheck } from 'lucide-react'
 import { useState } from 'react'
-import { img, LeadStrip, OutreachStrip, Ring, ScoreCell, TagPill, tagsOf, useLeadSignal, useNeedsAttention } from '@/components/home/TopOpportunities'
+import { img, LeadStrip, OutreachStrip, Ring, ScoreCell, TagPill, tagsOf, useAttention, useLeadSignal } from '@/components/home/TopOpportunities'
 import { firstName, gain, money } from '@/lib/format'
 import type { Opportunity } from '@/lib/opportunities'
 import { cn } from '@/lib/utils'
@@ -40,7 +40,7 @@ function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => voi
   const [msg, setMsg] = useState(false)
   const waiting = !!out?.reply && !out.answeredAt
   const signal = useLeadSignal(o)
-  const attention = useNeedsAttention(o)
+  const attention = useAttention(o)
   const tags = tagsOf(o)
   const listing = o.property.source === 'listings'
   return (
@@ -48,7 +48,7 @@ function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => voi
       id={`opp-${o.id}`}
       className={cn(
         'relative border-b border-line-soft',
-        attention && 'my-2 rounded-xl border border-[var(--brand-primary-border)] bg-white shadow-card ring-1 ring-[var(--brand-primary-border)]',
+        attention === 'reply' && 'my-2 rounded-xl border border-[var(--brand-primary)] bg-white shadow-card ring-1 ring-[var(--brand-primary)]',
         active && 'bg-[var(--brand-primary-subtle)]/60',
       )}
     >
