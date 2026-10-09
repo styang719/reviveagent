@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 import { inPhoneFrame } from './mode'
+import { ViewSwitch } from './ViewSwitch'
 
 // More: everything that isn't a tab. Opportunities as a list, Marketing center, Inbox, Refer & Earn, the
 // Revive advisor, the marketing profile, and (outside the phone frame) the demo scenario switch.
@@ -94,6 +95,12 @@ export default function MobileMore() {
       </ul>
 
       {/* on a phone there's no demo bar, so the scenarios live here (in the frame they sit beside the phone) */}
+      {!inPhoneFrame() && (
+        <section className="mx-3 mt-6 flex items-center justify-between gap-3">
+          <p className="px-1 text-[12px] font-semibold tracking-wide text-muted uppercase">Prototype view</p>
+          <ViewSwitch tone="light" />
+        </section>
+      )}
       {!inPhoneFrame() && (
         <section className="mx-3 mt-6">
           <p className="px-1 text-[12px] font-semibold tracking-wide text-muted uppercase">Demo scenario</p>

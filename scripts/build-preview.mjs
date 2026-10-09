@@ -31,9 +31,3 @@ mkdirSync('preview', { recursive: true })
 writeFileSync('preview/revive-prototype.html', html)
 console.log('preview/revive-prototype.html', (html.length / 1024).toFixed(0) + ' KB')
 
-// The mobile prototype: the same app, opened on /m and kept there (src/mobile/mode.ts reads the flag).
-const mobile = html
-  .replace('<title>Revive Agent Prototype</title>', '<title>Revive Mobile Prototype</title>')
-  .replace('<div id="root"></div>', `<script>window.reviveMobileApp = true; if (!location.hash.startsWith('#/m')) location.hash = '#/m'</script>\n<div id="root"></div>`)
-writeFileSync('preview/revive-mobile.html', mobile)
-console.log('preview/revive-mobile.html', (mobile.length / 1024).toFixed(0) + ' KB')

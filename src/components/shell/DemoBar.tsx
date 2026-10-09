@@ -5,6 +5,7 @@ import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
+import { ViewSwitch } from '@/mobile/ViewSwitch'
 
 export const DEMO_BAR_HEIGHT = 44
 
@@ -33,6 +34,7 @@ export function DemoBar() {
       aria-label="Demo controls"
     >
       <span className="shrink-0 rounded bg-white/10 px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase">Demo</span>
+      <ViewSwitch />
       <span className="shrink-0">View as</span>
       <div className="flex shrink-0 rounded-lg bg-white/10 p-0.5" role="radiogroup" aria-label="Demo scenario">
         {scenarios.map((sc) => (

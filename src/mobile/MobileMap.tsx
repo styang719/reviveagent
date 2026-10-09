@@ -132,14 +132,14 @@ export default function MobileMap() {
       const cm = c.offsetLeft + c.offsetWidth / 2
       if (Math.abs(cm - mid) < d) {
         d = Math.abs(cm - mid)
-        best = c.dataset.id ?? null
+        best = c.dataset.opp ?? null
       }
     }
     if (best && best !== active) setActive(best)
   }
   const pickPin = (id: string) => {
     setActive(id)
-    const el = row.current?.querySelector<HTMLElement>(`[data-id="${id}"]`)
+    const el = row.current?.querySelector<HTMLElement>(`[data-opp="${id}"]`)
     el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
   }
   useEffect(() => setActive(null), [filter, needle])
@@ -205,7 +205,7 @@ export default function MobileMap() {
         className="absolute inset-x-0 bottom-3 z-[500] flex snap-x snap-mandatory gap-3 overflow-x-auto px-[calc(50%-150px)] pb-1 [scrollbar-width:none]"
       >
         {shown.map((o) => (
-          <div key={o.id} data-id={o.id} className={cn('transition-transform', o.id === activeOpp?.id ? 'scale-100' : 'scale-95 opacity-90')}>
+          <div key={o.id} data-opp={o.id} className={cn('transition-transform', o.id === activeOpp?.id ? 'scale-100' : 'scale-95 opacity-90')}>
             <Card o={o} />
           </div>
         ))}

@@ -1,29 +1,29 @@
-// The mobile prototype runs the same app under /m with its own layout. It's "on" in the published mobile
-// build (the page sets window.reviveMobileApp) or once you've opened /m in this tab during development.
-// While on, any link to a desktop page lands on its /m twin instead, so the whole app stays mobile.
+// The app has two views in one prototype: desktop (the usual routes) and mobile (the same app under /m with
+// its own shell). Pick one from the View dropdown; it sticks for this tab. While mobile is on, any link to a
+// desktop page lands on its /m twin instead, so the whole app stays mobile.
 
-const KEY = 'revive-mobile'
+const KEY = 'revive-view'
 export const PHONE_FRAME_NAME = 'revive-phone'
+
+type Win = Window & { reviveMobileApp?: boolean }
 
 export function isMobileApp() {
   if (typeof window === 'undefined') return false
-  if ((window as unknown as { reviveMobileApp?: boolean }).reviveMobileApp) return true
+  const w = window as Win
+  if (typeof w.reviveMobileApp === 'boolean') return w.reviveMobileApp
   try {
-    return sessionStorage.getItem(KEY) === '1'
+    return sessionStorage.getItem(KEY) === 'mobile'
   } catch {
     return false
   }
 }
 
 export function setMobileApp(on: boolean) {
-  // only while developing: the published mobile page sets its own flag, and a stored one could leak into
-  // the desktop prototype if both were ever opened in the same tab
-  if (!import.meta.env.DEV) return
+  ;(window as Win).reviveMobileApp = on
   try {
-    if (on) sessionStorage.setItem(KEY, '1')
-    else sessionStorage.removeItem(KEY)
+    sessionStorage.setItem(KEY, on ? 'mobile' : 'desktop')
   } catch {
-    // storage blocked: the flag only lasts while you stay under /m
+    // storage blocked: the choice lasts until the page reloads
   }
 }
 

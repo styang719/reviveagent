@@ -9,6 +9,7 @@ import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { inPhoneFrame, PHONE_FRAME_NAME, setMobileApp } from './mode'
+import { ViewSwitch } from './ViewSwitch'
 
 // Mobile prototype shell: Revive AI is home, the map sits in the middle of the tab bar, and Homes, Leads and
 // More hold the rest. On a wide screen the app runs inside a phone frame (an iframe, so every page lays out
@@ -74,8 +75,9 @@ function PhoneShell() {
     setTimeout(() => frame.current?.contentWindow?.location.reload(), 50)
   }
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center gap-16 bg-[radial-gradient(120%_120%_at_0%_0%,var(--brand-primary-subtle)_0%,#fff_55%)] p-8">
+    <div className="relative flex min-h-[100dvh] items-center justify-center gap-16 bg-[radial-gradient(120%_120%_at_0%_0%,var(--brand-primary-subtle)_0%,#fff_55%)] p-8">
       <div className="hidden max-w-xs flex-col gap-6 lg:flex">
+        <ViewSwitch tone="light" />
         <span className="grid size-12 place-items-center rounded-2xl bg-navy">
           <ReviveMark className="h-7 w-auto" />
         </span>
@@ -100,6 +102,9 @@ function PhoneShell() {
           </div>
         </div>
         <p className="text-[12.5px] text-faint">Sample data. Open this page on your phone to use it full screen.</p>
+      </div>
+      <div className="absolute top-4 left-4 lg:hidden">
+        <ViewSwitch tone="light" />
       </div>
       <div className="relative h-[844px] max-h-[calc(100dvh-64px)] w-[390px] shrink-0 overflow-hidden rounded-[52px] border-[12px] border-navy bg-white shadow-[0_30px_80px_rgba(28,46,88,0.35)]">
         <iframe ref={frame} name={PHONE_FRAME_NAME} title="Revive mobile prototype" src={src} className="size-full border-0" />
