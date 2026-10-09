@@ -75,7 +75,7 @@ export default function MobileChat() {
                 <button
                   key={s.label}
                   onClick={() => (s.run ? s.run() : ask(s.label))}
-                  className="flex min-h-[84px] flex-col justify-between gap-1.5 rounded-[22px] border border-white/80 bg-white/60 p-3.5 text-left text-[14px] leading-[19px] font-medium text-ink shadow-[0_2px_10px_rgba(28,46,88,0.05)] backdrop-blur-sm active:bg-white/90"
+                  className="flex min-h-[76px] flex-col justify-between gap-1 rounded-[22px] border border-white/80 bg-white/60 p-3 text-left text-[14px] leading-[19px] font-medium text-ink shadow-[0_2px_10px_rgba(28,46,88,0.05)] backdrop-blur-sm active:bg-white/90"
                 >
                   <span className="grid size-8 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-brand">
                     <s.icon className="size-4" />

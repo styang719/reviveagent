@@ -82,40 +82,43 @@ export function TodayChecklist() {
     })
 
   return (
-    // a navy card, so the to-dos read apart from the prompt tiles below
-    <section aria-labelledby="today-title" className="mt-4 overflow-hidden rounded-[22px] bg-[radial-gradient(120%_90%_at_100%_0%,#2b4580_0%,var(--navy)_60%,#141f3d_100%)] p-1.5 text-white shadow-[0_10px_28px_rgba(28,46,88,0.25)]">
-      <div className="flex items-center justify-between px-3 pt-2 pb-1">
-        <h2 id="today-title" className="text-[15px] font-semibold">
+    // a soft blue card with each to-do in its own white row, so the list reads apart from the prompt tiles below
+    <section
+      aria-labelledby="today-title"
+      className="mt-4 rounded-[24px] border border-[var(--brand-primary-border-subtle)] bg-[linear-gradient(160deg,#eaf0fc_0%,#f1effc_100%)] p-2.5"
+    >
+      <div className="flex items-center justify-between px-1.5 pt-0.5 pb-2">
+        <h2 id="today-title" className="text-[15px] font-semibold text-ink">
           Today
         </h2>
-        <span className="rounded-full bg-white/12 px-2 py-0.5 text-[12px] font-medium text-white/85 tabular-nums">{left ? `${left} to do` : 'All done'}</span>
+        <span className="rounded-full bg-white px-2 py-0.5 text-[12px] font-medium text-brand tabular-nums">{left ? `${left} to do` : 'All done'}</span>
       </div>
-      <ul className="flex flex-col">
+      <ul className="flex flex-col gap-2">
         {todos.map((t) => {
           const isDone = done.has(t.id)
           return (
-            <li key={t.id} className="flex items-center">
+            <li key={t.id} className={cn('flex items-center rounded-2xl bg-white shadow-[0_1px_4px_rgba(28,46,88,0.06)] transition-opacity', isDone && 'opacity-60')}>
               <button
                 onClick={() => toggle(t.id)}
                 aria-pressed={isDone}
                 aria-label={isDone ? `Mark “${t.title}” not done` : `Mark “${t.title}” done`}
-                className="grid size-11 shrink-0 place-items-center"
+                className="grid size-12 shrink-0 place-items-center"
               >
-                <span className={cn('grid size-[22px] place-items-center rounded-full border-[1.5px] transition-colors', isDone ? 'border-[var(--teal)] bg-[var(--teal)] text-navy' : 'border-white/45')}>
+                <span className={cn('grid size-[22px] place-items-center rounded-full border-[1.5px] transition-colors', isDone ? 'border-[var(--green)] bg-[var(--green)] text-white' : 'border-[#c4cad6]')}>
                   {isDone && <Check className="size-3.5" strokeWidth={3} />}
                 </span>
               </button>
-              <Link to={t.to} className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl py-2 pr-2.5 active:bg-white/5">
+              <Link to={t.to} className="flex min-w-0 flex-1 items-center gap-2 py-2.5 pr-3">
                 <span className="min-w-0 flex-1">
-                  <span className={cn('block truncate text-[14.5px] font-medium', isDone && 'text-white/50 line-through')}>{t.title}</span>
-                  <span className={cn('mt-0.5 flex items-center gap-1.5 text-[12px] text-white/60', isDone && 'opacity-60')}>
-                    <span className={cn('inline-flex shrink-0 items-center gap-1 font-semibold', t.tone === 'lead' ? 'text-[#9db8ff]' : t.tone === 'project' ? 'text-[var(--teal)]' : 'text-[#d6b4f5]')}>
+                  <span className={cn('block truncate text-[14.5px] font-medium text-ink', isDone && 'text-muted line-through')}>{t.title}</span>
+                  <span className="mt-1 flex items-center gap-1.5 text-[12px] text-muted">
+                    <span className={cn('inline-flex shrink-0 items-center gap-1 font-semibold', t.tone === 'lead' ? 'text-brand' : t.tone === 'project' ? 'text-[var(--green)]' : 'text-[var(--brand-agent)]')}>
                       <t.icon className="size-3" /> {t.label}
                     </span>
                     <span className="truncate">· {t.sub}</span>
                   </span>
                 </span>
-                <ChevronRight className="size-4 shrink-0 text-white/40" />
+                <ChevronRight className="size-4 shrink-0 text-faint" />
               </Link>
             </li>
           )
