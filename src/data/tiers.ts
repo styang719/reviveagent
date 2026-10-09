@@ -55,7 +55,7 @@ export const TIERS: Record<Tier, TierConfig> = {
     earnedNote: 'from 4 deals',
     greeting: ({ opportunities, newReferral }) =>
       newReferral
-        ? 'You have a new homeowner referral. Claim it before it expires.'
+        ? 'You have a new homeowner referral from Revive. Reach out within 24 hours.'
         : `Your referrals are moving, and there are ${opportunities} opportunities to act on in your book.`,
   },
 }

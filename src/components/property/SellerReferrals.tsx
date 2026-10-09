@@ -38,7 +38,8 @@ const initials = (s: string) =>
     .slice(0, 2)
     .join('')
 
-export function ReferralCard({ o }: { o: Opportunity }) {
+/** `action`: the next step to show in the gray box instead of the default (e.g. the dashboard's countdown). */
+export function ReferralCard({ o, action }: { o: Opportunity; action?: string }) {
   const r = o.referral!
   const st = REFERRAL_STATUS[r.status]
   const Icon = st.icon
@@ -65,7 +66,7 @@ export function ReferralCard({ o }: { o: Opportunity }) {
           // what to do now, in the same gray strip as Lead activity; fixed height so cards line up
           <p className="flex min-h-[84px] items-start gap-2.5 rounded-xl bg-head px-3.5 py-3 text-[14px] leading-5 text-ink-2">
             <ActionIcon className="mt-0.5 size-4 shrink-0 text-brand" />
-            <span className="line-clamp-3">{actionFor(r.status, o.person?.name.split(' ')[0] ?? 'the homeowner')}</span>
+            <span className="line-clamp-3">{action ?? actionFor(r.status, o.person?.name.split(' ')[0] ?? 'the homeowner')}</span>
           </p>
         ) : (
           <p className="text-[14px] leading-5 text-ink-2">{st.body}</p>

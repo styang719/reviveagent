@@ -1,8 +1,7 @@
 import { DiscussProperty } from '@/components/home/DiscussProperty'
 import { AdvisorCard } from '@/components/home/AdvisorCard'
 import { ReviveHomes, useReviveHomes } from '@/components/home/ReviveHomes'
-import { ReferralHero } from '@/components/home/ReferralHero'
-import { ReferralUpdates } from '@/components/home/ReferralUpdates'
+import { ReferralsToday } from '@/components/home/ReferralsToday'
 import { ReferEarn } from '@/components/home/ReferralCards'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { SetupTodo } from '@/components/home/ConnectBook'
@@ -31,7 +30,6 @@ export default function Home() {
   const importing = useUi((s) => s.importing)
 
   const newReferral = opps.find((o) => o.referral?.status === 'new' && !o.referral.claimedAt && o.referral.expiresAt > now)
-  const waiting = opps.filter((o) => o.referral?.needsUpdateNow && o.id !== newReferral?.id)
   const projects = opps.filter((o) => o.stage === 'project' && o.property.project?.status === 'active')
   const feed = opps.filter((o) => isActionable(o) && o.referral?.status !== 'new')
   const actionableCount = opps.filter(isActionable).length
@@ -103,8 +101,7 @@ export default function Home() {
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-12 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex min-w-0 flex-col gap-12">
           <ReviveAiIntro />
-          {newReferral && <ReferralHero o={newReferral} />}
-          {tier === 'partner' && <ReferralUpdates waiting={waiting} />}
+          {tier === 'partner' && <ReferralsToday opps={opps} />}
           <ReviveHomes items={reviveHomes} />
           {whoToCall}
         </div>
