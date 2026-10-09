@@ -1,8 +1,6 @@
 import { ArrowRight, Check, HousePlus, Sparkles, TrendingUp } from 'lucide-react'
 import { AiLink } from '@/components/ai/AiLink'
-import after from '@/assets/cases/case-2.jpg'
 import { Button } from '@/components/ui/button'
-import { photoUrl } from '@/lib/assets'
 import { StartWithRevive } from './StartWithRevive'
 
 // Homes, before there's anything on it: two cards that say what each section is for and why it's worth
@@ -97,38 +95,3 @@ export function ReportsEmpty() {
   )
 }
 
-/** A third way in: see any home renovated with RenoVision, before there's a project or report. */
-export function RenoVisionInvite() {
-  return (
-    <div className="grid items-center gap-6 overflow-hidden rounded-2xl bg-navy text-white shadow-card md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-      <div className="p-6 sm:p-8">
-        <p className="text-[11.5px] font-semibold tracking-[0.12em] text-[var(--teal)] uppercase">New · RenoVision</p>
-        <h3 className="mt-2 text-[22px] leading-7 font-semibold">Show a homeowner their home, renovated</h3>
-        <p className="mt-2 text-[14px] leading-6 text-white/75">Pick a home or upload a few photos, choose a style, and RenoVision renders the after. It’s the fastest way to start the Revive conversation.</p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          {['Modern farmhouse', 'Contemporary', 'California coastal'].map((x) => (
-            <span key={x} className="rounded-full bg-white/10 px-3 py-1 text-[12px] text-white/85">
-              {x}
-            </span>
-          ))}
-        </div>
-        <Button asChild className="mt-6 h-11 bg-white px-5 text-navy hover:bg-white/90">
-          <AiLink to="/ai?flow=renovision">
-            <Sparkles /> Try RenoVision
-          </AiLink>
-        </Button>
-      </div>
-      <div className="relative grid h-full min-h-56 grid-cols-2">
-        <span className="relative">
-          <img src={photoUrl('comp-100-0')} alt="" className="absolute inset-0 size-full object-cover" />
-          <span className="absolute bottom-3 left-3 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-semibold">Before</span>
-        </span>
-        <span className="relative">
-          <img src={after} alt="" className="absolute inset-0 size-full object-cover" />
-          <span className="absolute bottom-3 left-3 rounded-md bg-[var(--brand-primary)] px-2 py-0.5 text-[11px] font-semibold">After · Contemporary</span>
-        </span>
-        <span className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-white" aria-hidden="true" />
-      </div>
-    </div>
-  )
-}

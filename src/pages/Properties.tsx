@@ -2,7 +2,7 @@ import { ArrowRight, Calendar, Search, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AiLink } from '@/components/ai/AiLink'
-import { ProjectsEmpty, RenoVisionInvite, ReportsEmpty } from '@/components/property/HomesEmpty'
+import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
 import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
@@ -252,9 +252,6 @@ export default function Properties() {
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             <ProjectsEmpty />
             <ReportsEmpty />
-          </div>
-          <div className="mt-6">
-            <RenoVisionInvite />
           </div>
         </>
       ) : (
