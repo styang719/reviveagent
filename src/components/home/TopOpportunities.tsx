@@ -26,6 +26,7 @@ const SOURCE: Record<Source, string> = {
   leadform: 'Lead form',
   revive: 'Revive lead',
   search: 'Report you ran',
+  market: 'Nearby listing',
 }
 
 const PRIORITY = {

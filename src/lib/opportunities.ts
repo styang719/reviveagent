@@ -47,6 +47,7 @@ export const SOURCE_LABEL: Record<Source, string> = {
   leadform: 'Lead form',
   revive: 'Revive lead',
   search: 'Report I ran',
+  market: 'Nearby listing',
 }
 
 export const STAGE_LABEL: Record<Stage, string> = {
@@ -94,6 +95,7 @@ function ctaFor(p: Property, person: Person | undefined, stage: Stage, score: Ur
   if (score.urgency === 'hold') return { kind: 'activity', label: `See ${name}’s history` }
   if (score.urgency === 'verify') return { kind: 'verify', label: 'Check the value' }
   if (p.source === 'listings') return { kind: 'propose', label: 'Propose Revive to seller' }
+  if (p.source === 'market') return { kind: 'propose', label: 'Reach out to the owner' }
   if (p.source === 'leadform' || p.source === 'revive') return { kind: 'followup', label: `Follow up with ${name}` }
   return { kind: 'share', label: person ? `Share report with ${name}` : 'Share report' }
 }
@@ -111,7 +113,7 @@ interface BuildState {
 
 /** Which connection a source needs before Revive can see it. */
 export function sourceConnected(source: Source, c: { crm: boolean; mls: boolean }) {
-  if (source === 'listings') return c.mls
+  if (source === 'listings' || source === 'market') return c.mls
   if (source === 'contacts' || source === 'leadform') return c.crm
   return true
 }

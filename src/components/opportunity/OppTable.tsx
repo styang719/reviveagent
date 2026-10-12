@@ -11,9 +11,22 @@ import { MessageDialog } from './MessageDialog'
 // with the Revive upside, what Revive spotted, and a message button. The bar on the left says how soon.
 
 // narrow (the list is half the page): the score is just its ring; wide: ring and label
-const SOURCE: Record<string, string> = { listings: 'MLS listing', contacts: 'Contact', leadform: 'Lead form', revive: 'Revive lead', search: 'Report' }
+const SOURCE: Record<string, string> = { listings: 'MLS listing', contacts: 'Contact', leadform: 'Lead form', revive: 'Revive lead', search: 'Report', market: 'Nearby listing' }
 
 const COLS = 'grid grid-cols-[minmax(0,1fr)_64px_76px_118px_40px] @[720px]:grid-cols-[minmax(0,1.7fr)_minmax(124px,1fr)_minmax(80px,0.7fr)_minmax(124px,1fr)_40px] items-center gap-x-3'
+
+/** A nearby listing that came off the market: how and when, in place of a selling score. */
+function MarketStatus({ o }: { o: Opportunity }) {
+  const f = o.property.facts
+  const label = f.expiredDaysAgo !== undefined ? 'Expired' : 'Withdrawn'
+  const d = f.expiredDaysAgo ?? f.withdrawnDaysAgo ?? 0
+  return (
+    <div className="flex flex-col items-start gap-0.5">
+      <span className="rounded-md bg-warn-soft px-1.5 py-0.5 text-[11px] font-semibold text-warn">{label}</span>
+      <span className="text-[11.5px] text-muted tabular-nums">{d < 14 ? `${d}d ago` : d < 60 ? `${Math.round(d / 7)}w ago` : `${Math.round(d / 30)}mo ago`}</span>
+    </div>
+  )
+}
 
 /** The score column when space is tight: the ring alone, or for a listing the Listed badge and days on market. */
 function ScoreCompact({ o }: { o: Opportunity }) {
@@ -42,7 +55,8 @@ function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => voi
   const signal = useLeadSignal(o)
   const attention = useAttention(o)
   const tags = tagsOf(o)
-  const listing = o.property.source === 'listings'
+  const listing = o.property.source === 'listings' || o.property.source === 'market'
+  const market = o.property.source === 'market'
   return (
     <li
       id={`opp-${o.id}`}
@@ -70,20 +84,28 @@ function Row({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => voi
               <span className="truncate text-[14.5px] font-semibold text-ink" title={listing ? o.person?.name : o.property.address}>
                 {listing ? o.property.address : (o.person?.name ?? o.property.address)}
               </span>
-              <span className={cn('shrink-0 rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold whitespace-nowrap', listing ? 'bg-[var(--brand-primary-subtle)] text-brand' : 'bg-head text-ink-2')}>
-                {SOURCE[o.property.source]}
-              </span>
+              {!market && (
+                <span className={cn('shrink-0 rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold whitespace-nowrap', listing ? 'bg-[var(--brand-primary-subtle)] text-brand' : 'bg-head text-ink-2')}>
+                  {SOURCE[o.property.source]}
+                </span>
+              )}
             </p>
             <p className={cn('line-clamp-2 text-[12.5px] leading-[1.35] font-medium', WHY[o.urgency] ?? 'text-muted')}>{o.reasons[0]}</p>
           </div>
         </div>
         <div>
-          <div className="@[720px]:hidden">
-            <ScoreCompact o={o} />
-          </div>
-          <div className="hidden @[720px]:block">
-            <ScoreCell o={o} />
-          </div>
+          {market ? (
+            <MarketStatus o={o} />
+          ) : (
+            <>
+              <div className="@[720px]:hidden">
+                <ScoreCompact o={o} />
+              </div>
+              <div className="hidden @[720px]:block">
+                <ScoreCell o={o} />
+              </div>
+            </>
+          )}
         </div>
         <div className="tabular-nums">
           <p className="text-[15px] font-bold text-ink">{money(o.property.valueNow)}</p>

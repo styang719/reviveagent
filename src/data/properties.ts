@@ -1,4 +1,5 @@
 import { contactProperties } from './contacts'
+import { marketProperties } from './market'
 import type { Property } from './types'
 
 // Sample data. Dollar figures are illustrative, not real valuations.
@@ -336,4 +337,4 @@ const briefProperties: Property[] = [
   },
 ]
 
-export const properties: Property[] = [...briefProperties, ...contactProperties]
+export const properties: Property[] = [...briefProperties, ...contactProperties, ...marketProperties]

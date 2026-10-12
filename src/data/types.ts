@@ -1,5 +1,5 @@
 export type Tier = 'new' | 'active' | 'partner' // 0, 1, 2+ deals
-export type Source = 'listings' | 'contacts' | 'leadform' | 'revive' | 'search'
+export type Source = 'listings' | 'contacts' | 'leadform' | 'revive' | 'search' | 'market' // market: other agents' expired or withdrawn MLS listings nearby
 export type Stage = 'spotted' | 'shared' | 'interested' | 'project'
 export type Urgency = 'now' | 'soon' | 'keep' | 'verify' | 'hold'
 export type Product = 'Renovate to Sell' | 'Renovate to Stay' | 'Sell 360' | 'Flip 360'
