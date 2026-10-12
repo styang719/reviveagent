@@ -50,33 +50,31 @@ interface Stat {
 }
 
 export interface NeedsYouItem {
-  kind: 'project' | 'report' | 'listing' // what the home is, for the type badge
-  reason: string // short eyebrow: why it's here
+  kind: 'project' | 'report' | 'listing'
+  pill: string // on the photo: the Revive product, or what the home is
+  status: string // top right: why it's here, short
   tone: 'blue' | 'green' | 'purple' | 'warn'
-  title: string
-  detail: string
-  stats: Stat[]
-  cta: string
+  stats: [Stat, Stat]
+  cta: string // the next step, on the gray button
   to: string
   icon: typeof Hammer
 }
 
-/** The one thing waiting on the agent for this home, with the context to act on it. */
+/** The one thing waiting on the agent for this home: why, two numbers and the next step. */
 export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined {
-  const who = h.person?.split(' ')[0] ?? 'The homeowner'
-  const upside: Stat = { label: 'with Revive', value: h.upside ? gain(h.upside) : '—', tone: 'green' }
+  const who = h.person?.split(' ')[0]
+  const upside: Stat = { label: 'With Revive', value: h.upside ? gain(h.upside) : '—', tone: 'green' }
   const p = h.project
   if (p?.next && p.next !== 'Offer terms arrive by email') {
     const photos = /photo/i.test(p.next)
     const pct = p.pct ?? Math.round(((p.step + 0.5) / p.steps) * 100)
     return {
       kind: 'project',
-      reason: 'Waiting on you',
+      pill: p.product,
+      status: 'Waiting on you',
       tone: 'blue',
-      title: p.next,
-      detail: `${p.stage}. ${photos ? 'Photos help Revive scope the work before the visit.' : 'Revive can’t move to the next step until you do.'}`,
-      stats: [{ label: p.status === 'active' ? 'built' : 'steps', value: p.status === 'active' ? `${pct}%` : `${p.step + 1} of ${p.steps}` }, upside],
-      cta: photos ? 'Upload photos' : 'Open project',
+      stats: [p.status === 'active' ? { label: 'Construction', value: `${pct}% done` } : { label: 'Project step', value: `${p.step + 1} of ${p.steps}` }, upside],
+      cta: p.next.replace(/ before .*$/, ''),
       to: `/property/${h.id}?tab=project`,
       icon: photos ? ImagePlus : Hammer,
     }
@@ -85,16 +83,15 @@ export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined 
   if (r?.share?.tone === 'opened' || r?.share?.tone === 'leadform') {
     const opened = r.share.tone === 'opened'
     const f = h.listing?.property.facts ?? h.facts
+    const days = opened ? f?.reportOpenedDaysAgo : f?.leadFormDaysAgo
+    const when = days === undefined ? '' : days === 0 ? ' today' : ` ${days}d ago`
     return {
       kind: 'report',
-      reason: opened ? 'Homeowner engaged' : 'New lead from your form',
+      pill: 'AI report',
+      status: opened ? `Opened report${when}` : `Ran a report${when}`,
       tone: opened ? 'green' : 'purple',
-      title: opened ? `${who} opened your report${f?.reportOpenedDaysAgo !== undefined ? ` ${f.reportOpenedDaysAgo === 0 ? 'today' : `${f.reportOpenedDaysAgo} days ago`}` : ''}` : `${who} ran a report on your lead form`,
-      detail: opened
-        ? `They looked at what ${h.address} could sell for after ${r.product ?? 'a Revive project'}. A good moment to follow up.`
-        : `${f?.leadFormDaysAgo !== undefined ? `${f.leadFormDaysAgo} days ago. ` : ''}Best fit is ${r.product ?? 'a Revive project'}. Reach out while it’s fresh.`,
-      stats: [{ label: 'today', value: money(r.valueNow) }, upside],
-      cta: 'Follow up',
+      stats: [{ label: 'Value today', value: money(r.valueNow) }, upside],
+      cta: who ? `Follow up with ${who}` : 'Follow up',
       to: `/property/${h.id}?tab=report`,
       icon: opened ? Eye : Send,
     }
@@ -106,12 +103,11 @@ export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined 
     if (stale || cut)
       return {
         kind: 'listing',
-        reason: 'Your listing is going stale',
+        pill: 'Your listing',
+        status: stale ? `${f.daysOnMarket} days on market` : 'Price cut this week',
         tone: 'warn',
-        title: stale ? `${f.daysOnMarket} days on market${cut ? ', price cut' : ''}` : `Price cut ${f.priceCutDaysAgo === 1 ? 'yesterday' : `${f.priceCutDaysAgo} days ago`}`,
-        detail: `${h.listing.product ?? 'A Revive project'} could add ${h.upside ? gain(h.upside) : 'value'} before it sells, paid at closing. Bring it to your seller.`,
-        stats: [{ label: 'days listed', value: String(f.daysOnMarket ?? '—'), tone: stale ? 'warn' : undefined }, upside],
-        cta: 'Propose Revive',
+        stats: [{ label: 'List price', value: money(h.listing.property.valueNow) }, upside],
+        cta: 'Propose Revive to your seller',
         to: `/property/${h.id}`,
         icon: TrendingDown,
       }
@@ -119,31 +115,10 @@ export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined 
   return undefined
 }
 
-const KIND = {
-  project: { label: 'Revive project', icon: Hammer, cls: 'bg-[var(--brand-primary)] text-white' },
-  report: { label: 'AI report', icon: FileText, cls: 'bg-white text-brand' },
-  listing: { label: 'Your listing', icon: Tag, cls: 'bg-white text-ink' },
-} as const
+const KIND_ICON = { project: Hammer, report: FileText, listing: Tag } as const
+const STATUS_TONE = { blue: 'text-brand', green: 'text-[var(--green)]', purple: 'text-[var(--brand-agent)]', warn: 'text-warn' } as const
 
-/** What the home is, pinned to the photo's corner: the same three kinds as the list's tags and tabs. */
-function KindBadge({ kind }: { kind: NeedsYouItem['kind'] }) {
-  const k = KIND[kind]
-  const Icon = k.icon
-  return (
-    <span className={cn('absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11.5px] font-semibold shadow-sm', k.cls)}>
-      <Icon className="size-3.5" /> {k.label}
-    </span>
-  )
-}
-
-const TONE = {
-  blue: { chip: 'bg-[var(--brand-primary-subtle)] text-brand' },
-  green: { chip: 'bg-ok-soft text-[var(--green)]' },
-  purple: { chip: 'bg-[var(--brand-agent-subtle)] text-[var(--brand-agent)]' },
-  warn: { chip: 'bg-warn-soft text-warn' },
-} as const
-
-/** The "Needs you" cards: up to four homes with something waiting on the agent, each with the why and the numbers. */
+/** The "Needs you" cards, in the property-card style: photo with its label, address and why, two numbers, the next step. */
 export function NeedsYou({ homes }: { homes: Home[] }) {
   const items = homes.filter((h) => h.needsYou).slice(0, 4)
   if (!items.length) return null
@@ -160,36 +135,39 @@ export function NeedsYou({ homes }: { homes: Home[] }) {
         {items.map((h) => {
           const n = h.needsYou!
           const Icon = n.icon
-          const t = TONE[n.tone]
+          const KindIcon = KIND_ICON[n.kind]
           return (
             <Link
               key={h.id}
               to={n.to}
               className="group flex overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
             >
-              <span className="relative hidden aspect-[4/3] w-48 shrink-0 self-center overflow-hidden rounded-xl bg-line-soft sm:m-2 sm:mr-0 sm:block">
-                {h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-                <KindBadge kind={n.kind} />
-              </span>
-              <span className="flex min-w-0 flex-1 flex-col gap-2 px-4 py-3.5">
-                <span className="flex items-center justify-between gap-2">
-                  <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold whitespace-nowrap', t.chip)}>
-                    <Icon className="size-3.5" /> {n.reason}
-                  </span>
-                  <span className="truncate text-[12.5px] text-muted">{h.address}</span>
+              <span className="relative hidden w-[34%] max-w-[220px] shrink-0 overflow-hidden bg-line-soft sm:block">
+                {h.photo && <img src={img(h.photo)} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+                <span className="absolute top-3 left-3 inline-flex max-w-[calc(100%-24px)] items-center gap-1.5 truncate rounded-full bg-black/55 px-3 py-1 text-[12px] font-medium text-white backdrop-blur-sm">
+                  <KindIcon className="size-3.5 shrink-0" /> <span className="truncate">{n.pill}</span>
                 </span>
-                <span className="line-clamp-2 text-[15.5px] leading-[22px] font-semibold text-ink">{n.title}</span>
-                <span className="mt-auto flex flex-col gap-2">
-                  <span className="flex items-baseline gap-3 text-[12.5px] text-muted">
-                    {n.stats.map((st) => (
-                      <span key={st.label} className="whitespace-nowrap">
-                        <b className={cn('text-[14px] font-semibold tabular-nums', st.tone === 'green' ? 'text-[var(--green)]' : st.tone === 'warn' ? 'text-warn' : 'text-ink')}>{st.value}</b> {st.label}
-                      </span>
-                    ))}
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col px-5 py-4">
+                <span className="flex items-start justify-between gap-3">
+                  <span className="min-w-0">
+                    <span className="block truncate text-[17px] font-semibold text-ink">{h.address}</span>
+                    <span className="mt-0.5 block truncate text-[14px] text-muted">{h.city}</span>
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-brand">
-                    {n.cta} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                  <span className={cn('mt-1 inline-flex shrink-0 items-center gap-1.5 text-[12.5px] font-medium', STATUS_TONE[n.tone])}>
+                    <Icon className="size-3.5" /> {n.status}
                   </span>
+                </span>
+                <span className="mt-4 grid grid-cols-2 gap-4">
+                  {n.stats.map((st) => (
+                    <span key={st.label} className="min-w-0">
+                      <span className="block text-[11.5px] font-medium tracking-wide text-muted uppercase">{st.label}</span>
+                      <span className={cn('mt-0.5 block truncate text-[16px] font-semibold tabular-nums', st.tone === 'green' ? 'text-[var(--green)]' : st.tone === 'warn' ? 'text-warn' : 'text-ink')}>{st.value}</span>
+                    </span>
+                  ))}
+                </span>
+                <span className="mt-4 flex h-10 items-center justify-center gap-2 rounded-lg bg-line-soft px-3 text-[13.5px] font-medium text-ink transition-colors group-hover:bg-[var(--brand-primary-subtle)] group-hover:text-brand">
+                  <Icon className="size-4 shrink-0" /> <span className="truncate">{n.cta}</span>
                 </span>
               </span>
             </Link>
