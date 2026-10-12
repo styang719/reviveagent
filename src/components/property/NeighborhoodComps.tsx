@@ -20,15 +20,15 @@ function synth(address: string, valueNow: number, sqft = 1800): Comp[] {
   const pics = mlsPhotos(`${address}-comps`)
   const streets = ['Oak Knoll Ave', 'El Molino Ave', 'Lake Ave', 'Orange Grove Blvd', 'Mar Vista Ave', 'Allen Ave']
   return streets.slice(0, 5).map((st, i) => {
-    const sq = Math.round(sqft * (0.85 + ((h >> i) % 30) / 100))
-    const ppsf = Math.round((valueNow / sqft) * (1.02 + ((h >> (i + 3)) % 18) / 100))
+    const sq = Math.round(sqft * (0.85 + ((h >>> i) % 30) / 100))
+    const ppsf = Math.round((valueNow / sqft) * (1.02 + ((h >>> (i + 3)) % 18) / 100))
     return {
-      address: `${100 + ((h >> (i * 2)) % 1800)} ${st}`,
+      address: `${100 + ((h >>> (i * 2)) % 1800)} ${st}`,
       sqft: sq,
       ppsf,
       price: Math.round((sq * ppsf) / 1000) * 1000,
-      distMi: Math.round((0.2 + ((h >> (i + 5)) % 9) / 10) * 10) / 10,
-      monthsAgo: 1 + ((h >> (i + 1)) % 8),
+      distMi: Math.round((0.2 + ((h >>> (i + 5)) % 9) / 10) * 10) / 10,
+      monthsAgo: 1 + ((h >>> (i + 1)) % 8),
       features: i % 2 ? ['Renovated kitchen', 'New baths'] : ['Updated finishes'],
       photo: pics[i % pics.length],
     }
@@ -40,7 +40,7 @@ export function NeighborhoodComps({ id, address, city, valueNow, sqft, comps }: 
   const list = comps.length ? comps : synth(address, valueNow, sqft)
   const known = properties.find((p) => p.id === id)
   const h = hash(address)
-  const home: [number, number] = known ? [known.lat, known.lng] : [AGENT.office.lat + (((h % 40) - 20) / 1000), AGENT.office.lng + ((((h >> 6) % 40) - 20) / 1000)]
+  const home: [number, number] = known ? [known.lat, known.lng] : [AGENT.office.lat + (((h % 40) - 20) / 1000), AGENT.office.lng + ((((h >>> 6) % 40) - 20) / 1000)]
   // place each comp at its distance, spread around the home
   const pts = list.map((c, i) => {
     const a = ((h % 360) + i * (360 / list.length)) * (Math.PI / 180)

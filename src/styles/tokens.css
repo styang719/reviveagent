@@ -413,3 +413,5 @@
 .rv-m .text-\[28px\], .rv-m .text-\[26px\] { font-size: 21px; line-height: 28px; }
 .rv-m .text-2xl { font-size: 21px; line-height: 28px; }
 .rv-m .text-xl { font-size: 17px; line-height: 24px; }
+.rv-pill.k-reno { background: var(--green); }
+.rv-pill.k-asis { background: #fff; color: var(--ink-2, #475467); border-color: #c4cad6; }
