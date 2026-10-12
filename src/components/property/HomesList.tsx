@@ -36,53 +36,150 @@ export interface Home {
   valueNow?: number
   product?: string
   at: number // for "recent"
-  needsYou?: { text: string; cta: string; to: string; icon: typeof Hammer }
+  person?: string // homeowner or seller, when known
+  facts?: Opportunity['property']['facts']
+  needsYou?: NeedsYouItem
 }
 
 const img = (key?: string) => (key?.startsWith('data:') ? key : photoUrl(key))
 
-/** The one thing waiting on the agent for this home, if any. */
-export function needsYouOf(h: Omit<Home, 'needsYou'>): Home['needsYou'] {
-  if (h.project?.next && h.project.next !== 'Offer terms arrive by email')
-    return { text: h.project.next, cta: /photo/i.test(h.project.next) ? 'Upload photos' : 'Open project', to: `/property/${h.id}?tab=project`, icon: /photo/i.test(h.project.next) ? ImagePlus : Hammer }
-  if (h.report?.share?.tone === 'opened') return { text: `${h.report.share.label.replace('Opened', 'Opened your report')}. A good moment to follow up.`, cta: 'Follow up', to: `/property/${h.id}?tab=report`, icon: Eye }
-  if (h.report?.share?.tone === 'leadform') return { text: 'Ran a report on your lead form. Reach out while it’s fresh.', cta: 'Follow up', to: `/property/${h.id}?tab=report`, icon: Send }
-  if (h.listing && !h.project) {
+interface Stat {
+  label: string
+  value: string
+  tone?: 'green' | 'warn'
+}
+
+export interface NeedsYouItem {
+  reason: string // short eyebrow: why it's here
+  tone: 'blue' | 'green' | 'purple' | 'warn'
+  title: string
+  detail: string
+  stats: Stat[]
+  cta: string
+  to: string
+  icon: typeof Hammer
+}
+
+/** The one thing waiting on the agent for this home, with the context to act on it. */
+export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined {
+  const who = h.person?.split(' ')[0] ?? 'The homeowner'
+  const upside: Stat = { label: 'Revive upside', value: h.upside ? gain(h.upside) : '—', tone: 'green' }
+  const p = h.project
+  if (p?.next && p.next !== 'Offer terms arrive by email') {
+    const photos = /photo/i.test(p.next)
+    const pct = p.pct ?? Math.round(((p.step + 0.5) / p.steps) * 100)
+    return {
+      reason: 'Waiting on you',
+      tone: 'blue',
+      title: p.next,
+      detail: `${p.stage}. ${photos ? 'Photos help Revive scope the work before the visit.' : 'Revive can’t move to the next step until you do.'}`,
+      stats: [{ label: p.status === 'active' ? 'Construction' : 'Project step', value: p.status === 'active' ? `${pct}% done` : `${p.step + 1} of ${p.steps}` }, h.valueNow || h.listing ? { label: 'Value today', value: money(h.valueNow ?? h.listing!.property.valueNow) } : { label: 'Steps left', value: String(p.steps - p.step - 1) }, upside],
+      cta: photos ? 'Upload photos' : 'Open project',
+      to: `/property/${h.id}?tab=project`,
+      icon: photos ? ImagePlus : Hammer,
+    }
+  }
+  const r = h.report
+  if (r?.share?.tone === 'opened' || r?.share?.tone === 'leadform') {
+    const opened = r.share.tone === 'opened'
+    const f = h.listing?.property.facts ?? h.facts
+    return {
+      reason: opened ? 'Homeowner engaged' : 'New lead from your form',
+      tone: opened ? 'green' : 'purple',
+      title: opened ? `${who} opened your report${f?.reportOpenedDaysAgo !== undefined ? ` ${f.reportOpenedDaysAgo === 0 ? 'today' : `${f.reportOpenedDaysAgo} days ago`}` : ''}` : `${who} ran a report on your lead form`,
+      detail: opened
+        ? `They looked at what ${h.address} could sell for after ${r.product ?? 'a Revive project'}. A good moment to follow up.`
+        : `${f?.leadFormDaysAgo !== undefined ? `${f.leadFormDaysAgo} days ago. ` : ''}Best fit is ${r.product ?? 'a Revive project'}. Reach out while it’s fresh.`,
+      stats: [{ label: 'Value today', value: money(r.valueNow) }, upside, { label: 'Lift', value: r.upside ? `+${Math.round((r.upside / r.valueNow) * 100)}%` : '—', tone: 'green' }],
+      cta: 'Follow up',
+      to: `/property/${h.id}?tab=report`,
+      icon: opened ? Eye : Send,
+    }
+  }
+  if (h.listing && !p) {
     const f = h.listing.property.facts
-    if ((f.daysOnMarket ?? 0) >= 30 || (f.priceCutDaysAgo ?? 99) <= 7)
-      return { text: `${(f.daysOnMarket ?? 0) >= 30 ? `${f.daysOnMarket} days listed` : 'Price cut this week'}. ${h.listing.product ?? 'Revive'} could add ${h.upside ? gain(h.upside) : 'value'}.`, cta: 'Propose Revive', to: `/property/${h.id}`, icon: TrendingDown }
+    const stale = (f.daysOnMarket ?? 0) >= 30
+    const cut = (f.priceCutDaysAgo ?? 99) <= 7
+    if (stale || cut)
+      return {
+        reason: 'Your listing is going stale',
+        tone: 'warn',
+        title: stale ? `${f.daysOnMarket} days on market${cut ? ', price cut' : ''}` : `Price cut ${f.priceCutDaysAgo === 1 ? 'yesterday' : `${f.priceCutDaysAgo} days ago`}`,
+        detail: `${h.listing.product ?? 'A Revive project'} could add ${h.upside ? gain(h.upside) : 'value'} before it sells, paid at closing. Bring it to your seller.`,
+        stats: [{ label: 'List price', value: money(h.listing.property.valueNow) }, { label: 'Days listed', value: String(f.daysOnMarket ?? '—'), tone: stale ? 'warn' : undefined }, upside],
+        cta: 'Propose Revive',
+        to: `/property/${h.id}`,
+        icon: TrendingDown,
+      }
   }
   return undefined
 }
 
-/** The "Needs you" strip: up to four homes with something waiting on the agent. */
+const TONE = {
+  blue: { chip: 'bg-[var(--brand-primary-subtle)] text-brand' },
+  green: { chip: 'bg-ok-soft text-[var(--green)]' },
+  purple: { chip: 'bg-[var(--brand-agent-subtle)] text-[var(--brand-agent)]' },
+  warn: { chip: 'bg-warn-soft text-warn' },
+} as const
+
+/** The "Needs you" cards: up to four homes with something waiting on the agent, each with the why and the numbers. */
 export function NeedsYou({ homes }: { homes: Home[] }) {
   const items = homes.filter((h) => h.needsYou).slice(0, 4)
   if (!items.length) return null
   return (
     <section className="mt-8" aria-labelledby="needs-you">
-      <h2 id="needs-you" className="flex items-center gap-2 text-[15px] font-semibold text-ink">
-        Needs you
+      <div className="flex items-baseline gap-2">
+        <h2 id="needs-you" className="text-xl font-semibold text-ink">
+          Needs you
+        </h2>
         <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white tabular-nums">{items.length}</span>
-      </h2>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      </div>
+      <p className="mt-1 text-[13px] text-muted">The homes where your next move matters most this week.</p>
+      <div className="mt-4 grid gap-4 xl:grid-cols-2">
         {items.map((h) => {
           const n = h.needsYou!
           const Icon = n.icon
+          const t = TONE[n.tone]
           return (
-            <Link key={h.id} to={n.to} className="group flex flex-col gap-2 rounded-xl border border-[var(--brand-primary-border)] bg-[var(--brand-primary-subtle)] p-3 transition-colors hover:bg-white">
-              <span className="flex items-center gap-2.5">
-                <span className="block size-9 shrink-0 overflow-hidden rounded-md bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
-                <span className="min-w-0">
-                  <span className="block truncate text-[13.5px] font-semibold text-ink">{h.address}</span>
-                  <span className="block truncate text-[12px] text-muted">{h.city}</span>
+            <article key={h.id} className="group relative flex overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]">
+              <Link to={n.to} tabIndex={-1} aria-hidden="true" className="relative hidden w-44 shrink-0 overflow-hidden bg-line-soft sm:block">
+                {h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pt-8 pb-2.5 text-white">
+                  <span className="block truncate text-[13.5px] font-semibold">{h.address}</span>
+                  <span className="block truncate text-[11.5px] text-white/80">{h.city}</span>
                 </span>
-              </span>
-              <span className="line-clamp-2 min-h-9 text-[12.5px] leading-[18px] text-ink-2">{n.text}</span>
-              <span className="mt-auto inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-brand">
-                <Icon className="size-3.5" /> {n.cta} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-              </span>
-            </Link>
+              </Link>
+              <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-semibold whitespace-nowrap', t.chip)}>
+                    <Icon className="size-3.5" /> {n.reason}
+                  </span>
+                  <Link to={`/property/${h.id}`} className="truncate text-[12.5px] text-muted hover:text-brand sm:hidden">
+                    {h.address}
+                  </Link>
+                </div>
+                <div>
+                  <p className="text-[16px] leading-6 font-semibold text-ink">{n.title}</p>
+                  <p className="mt-1 text-[13px] leading-5 text-ink-2">{n.detail}</p>
+                </div>
+                <dl className="grid grid-cols-3 gap-2">
+                  {n.stats.map((st) => (
+                    <div key={st.label} className="min-w-0 rounded-lg bg-head px-2.5 py-1.5">
+                      <dt className="truncate text-[11px] text-muted">{st.label}</dt>
+                      <dd className={cn('truncate text-[13.5px] font-semibold tabular-nums', st.tone === 'green' ? 'text-[var(--green)]' : st.tone === 'warn' ? 'text-warn' : 'text-ink')}>{st.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="mt-auto flex items-center gap-2">
+                  <Link to={n.to} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[var(--brand-primary)] px-3.5 text-[13px] font-medium text-white hover:opacity-90">
+                    <Icon className="size-4" /> {n.cta}
+                  </Link>
+                  <Link to={`/property/${h.id}`} className="inline-flex h-9 items-center gap-1 rounded-lg px-3 text-[13px] font-medium text-ink-2 hover:bg-line-soft">
+                    Open home <ArrowRight className="size-3.5" />
+                  </Link>
+                </div>
+              </div>
+            </article>
           )
         })}
       </div>

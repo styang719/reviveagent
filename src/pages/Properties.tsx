@@ -128,7 +128,11 @@ export default function Properties() {
     if (prev) byId.set(o.id, { ...prev, listing: o })
     else put(o.id, { id: o.id, address: o.property.address, city: o.property.city, photo: o.property.photo, listing: o, upside: o.gain || undefined, valueNow: o.property.valueNow, product: o.product, at: Date.now() - (o.property.facts.daysOnMarket ?? 0) * 86_400_000 })
   }
-  const homes: Home[] = [...byId.values()].map((h) => ({ ...h, needsYou: needsYouOf(h) }))
+  const homes: Home[] = [...byId.values()].map((h) => {
+    const o = opps.find((x) => x.id === h.id)
+    const full = { ...h, person: o?.person?.name, facts: o?.property.facts }
+    return { ...full, needsYou: needsYouOf(full) }
+  })
   const shown = homes.filter((h) => match(h.address, h.city, h.product))
   const inTab = (h: Home) => tab === 'all' || (tab === 'project' && !!h.project) || (tab === 'report' && !!h.report) || (tab === 'listing' && !!h.listing)
   const rows = shown.filter(inTab)
