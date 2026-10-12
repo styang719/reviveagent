@@ -1,14 +1,15 @@
-import { ArrowRight, FileText, Hammer, ImagePlus, MessageSquareDot, Search, Sparkles, Tag } from 'lucide-react'
-import { useState } from 'react'
+import { FileText, Hammer, ImagePlus, MessageSquareDot, Search } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
+import { ListingsTable, REPORT_VIEWS, type ReportRow, type ReportView } from '@/components/property/ReportViews'
 import { photoUrl } from '@/lib/assets'
-import { gain, money } from '@/lib/format'
+import { money } from '@/lib/format'
 import { PROJECT_STEPS } from '@/lib/flows'
-import { useConnections, useOpportunities, type Opportunity } from '@/lib/opportunities'
+import { useConnections, useOpportunities } from '@/lib/opportunities'
 import { cn, PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
@@ -32,18 +33,6 @@ interface ProjectRow {
   next?: string
   target?: string
   pct?: number // construction progress, when known
-}
-
-interface ReportRow {
-  id: string
-  address: string
-  city: string
-  photo?: string
-  valueNow: number
-  upside?: number
-  product?: string
-  when?: string
-  designs?: number // RenoVision designs saved on this home
 }
 
 /** Figma "Property card": square photo with the product badge, then progress, what's next and one action. */
@@ -108,121 +97,23 @@ function ProjectCard({ p }: { p: ProjectRow }) {
   )
 }
 
-function ReportCard({ r }: { r: ReportRow }) {
-  return (
-    <Link
-      to={`/property/${r.id}?tab=report`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
-    >
-      <div className="relative h-36 overflow-hidden bg-line-soft">
-        {r.photo && <img src={img(r.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-        {r.designs ? (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-brand shadow-sm">
-            <Sparkles className="size-3" /> {r.designs} RenoVision
-          </span>
-        ) : null}
-      </div>
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div>
-          <p className="truncate text-[15px] font-semibold text-ink">{r.address}</p>
-          <p className="text-[12.5px] text-muted">{r.city}</p>
-        </div>
-        <dl className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg bg-head px-3 py-2">
-            <dt className="text-[11px] text-muted">Value today</dt>
-            <dd className="text-[15px] font-semibold text-ink tabular-nums">{money(r.valueNow)}</dd>
-          </div>
-          <div className="rounded-lg bg-ok-soft px-3 py-2">
-            <dt className="text-[11px] text-muted">Best upside</dt>
-            <dd className="text-[15px] font-semibold text-[var(--green)] tabular-nums">{r.upside ? gain(r.upside) : '—'}</dd>
-          </div>
-        </dl>
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3 text-[12.5px]">
-          <span className="truncate text-ink-2">{r.product ?? 'No project yet'}</span>
-          <span className="flex shrink-0 items-center gap-1 font-medium text-brand">
-            View report <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-          </span>
-        </div>
-        {r.when && <p className="-mt-1 text-[11.5px] text-faint">{r.when}</p>}
-      </div>
-    </Link>
-  )
-}
-
-/** Where the listing stands on the MLS, for the photo label. */
-function listingStatus(o: Opportunity) {
-  const f = o.property.facts
-  if (f.expiredDaysAgo !== undefined) return { label: `Expired ${f.expiredDaysAgo} days ago`, warn: true }
-  if (f.withdrawnDaysAgo !== undefined) return { label: 'Withdrawn', warn: true }
-  if (f.priceCutDaysAgo !== undefined && f.priceCutDaysAgo <= 14) return { label: `Price cut ${f.priceCutDaysAgo === 1 ? 'yesterday' : `${f.priceCutDaysAgo} days ago`}`, warn: true }
-  if (f.daysOnMarket !== undefined) return { label: `Active · ${f.daysOnMarket} days`, warn: f.daysOnMarket >= 30 }
-  return { label: 'Active', warn: false }
-}
-
-function ListingCard({ o, revive }: { o: Opportunity; revive?: 'project' | 'report' }) {
-  const st = listingStatus(o)
-  const p = o.property
-  return (
-    <Link
-      to={`/property/${o.id}${revive === 'project' ? '?tab=project' : ''}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
-    >
-      <div className="relative h-36 overflow-hidden bg-line-soft">
-        {p.photo && <img src={img(p.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-        <span className={cn('absolute top-3 left-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-semibold shadow-sm', st.warn ? 'bg-warn-soft text-warn' : 'bg-white text-ink')}>
-          <Tag className="size-3" /> {st.label}
-        </span>
-      </div>
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div>
-          <p className="truncate text-[15px] font-semibold text-ink">{p.address}</p>
-          <p className="truncate text-[12.5px] text-muted">
-            {p.city}
-            {p.beds ? ` · ${p.beds} bd · ${p.baths} ba` : ''} · {p.sqft.toLocaleString()} sqft
-          </p>
-        </div>
-        <dl className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg bg-head px-3 py-2">
-            <dt className="text-[11px] text-muted">List price</dt>
-            <dd className="text-[15px] font-semibold text-ink tabular-nums">{money(p.valueNow)}</dd>
-          </div>
-          <div className="rounded-lg bg-ok-soft px-3 py-2">
-            <dt className="text-[11px] text-muted">With Revive</dt>
-            <dd className="text-[15px] font-semibold text-[var(--green)] tabular-nums">{o.gain ? gain(o.gain) : '—'}</dd>
-          </div>
-        </dl>
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3 text-[12.5px]">
-          {revive ? (
-            <span className="inline-flex items-center gap-1 truncate font-medium text-brand">
-              {revive === 'project' ? <Hammer className="size-3.5" /> : <FileText className="size-3.5" />}
-              {revive === 'project' ? 'Revive project' : 'Revive AI report'}
-            </span>
-          ) : (
-            <span className="truncate text-ink-2">{o.product ?? 'No Revive fit yet'}</span>
-          )}
-          <span className="flex shrink-0 items-center gap-1 font-medium text-brand">
-            {revive ? 'Open' : 'See options'} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-          </span>
-        </div>
-      </div>
-    </Link>
-  )
-}
-
 type Kind = 'all' | 'project' | 'report'
 
 /** A labeled row inside With Revive: icon, name and count, then its cards. */
-function Group({ icon: Icon, label, count, grid, children }: { icon: typeof Hammer; label: string; count: number; grid: string; children: React.ReactNode }) {
+function Group({ icon: Icon, label, count, grid, right, children }: { icon: typeof Hammer; label: string; count: number; grid?: string; right?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="mb-3 flex items-center gap-2 text-[14px] font-semibold text-ink">
-        <span className="grid size-6 place-items-center rounded-md bg-[var(--brand-primary-subtle)] text-brand">
-          <Icon className="size-3.5" />
-        </span>
-        {label}
-        <span className="text-[13px] font-normal text-muted tabular-nums">{count}</span>
-      </h3>
-      <div className={cn('grid gap-5', grid)}>{children}</div>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 text-[14px] font-semibold text-ink">
+          <span className="grid size-6 place-items-center rounded-md bg-[var(--brand-primary-subtle)] text-brand">
+            <Icon className="size-3.5" />
+          </span>
+          {label}
+          <span className="text-[13px] font-normal text-muted tabular-nums">{count}</span>
+        </h3>
+        {right}
+      </div>
+      {grid ? <div className={cn('grid gap-5', grid)}>{children}</div> : children}
     </div>
   )
 }
@@ -254,6 +145,22 @@ export default function Properties() {
   const conn = useConnections()
   const [q, setQ] = useState('')
   const [kind, setKind] = useState<Kind>('all')
+  // three report layouts to compare; remembered per browser
+  const [view, setView] = useState<ReportView>(() => {
+    try {
+      return (localStorage.getItem('rv-report-view') as ReportView) || 'list'
+    } catch {
+      return 'list'
+    }
+  })
+  useEffect(() => {
+    try {
+      localStorage.setItem('rv-report-view', view)
+    } catch {
+      /* private window */
+    }
+  }, [view])
+  const ReportsView = REPORT_VIEWS.find((v) => v.k === view)?.C ?? REPORT_VIEWS[0].C
   const needle = q.trim().toLowerCase()
   const noMatch = <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No homes match “{q.trim()}”.</p>
   const match = (...fields: (string | undefined)[]) => !needle || fields.some((f) => f?.toLowerCase().includes(needle))
@@ -398,10 +305,27 @@ export default function Properties() {
             </Group>
           )}
           {showReports && (
-            <Group icon={FileText} label="AI reports" count={shownReports.length} grid="sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-              {shownReports.map((r) => (
-                <ReportCard key={r.id} r={r} />
-              ))}
+            <Group
+              icon={FileText}
+              label="AI reports"
+              count={shownReports.length}
+              right={
+                <div className="flex items-center gap-1 rounded-lg bg-line-soft p-0.5" role="radiogroup" aria-label="Report layout">
+                  {REPORT_VIEWS.map((v) => (
+                    <button
+                      key={v.k}
+                      role="radio"
+                      aria-checked={view === v.k}
+                      onClick={() => setView(v.k)}
+                      className={cn('h-7 rounded-md px-2.5 text-[12px] font-medium', view === v.k ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}
+                    >
+                      {v.label}
+                    </button>
+                  ))}
+                </div>
+              }
+            >
+              <ReportsView rows={shownReports} />
             </Group>
           )}
         </div>
@@ -429,11 +353,7 @@ export default function Properties() {
           )
         }
       >
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {listings.map((o) => (
-            <ListingCard key={o.id} o={o} revive={inProject.has(o.id) ? 'project' : reportIds.has(o.id) ? 'report' : undefined} />
-          ))}
-        </div>
+        <ListingsTable rows={listings} reviveOf={(id) => (inProject.has(id) ? 'project' : reportIds.has(id) ? 'report' : undefined)} />
       </Section>
 
       {reviveEmpty && (
