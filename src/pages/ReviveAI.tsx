@@ -209,7 +209,8 @@ export default function ReviveAI() {
         </div>
       )}
       <div className="flex min-h-0 min-w-0 flex-col">
-        <header className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-10 sm:pt-8">
+        {/* on desktop the sidebar already says Revive AI: the header only holds the Chats pill and New chat when chats are hidden */}
+        <header className={cn('flex items-center justify-between gap-3 px-4 pt-4 sm:px-10 sm:pt-8', historyHidden ? 'lg:pt-6' : 'lg:hidden')}>
           <div className="flex min-w-0 items-center gap-2">
             <button
               onClick={() => setHistoryOpen(true)}
@@ -228,7 +229,7 @@ export default function ReviveAI() {
                 {threadCount > 0 && <span className="rounded-full bg-line-soft px-1.5 text-[11.5px] text-muted tabular-nums">{threadCount}</span>}
               </button>
             )}
-            <h1 className="flex items-center gap-2.5 text-xl font-semibold text-ink">
+            <h1 className="flex items-center gap-2.5 text-xl font-semibold text-ink lg:sr-only">
               <AiAvatar /> Revive AI
             </h1>
           </div>
