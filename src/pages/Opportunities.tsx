@@ -1,4 +1,4 @@
-import { ArrowRight, LayoutGrid, List, Map as MapIcon, MapPin, PhoneCall, Plus, Search, Users } from 'lucide-react'
+import { ArrowRight, LayoutGrid, Map as MapIcon, MapPin, PhoneCall, Plus, Search, Users } from 'lucide-react'
 import type L from 'leaflet'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Marker, useMap } from 'react-leaflet'
@@ -10,7 +10,8 @@ import { BaseMap, TILE_BOUNDS } from '@/components/map/BaseMap'
 import { pinIcon, pinZ } from '@/components/map/pins'
 import { Button } from '@/components/ui/button'
 import { AGENT } from '@/data/tiers'
-import { money, plural } from '@/lib/format'
+import { photoUrl } from '@/lib/assets'
+import { gain, money, plural } from '@/lib/format'
 import { useOpportunities, type Opportunity } from '@/lib/opportunities'
 import { cn, PAGE } from '@/lib/utils'
 import { YourBook } from '@/components/home/YourBook'
@@ -89,6 +90,44 @@ function Fit({ pts, k }: { pts: [number, number][]; k: string }) {
 }
 
 
+type MapLayout = 'split' | 'strip' | 'panel'
+const MAP_LAYOUTS: { k: MapLayout; label: string }[] = [
+  { k: 'split', label: 'A · List + map' },
+  { k: 'strip', label: 'B · Map strip' },
+  { k: 'panel', label: 'C · Table, map on demand' },
+]
+
+/** A · the list as compact cards for the split view: photo, who, why now, value and upside. */
+function CompactList({ opps, onOpen, hover, onHover }: { opps: Opportunity[]; onOpen: (id: string) => void; hover: string | null; onHover: (id: string | null) => void }) {
+  return (
+    <ul className="flex flex-col gap-2">
+      {opps.map((o) => (
+        <li key={o.id} id={`opp-${o.id}`}>
+          <button
+            onClick={() => onOpen(o.id)}
+            onMouseEnter={() => onHover(o.id)}
+            onMouseLeave={() => onHover(null)}
+            className={cn('flex w-full items-center gap-3 rounded-xl border bg-white p-2.5 text-left shadow-card transition-colors', hover === o.id ? 'border-[var(--brand-primary)]' : 'border-line hover:border-[var(--brand-primary-border)]')}
+          >
+            <img src={o.photo ?? photoUrl(o.property.photo)} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+            <span className="min-w-0 flex-1">
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="truncate text-[14px] font-semibold text-ink">{o.person?.name ?? o.property.address}</span>
+                <span className="shrink-0 text-[14px] font-semibold text-ink tabular-nums">{money(o.property.valueNow)}</span>
+              </span>
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="truncate text-[12.5px] text-muted">{o.person ? o.property.address : o.property.city}</span>
+                {o.gain > 0 && <span className="shrink-0 text-[12.5px] font-semibold text-[var(--green)] tabular-nums">{gain(o.gain)}</span>}
+              </span>
+              <span className={cn('mt-0.5 block truncate text-[12.5px] font-medium', o.urgency === 'now' ? 'text-brand' : 'text-ink-2')}>{o.reasons[0]}</span>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function NavItem({ on, onClick, icon: Icon, label, n, blue }: { on: boolean; onClick: () => void; icon: typeof Users; label: string; n: number; blue?: boolean }) {
   return (
     <button
@@ -121,8 +160,23 @@ export default function Opportunities() {
     setFilter(v === 'go' ? 'go' : 'all')
   }
   const [sort, setSort] = useState<Sort>('recommended')
-  // with the side nav, list and map only sit side by side on very wide screens; otherwise a List / Map toggle
-  const [mode, setMode] = useState<'list' | 'map'>('list')
+  // three ways to lay out the list and the map, to compare
+  const [layout, setLayoutState] = useState<MapLayout>(() => {
+    try {
+      return (localStorage.getItem('rv-opps-map') as MapLayout) || 'split'
+    } catch {
+      return 'split'
+    }
+  })
+  const setLayout = (k: MapLayout) => {
+    setLayoutState(k)
+    try {
+      localStorage.setItem('rv-opps-map', k)
+    } catch {
+      /* private window */
+    }
+  }
+  const [mapOpen, setMapOpen] = useState(false)
   const [q, setQ] = useState('')
   const [hover, setHover] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
@@ -132,7 +186,7 @@ export default function Opportunities() {
   const markers = useRef(new Map<string, { m: L.Marker; z: number }>())
   const iconFor = (o: Opportunity) => {
     let i = icons.current.get(o.id)
-    if (!i) icons.current.set(o.id, (i = pinIcon(o, false, false, false, true)))
+    if (!i) icons.current.set(o.id, (i = pinIcon(o, false, true, false, true))) // name pills, no photos: calmer
     return i
   }
   useEffect(() => {
@@ -193,6 +247,52 @@ export default function Opportunities() {
       </div>
     )
 
+  const empty = <p className="rounded-xl border border-dashed border-line px-5 py-6 text-[14px] text-muted">Nothing matches. Try another filter or search.</p>
+  const mapEl = (
+    <>
+          <BaseMap
+            center={[AGENT.office.lat, AGENT.office.lng]}
+            zoom={11}
+            bounds={pinned.map((o) => [o.property.lat, o.property.lng] as [number, number])}
+            wheelZoom
+          >
+            <Fit pts={pinned.map((o) => [o.property.lat, o.property.lng] as [number, number])} k={`${view}|${filter}|${needle}|${layout}|${mapOpen}`} />
+            {pinned.map((o) => (
+              <Marker
+                key={o.id}
+                position={[o.property.lat, o.property.lng]}
+                ref={(m) => {
+                  if (m) markers.current.set(o.id, { m, z: pinZ(o) })
+                  else markers.current.delete(o.id)
+                }}
+                icon={iconFor(o)}
+                zIndexOffset={pinZ(o)}
+                title={o.person?.name ?? o.property.address}
+                eventHandlers={{
+                  click: () => setOpenId(o.id),
+                  mouseover: () => {
+                    setHover(o.id)
+                    document.getElementById(`opp-${o.id}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                  },
+                  mouseout: () => setHover(null),
+                }}
+              />
+            ))}
+          </BaseMap>
+          <div className={cn('pointer-events-none absolute inset-x-3 bottom-6 z-[500] flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-white/95 px-3 py-2 text-[12px] text-ink-2 shadow-card', layout === 'strip' ? 'hidden' : 'flex')}>
+            <span className="flex items-center gap-1.5">
+              <span className="size-3 rounded-[3px] bg-[var(--brand-primary)]" /> Call this week
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-5 rounded-full bg-navy" /> This month
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-3 rounded-full border-2 border-[#9aa3b4] bg-white" /> Keep warm
+            </span>
+          </div>
+    </>
+  )
+
   return (
     // wide screens: the page itself doesn't scroll; the list scrolls and the map stays put beside it
     <div className={cn(PAGE, 'max-w-none xl:flex xl:h-[calc(100dvh-var(--demo-h,0px))] xl:flex-col xl:overflow-hidden')}>
@@ -200,6 +300,13 @@ export default function Opportunities() {
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
           <p className="mt-1 text-[15px] text-ink-2">Homes you could win: your contacts, and listings near you that came off the market.</p>
+          <div className="mt-3 inline-flex items-center gap-1 rounded-lg bg-line-soft p-0.5" role="radiogroup" aria-label="Map layout">
+            {MAP_LAYOUTS.map((l) => (
+              <button key={l.k} role="radio" aria-checked={layout === l.k} onClick={() => setLayout(l.k)} className={cn('h-7 rounded-md px-2.5 text-[12px] font-medium', layout === l.k ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}>
+                {l.label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <label className="relative flex-1 sm:w-64 sm:flex-none">
@@ -255,13 +362,11 @@ export default function Opportunities() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-            <div className="inline-flex rounded-lg bg-line-soft p-0.5 2xl:hidden" role="radiogroup" aria-label="Show as">
-              {(['list', 'map'] as const).map((m) => (
-                <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={cn('inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12.5px] font-medium', mode === m ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}>
-                  {m === 'list' ? <List className="size-3.5" /> : <MapIcon className="size-3.5" />} {m === 'list' ? 'List' : 'Map'}
-                </button>
-              ))}
-            </div>
+            {layout === 'panel' && (
+              <Button size="sm" variant="outline" className="h-8" onClick={() => setMapOpen(true)}>
+                <MapIcon /> Map
+              </Button>
+            )}
             <label className="flex h-8 items-center gap-1.5 rounded-lg border border-line bg-white pr-2 pl-3 text-[13px] text-muted">
               Sort
               <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="bg-transparent font-semibold text-ink outline-none">
@@ -289,63 +394,42 @@ export default function Opportunities() {
             </div>
           )}
 
-      <div className="mt-4 grid gap-5 xl:min-h-0 xl:flex-1 2xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <div className={cn('min-w-0 xl:min-h-0 xl:flex-col', mode === 'map' ? 'hidden 2xl:flex' : 'xl:flex')}>
-          <div className="xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
-          {shown.length ? (
-            <OppTable opps={shown} onOpen={setOpenId} hover={hover} onHover={setHover} />
-          ) : (
-            <p className="rounded-xl border border-dashed border-line px-5 py-6 text-[14px] text-muted">Nothing matches. Try another filter or search.</p>
-          )}
-          </div>
+      {layout === 'split' && (
+        // A · Split: a compact card list beside a big map, like a home search
+        <div className="mt-4 grid gap-4 xl:min-h-0 xl:flex-1 lg:grid-cols-[minmax(340px,0.85fr)_minmax(0,1.15fr)]">
+          <div className="min-w-0 xl:min-h-0 xl:overflow-y-auto xl:pr-1">{shown.length ? <CompactList opps={shown} onOpen={setOpenId} hover={hover} onHover={setHover} /> : empty}</div>
+          <div className="relative isolate h-[520px] overflow-hidden rounded-xl border border-line shadow-card xl:h-full">{mapEl}</div>
         </div>
-
-        <div className={cn('relative isolate h-[520px] overflow-hidden rounded-xl border border-line shadow-card xl:h-full', mode === 'list' && 'hidden 2xl:block')}>
-          <BaseMap
-            center={[AGENT.office.lat, AGENT.office.lng]}
-            zoom={11}
-            bounds={pinned.map((o) => [o.property.lat, o.property.lng] as [number, number])}
-            wheelZoom
-          >
-            <Fit pts={pinned.map((o) => [o.property.lat, o.property.lng] as [number, number])} k={`${view}|${filter}|${needle}|${mode}`} />
-            {pinned.map((o) => (
-              <Marker
-                key={o.id}
-                position={[o.property.lat, o.property.lng]}
-                ref={(m) => {
-                  if (m) markers.current.set(o.id, { m, z: pinZ(o) })
-                  else markers.current.delete(o.id)
-                }}
-                icon={iconFor(o)}
-                zIndexOffset={pinZ(o)}
-                title={o.person?.name ?? o.property.address}
-                eventHandlers={{
-                  click: () => setOpenId(o.id),
-                  mouseover: () => {
-                    setHover(o.id)
-                    document.getElementById(`opp-${o.id}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-                  },
-                  mouseout: () => setHover(null),
-                }}
-              />
-            ))}
-          </BaseMap>
-          <div className="pointer-events-none absolute inset-x-3 bottom-6 z-[500] flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-white/95 px-3 py-2 text-[12px] text-ink-2 shadow-card">
-            <span className="flex items-center gap-1.5">
-              <span className="size-3 rounded-[3px] bg-[var(--brand-primary)]" /> Call this week
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-5 rounded-full bg-navy" /> This month
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-3 rounded-full border-2 border-[#9aa3b4] bg-white" /> Keep warm
-            </span>
-          </div>
+      )}
+      {layout === 'strip' && (
+        // B · Map strip: a short, wide map on top, the full table below
+        <div className="mt-4 flex flex-col gap-4 xl:min-h-0 xl:flex-1">
+          <div className="relative isolate h-[220px] shrink-0 overflow-hidden rounded-xl border border-line shadow-card">{mapEl}</div>
+          <div className="min-w-0 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">{shown.length ? <OppTable opps={shown} onOpen={setOpenId} hover={hover} onHover={setHover} /> : empty}</div>
+        </div>
+      )}
+      {layout === 'panel' && (
+        // C · Table first: the full table; the map opens as a panel from the right when asked
+        <div className="mt-4 min-w-0 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">{shown.length ? <OppTable opps={shown} onOpen={setOpenId} hover={hover} onHover={setHover} /> : empty}</div>
+      )}
         </div>
       </div>
 
+      {layout === 'panel' && mapOpen && (
+        <div className="fixed inset-0 z-[70] flex justify-end bg-ink/20" onClick={() => setMapOpen(false)}>
+          <div className="relative isolate flex h-full w-[min(640px,92vw)] flex-col bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-line px-4 py-3">
+              <p className="text-[15px] font-semibold text-ink">
+                Map · {plural(pinned.length, 'home')}
+              </p>
+              <button onClick={() => setMapOpen(false)} className="rounded-md px-2 py-1 text-[13px] font-medium text-muted hover:bg-line-soft hover:text-ink">
+                Close
+              </button>
+            </div>
+            <div className="relative isolate min-h-0 flex-1">{mapEl}</div>
+          </div>
         </div>
-      </div>
+      )}
 
       <ValueDrawer
         opps={book}
