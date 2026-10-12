@@ -18,7 +18,8 @@ import { useUi } from '@/store/ui'
 type Todo = { id: string; icon: typeof PhoneCall; title: string; sub: string; to: string; tone: 'lead' | 'project' | 'referral'; photo?: string; label: string }
 const first = (name?: string) => name?.split(' ')[0] ?? 'the homeowner'
 
-export function TodayChecklist() {
+/** `base` is the route prefix: '/m' in the phone view, '' on the desktop Revive AI page. */
+export function TodayChecklist({ base = '/m' }: { base?: string }) {
   const tier = useDemo((s) => s.tier)
   const outreach = useDemo((s) => s.outreach)
   const activity = useDemo((s) => s.activity)
@@ -40,7 +41,7 @@ export function TodayChecklist() {
       icon: att === 'reply' ? MessageSquareReply : PhoneCall,
       title: att === 'reply' ? `Reply to ${first(lead.person?.name)}` : `Call ${lead.person?.name ?? 'the homeowner'}`,
       sub: lead.property.address,
-      to: `/m/property/${lead.id}`,
+      to: `${base}/property/${lead.id}`,
       tone: 'lead',
       photo: img(lead),
       label: att === 'reply' ? 'Reply waiting' : 'Lead to call',
@@ -51,7 +52,7 @@ export function TodayChecklist() {
   const project = opps.find((o) => o.property.project?.nextFromAgent)
   if (project) {
     const pr = project.property.project!
-    todos.push({ id: `project-${project.id}`, icon: Hammer, title: pr.nextFromAgent!, sub: project.property.address, to: `/m/property/${project.id}`, tone: 'project', photo: img(project), label: 'Project update' })
+    todos.push({ id: `project-${project.id}`, icon: Hammer, title: pr.nextFromAgent!, sub: project.property.address, to: `${base}/property/${project.id}`, tone: 'project', photo: img(project), label: 'Project update' })
   }
 
   // a Revive referral that needs them (new, or waiting on an update)
@@ -62,7 +63,7 @@ export function TodayChecklist() {
       icon: UserRound,
       title: ref.referral!.status === 'new' ? `Call ${ref.person?.name ?? 'your new referral'}` : `Update Revive on ${first(ref.person?.name)}`,
       sub: ref.property.address,
-      to: `/m/leads/referrals/${ref.id}`,
+      to: `${base}/leads/referrals/${ref.id}`,
       tone: 'referral',
       photo: img(ref),
       label: 'Revive referral',
@@ -72,7 +73,7 @@ export function TodayChecklist() {
   // room for one more lead, when the list is short
   if (leads[1] && todos.length < 3) {
     const o = leads[1]
-    todos.push({ id: `lead-${o.id}`, icon: PhoneCall, title: `Call ${o.person?.name ?? 'the homeowner'}`, sub: o.property.address, to: `/m/property/${o.id}`, tone: 'lead', photo: img(o), label: 'Lead to call' })
+    todos.push({ id: `lead-${o.id}`, icon: PhoneCall, title: `Call ${o.person?.name ?? 'the homeowner'}`, sub: o.property.address, to: `${base}/property/${o.id}`, tone: 'lead', photo: img(o), label: 'Lead to call' })
   }
   if (!todos.length) return null
 

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { STARTERS } from '@/lib/ai'
 import { rvHome, startProject, startHome, startRenovision, startReport } from '@/lib/flowEngine'
 import { cn } from '@/lib/utils'
+import { TodayChecklist } from '@/mobile/TodayChecklist'
 import { useDemo } from '@/store/demo'
 import { ago, groupThreads, shortTitle, threadIcon } from '@/components/ai/threads'
 import { useUi, type ChatThread } from '@/store/ui'
@@ -241,13 +242,17 @@ export default function ReviveAI() {
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6">
             {empty ? (
-              <div className="relative isolate flex flex-col items-center pt-6 text-center sm:pt-14">
+              <div className="relative isolate flex flex-col items-center pt-2 text-center sm:pt-4">
                 {/* a soft, slowly drifting glow behind the empty state, like the dashboard's ask box */}
                 <div aria-hidden="true" className="rv-chat-glow pointer-events-none absolute -inset-x-16 -top-6 -bottom-12 -z-10 rounded-[48px]" />
                 <ReviveBubbleBot size={104} />
                 <h2 className="mt-5 text-2xl font-semibold text-balance text-ink sm:text-[28px]">What can I help you with?</h2>
                 <p className="mt-2 max-w-md text-[15px] text-ink-2">Generate a report, start a project, or ask about any home or anyone in your book.</p>
-                <div className="mt-8 grid w-full gap-3 text-left sm:grid-cols-2">
+                {/* the same to-dos as the phone's chat home: today's list, or the set-up steps for a new agent */}
+                <div className="mt-6 w-full text-left">
+                  <TodayChecklist base="" />
+                </div>
+                <div className="mt-4 grid w-full gap-3 text-left sm:grid-cols-2">
                   {STARTER_CARDS.map((s) => (
                     <button
                       key={s.label}
