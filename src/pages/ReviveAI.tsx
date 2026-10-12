@@ -1,4 +1,4 @@
-import { ExternalLink, FileText, Hammer, MapPin, MessageSquare, PanelLeft, Sparkles, SquarePen, Trash2, Users, X } from 'lucide-react'
+import { ChevronsLeft, ExternalLink, History as HistoryIcon, FileText, Hammer, MapPin, MessageSquare, PanelLeft, Sparkles, SquarePen, Trash2, Users, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
@@ -101,8 +101,8 @@ function History({ onPick, onHide }: { onPick?: () => void; onHide?: () => void 
           <SquarePen /> New chat
         </Button>
         {onHide && (
-          <button onClick={onHide} className="grid size-9 shrink-0 place-items-center rounded-lg text-ink-2 hover:bg-line-soft" aria-label="Hide conversations" title="Hide conversations">
-            <PanelLeft className="size-5" />
+          <button onClick={onHide} className="grid size-9 shrink-0 place-items-center rounded-lg text-muted hover:bg-line-soft hover:text-ink" aria-label="Hide conversations" title="Hide conversations">
+            <ChevronsLeft className="size-5" />
           </button>
         )}
       </div>
@@ -221,11 +221,11 @@ export default function ReviveAI() {
             {historyHidden && (
               <button
                 onClick={() => setHistoryHidden(false)}
-                className="hidden size-9 place-items-center rounded-lg text-ink-2 hover:bg-line-soft lg:grid"
+                className="mr-2 hidden h-9 items-center gap-1.5 rounded-full border border-line bg-white px-3 text-[13px] font-medium text-ink-2 shadow-sm hover:border-[var(--brand-primary-border)] hover:text-ink lg:inline-flex"
                 aria-label={`Show conversations (${threadCount})`}
-                title="Show conversations"
               >
-                <PanelLeft className="size-5" />
+                <HistoryIcon className="size-4" /> Chats
+                {threadCount > 0 && <span className="rounded-full bg-line-soft px-1.5 text-[11.5px] text-muted tabular-nums">{threadCount}</span>}
               </button>
             )}
             <h1 className="flex items-center gap-2.5 text-xl font-semibold text-ink">
