@@ -1,4 +1,4 @@
-import { Bell, FileText, Search, Tag } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
@@ -31,7 +31,23 @@ interface ProjectRow {
   pct?: number // construction progress, when known
 }
 
-type Tab = 'all' | 'needs' | 'report' | 'listing'
+/** A section of the list: title, count, how many need you, and an optional control on the right. */
+function ListSection({ title, homes, right, children }: { title: string; homes: Home[]; right?: React.ReactNode; children: React.ReactNode }) {
+  const waiting = homes.filter((h) => h.needsYou).length
+  return (
+    <section className="mt-10">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-baseline gap-2">
+          <h2 className="text-xl font-semibold text-ink">{title}</h2>
+          <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{homes.length}</span>
+          {waiting > 0 && <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white">{waiting} need{waiting === 1 ? 's' : ''} you</span>}
+        </div>
+        {right}
+      </div>
+      {children}
+    </section>
+  )
+}
 
 export default function Properties() {
   const created = useDemo((s) => s.projects)
@@ -52,7 +68,6 @@ export default function Properties() {
   }
   const conn = useConnections()
   const [q, setQ] = useState('')
-  const [tab, setTab] = useState<Tab>('all')
   const [sort, setSort] = useState<HomeSort>('recent')
   const needle = q.trim().toLowerCase()
   const noMatch = <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No homes match “{q.trim()}”.</p>
@@ -136,17 +151,20 @@ export default function Properties() {
   const shownAll = homes.filter((h) => match(h.address, h.city, h.product))
   const projectHomes = shownAll.filter((h) => h.project)
   const shown = shownAll.filter((h) => !h.project) // projects have their own cards above
-  const inTab = (h: Home) => tab === 'all' || (tab === 'needs' && !!h.needsYou) || (tab === 'report' && !!h.report) || (tab === 'listing' && !!h.listing)
-  const rows = shown.filter(inTab)
+  // a home that's both your listing and has a report sits with your listings, tagged AI report
+  const listingHomes = shown.filter((h) => h.listing)
+  const reportHomes = shown.filter((h) => h.report && !h.listing)
   const firstVisit = !needle && homes.length === 0
-
-  const tabs: { k: Tab; label: string; icon?: typeof Bell }[] = [
-    { k: 'all', label: 'All homes' },
-    { k: 'needs', label: 'Needs you', icon: Bell },
-    { k: 'report', label: 'AI reports', icon: FileText },
-    { k: 'listing', label: 'Your listings', icon: Tag },
-  ]
-  const count = (k: Tab) => shown.filter((h) => k === 'all' || (k === 'needs' ? !!h.needsYou : k === 'report' ? !!h.report : !!h.listing)).length
+  const sortControl = (
+    <div className="flex items-center gap-1 text-[12.5px] text-muted">
+      Sort by
+      {(['recent', 'upside'] as const).map((k) => (
+        <button key={k} onClick={() => setSort(k)} aria-pressed={sort === k} className={cn('rounded-md px-2 py-1 font-medium', sort === k ? 'bg-line-soft text-ink' : 'hover:text-ink')}>
+          {k === 'recent' ? 'Recent' : 'Biggest upside'}
+        </button>
+      ))}
+    </div>
+  )
 
   const connectMls = (
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-dashed border-line px-5 py-4">
@@ -211,51 +229,21 @@ export default function Properties() {
             )}
           </section>
 
-          <h2 className="mt-10 text-xl font-semibold text-ink">Reports and listings</h2>
-          <div className="mt-2 flex flex-wrap items-end justify-between gap-3 border-b border-line">
-            <div role="tablist" aria-label="Homes" className="-mb-px flex gap-1 overflow-x-auto [scrollbar-width:none]">
-              {tabs.map((t) => {
-                const Icon = t.icon
-                const on = tab === t.k
-                return (
-                  <button
-                    key={t.k}
-                    role="tab"
-                    aria-selected={on}
-                    onClick={() => setTab(t.k)}
-                    className={cn('inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-[14px] font-medium whitespace-nowrap', on ? 'border-[var(--brand-primary)] text-ink' : 'border-transparent text-muted hover:text-ink')}
-                  >
-                    {Icon && <Icon className="size-3.5" />}
-                    {t.label}
-                    <span className={cn('rounded-full px-1.5 text-[12px] tabular-nums', on ? 'bg-[var(--brand-primary-subtle)] text-brand' : 'bg-line-soft text-muted')}>{count(t.k)}</span>
-                  </button>
-                )
-              })}
-            </div>
-            <div className="mb-1.5 flex items-center gap-1 text-[12.5px] text-muted">
-              Sort by
-              {(['recent', 'upside'] as const).map((k) => (
-                <button key={k} onClick={() => setSort(k)} aria-pressed={sort === k} className={cn('rounded-md px-2 py-1 font-medium', sort === k ? 'bg-line-soft text-ink' : 'hover:text-ink')}>
-                  {k === 'recent' ? 'Recent' : 'Biggest upside'}
-                </button>
-              ))}
-            </div>
-          </div>
+          <ListSection title="AI reports" homes={reportHomes} right={reportHomes.length > 1 ? sortControl : undefined}>
+            {reportHomes.length ? <HomesList homes={reportHomes} sort={sort} kind="report" /> : needle ? noMatch : <ReportsEmpty />}
+          </ListSection>
 
-          <div className="mt-4">
-            {rows.length ? (
-              <HomesList homes={rows} sort={sort} />
+          <ListSection title="Your listings" homes={listingHomes}>
+            {listingHomes.length ? (
+              <HomesList homes={listingHomes} sort="recent" kind="listing" />
             ) : needle ? (
               noMatch
-            ) : tab === 'listing' ? (
-              conn.mls ? <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No active listings on the MLS right now.</p> : connectMls
-            ) : tab === 'needs' ? (
-              <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">Nothing waiting on you here. Nice.</p>
+            ) : conn.mls ? (
+              <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No active listings on the MLS right now.</p>
             ) : (
-              <ReportsEmpty />
+              connectMls
             )}
-            {tab === 'all' && !needle && !conn.mls && rows.length > 0 && <div className="mt-4">{connectMls}</div>}
-          </div>
+          </ListSection>
         </>
       )}
     </div>

@@ -210,7 +210,7 @@ export function ProjectCards({ homes }: { homes: Home[] }) {
   )
 }
 
-function Tags({ h }: { h: Home }) {
+function Tags({ h, hide }: { h: Home; hide?: ListKind }) {
   const t = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap'
   return (
     <span className="flex flex-wrap gap-1">
@@ -219,12 +219,12 @@ function Tags({ h }: { h: Home }) {
           <Hammer className="size-3" /> Project
         </span>
       )}
-      {h.report && (
+      {h.report && hide !== 'report' && (
         <span className={cn(t, 'bg-[var(--brand-primary-subtle)] text-brand')}>
           <FileText className="size-3" /> AI report
         </span>
       )}
-      {h.listing && (
+      {h.listing && hide !== 'listing' && (
         <span className={cn(t, 'bg-line-soft text-ink-2')}>
           <Tag className="size-3" /> Your listing
         </span>
@@ -256,8 +256,8 @@ const SHARE_TONE = {
 } as const
 
 /** Where this home stands: the project's progress, else the report's share status, else the MLS status. */
-function Status({ h }: { h: Home }) {
-  if (h.project) {
+function Status({ h, kind }: { h: Home; kind?: ListKind }) {
+  if (h.project && !kind) {
     const p = h.project
     const pct = p.pct ?? Math.round(((p.step + 0.5) / p.steps) * 100)
     return (
@@ -272,17 +272,15 @@ function Status({ h }: { h: Home }) {
       </span>
     )
   }
-  if (h.report) {
+  if (h.report && kind !== 'listing') {
     const sh = h.report.share ?? { label: 'Not shared yet', tone: 'none' as const }
     return <span className={cn('inline-flex max-w-full truncate rounded-full px-2.5 py-1 text-[12px] font-semibold', SHARE_TONE[sh.tone])}>{sh.label}</span>
   }
   if (h.listing) {
     const st = listingStatus(h.listing)
-    const dom = h.listing.property.facts.daysOnMarket
     return (
       <span className="flex flex-wrap items-center gap-2">
         <span className={cn('inline-flex rounded-full px-2.5 py-1 text-[12px] font-semibold whitespace-nowrap', st.warn ? 'bg-warn-soft text-warn' : 'bg-ok-soft text-[var(--green)]')}>{st.label}</span>
-        {dom !== undefined && <span className={cn('text-[12px] tabular-nums', dom >= 30 ? 'font-semibold text-warn' : 'text-muted')}>{dom} days</span>}
       </span>
     )
   }
@@ -292,7 +290,7 @@ function Status({ h }: { h: Home }) {
 function action(h: Home) {
   if (h.needsYou) return { label: h.needsYou.cta.replace(/ to your seller$/, ''), to: h.needsYou.to, primary: true }
   if (h.project) return { label: h.project.status === 'active' ? 'View updates' : 'Open project', to: `/property/${h.id}?tab=project`, primary: false }
-  if (h.report) {
+  if (h.report && !h.listing) {
     const none = !h.report.share || h.report.share.tone === 'none'
     return { label: none ? 'Share report' : 'Follow up', to: `/property/${h.id}?tab=report`, primary: false } // blue is kept for rows that need you
   }
@@ -300,19 +298,25 @@ function action(h: Home) {
 }
 
 export type HomeSort = 'recent' | 'upside'
-const SHOW = 8
+const SHOW = 5
 
 /** One row per home. */
-export function HomesList({ homes, sort }: { homes: Home[]; sort: HomeSort }) {
+export type ListKind = 'report' | 'listing'
+
+export function HomesList({ homes, sort, kind }: { homes: Home[]; sort: HomeSort; kind?: ListKind }) {
   const [all, setAll] = useState(false)
+  const listing = kind === 'listing'
+  const cols = listing ? 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_90px_110px_150px_170px]' : 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_150px_170px]'
   // anything waiting on the agent comes first, then the chosen order
   const sorted = [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou) || (sort === 'upside' ? (b.upside ?? 0) - (a.upside ?? 0) : b.at - a.at))
   const visible = all ? sorted : sorted.slice(0, SHOW)
   return (
     <div className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
-      <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_150px_170px] gap-5 border-b border-line bg-head px-4 py-2 text-[11.5px] font-medium tracking-wide text-muted uppercase lg:grid">
-        <span>Home</span>
-        <span>Where it stands</span>
+      <div className={cn('hidden gap-5 border-b border-line bg-head px-4 py-2 text-[11.5px] font-medium tracking-wide text-muted uppercase lg:grid', cols)}>
+        <span>{listing ? 'Listing' : 'Home'}</span>
+        <span>{kind === 'report' ? 'With the homeowner' : listing ? 'Status' : 'Where it stands'}</span>
+        {listing && <span className="text-right">Days listed</span>}
+        {listing && <span className="text-right">List price</span>}
         <span>Revive upside</span>
         <span />
       </div>
@@ -323,7 +327,8 @@ export function HomesList({ homes, sort }: { homes: Home[]; sort: HomeSort }) {
             <li
               key={h.id}
               className={cn(
-                'relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-5 gap-y-2 px-4 py-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_150px_170px]',
+                'relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-5 gap-y-2 px-4 py-3',
+                cols,
                 i > 0 && 'border-t border-line-soft',
                 h.needsYou ? 'bg-[var(--brand-primary-subtle)]/60' : 'hover:bg-head/50',
               )}
@@ -337,13 +342,19 @@ export function HomesList({ homes, sort }: { homes: Home[]; sort: HomeSort }) {
                   </span>
                   <span className="mt-0.5 flex min-w-0 items-center gap-2">
                     <span className="shrink-0 text-[12.5px] text-muted">{h.city}</span>
-                    <Tags h={h} />
+                    <Tags h={h} hide={kind} />
                   </span>
                 </span>
               </Link>
               <span className="hidden min-w-0 lg:block">
-                {h.needsYou ? <NeedsStatus n={h.needsYou} /> : <Status h={h} />}
+                {h.needsYou && !listing ? <NeedsStatus n={h.needsYou} /> : <Status h={h} kind={kind} />}
               </span>
+              {listing && (
+                <span className={cn('hidden text-right text-[14px] tabular-nums lg:block', (h.listing?.property.facts.daysOnMarket ?? 0) >= 30 ? 'font-semibold text-warn' : 'text-ink-2')}>
+                  {h.listing?.property.facts.daysOnMarket ?? '—'}
+                </span>
+              )}
+              {listing && <span className="hidden text-right text-[14px] font-semibold text-ink tabular-nums lg:block">{h.listing ? money(h.listing.property.valueNow) : '—'}</span>}
               <span className="hidden lg:block">
                 <span className="block text-[14.5px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? gain(h.upside) : '—'}</span>
                 <span className="block truncate text-[12px] text-muted">{h.product ?? (h.valueNow ? `Value ${money(h.valueNow)}` : '')}</span>
@@ -363,7 +374,7 @@ export function HomesList({ homes, sort }: { homes: Home[]; sort: HomeSort }) {
       </ul>
       {homes.length > SHOW && (
         <button onClick={() => setAll((v) => !v)} className="w-full border-t border-line-soft py-2.5 text-[13px] font-medium text-brand hover:bg-head">
-          {all ? 'Show fewer' : `Show all ${homes.length} homes`}
+          {all ? 'Show fewer' : `Show all ${homes.length}`}
         </button>
       )}
     </div>
