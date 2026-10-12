@@ -1,11 +1,11 @@
 import { FileText, Hammer, ImagePlus, MessageSquareDot, Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
-import { ListingsTable, REPORT_VIEWS, type ReportRow, type ReportView } from '@/components/property/ReportViews'
+import { ListingsTable, ReportList, ReportSortControl, type ReportRow, type ReportSort } from '@/components/property/ReportViews'
 import { photoUrl } from '@/lib/assets'
 import { money } from '@/lib/format'
 import { PROJECT_STEPS } from '@/lib/flows'
@@ -142,25 +142,21 @@ export default function Properties() {
   const renovisions = useDemo((s) => s.renovisions)
   const designsOn = (id: string) => Object.values(renovisions).filter((d) => d.propertyId === id).reduce((n, d) => n + d.pairs.length, 0)
   const opps = useOpportunities()
+  const outreach = useDemo((s) => s.outreach)
+  const activity = useDemo((s) => s.activity)
+  const shareOf = (id: string): ReportRow['share'] => {
+    const o = opps.find((x) => x.id === id)
+    const log = [...(activity[id] ?? []), ...(o?.activity ?? [])].join(' | ')
+    const opened = o?.property.facts.reportOpenedDaysAgo
+    if (opened !== undefined || /opened the report/i.test(log)) return { label: opened !== undefined ? `Opened ${opened === 0 ? 'today' : `${opened}d ago`}` : 'Opened by homeowner', tone: 'opened' }
+    if (outreach[id] || o?.stage === 'shared' || /shared the Revive AI report/i.test(log)) return { label: 'Shared · not opened', tone: 'shared' }
+    if (o?.property.source === 'leadform') return { label: 'Ran it on your lead form', tone: 'leadform' }
+    return { label: 'Not shared yet', tone: 'none' }
+  }
   const conn = useConnections()
   const [q, setQ] = useState('')
   const [kind, setKind] = useState<Kind>('all')
-  // three report layouts to compare; remembered per browser
-  const [view, setView] = useState<ReportView>(() => {
-    try {
-      return (localStorage.getItem('rv-report-view') as ReportView) || 'list'
-    } catch {
-      return 'list'
-    }
-  })
-  useEffect(() => {
-    try {
-      localStorage.setItem('rv-report-view', view)
-    } catch {
-      /* private window */
-    }
-  }, [view])
-  const ReportsView = REPORT_VIEWS.find((v) => v.k === view)?.C ?? REPORT_VIEWS[0].C
+  const [sort, setSort] = useState<ReportSort>('newest')
   const needle = q.trim().toLowerCase()
   const noMatch = <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No homes match “{q.trim()}”.</p>
   const match = (...fields: (string | undefined)[]) => !needle || fields.some((f) => f?.toLowerCase().includes(needle))
@@ -216,11 +212,13 @@ export default function Properties() {
           product: best?.gain ? best.product : undefined,
           when: `Generated ${new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
           designs: designsOn(r.id),
+          at: r.createdAt,
+          share: shareOf(r.id),
         }
       }),
     ...opps
       .filter((o) => o.property.reportRun && !reports[o.id] && !inProject.has(o.id))
-      .map((o) => ({ id: o.id, address: o.property.address, city: o.property.city, photo: o.property.photo, valueNow: o.property.valueNow, upside: o.gain || undefined, product: o.product, designs: designsOn(o.id) })),
+      .map((o) => ({ id: o.id, address: o.property.address, city: o.property.city, photo: o.property.photo, valueNow: o.property.valueNow, upside: o.gain || undefined, product: o.product, designs: designsOn(o.id), at: Date.now() - (o.property.facts.leadFormDaysAgo ?? o.property.facts.reportOpenedDaysAgo ?? 30) * 86_400_000, share: shareOf(o.id) })),
   ]
 
   const shownProjects = projects.filter((p) => match(p.address, p.city, p.product))
@@ -309,23 +307,9 @@ export default function Properties() {
               icon={FileText}
               label="AI reports"
               count={shownReports.length}
-              right={
-                <div className="flex items-center gap-1 rounded-lg bg-line-soft p-0.5" role="radiogroup" aria-label="Report layout">
-                  {REPORT_VIEWS.map((v) => (
-                    <button
-                      key={v.k}
-                      role="radio"
-                      aria-checked={view === v.k}
-                      onClick={() => setView(v.k)}
-                      className={cn('h-7 rounded-md px-2.5 text-[12px] font-medium', view === v.k ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}
-                    >
-                      {v.label}
-                    </button>
-                  ))}
-                </div>
-              }
+              right={shownReports.length > 1 ? <ReportSortControl sort={sort} onSort={setSort} /> : undefined}
             >
-              <ReportsView rows={shownReports} />
+              <ReportList rows={shownReports} sort={sort} />
             </Group>
           )}
         </div>
