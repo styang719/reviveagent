@@ -234,7 +234,7 @@ export default function Properties() {
               )}
             </ListSection>
             </div>
-            <div className="xl:sticky xl:top-6">
+            <div>
               <ReportsPanel homes={reportHomes} sort={sort} onSort={setSort} empty={needle ? noMatch : <ReportsEmpty />} />
             </div>
           </div>

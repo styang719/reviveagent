@@ -393,29 +393,27 @@ export function ReportsPanel({ homes, sort, onSort, empty }: { homes: Home[]; so
   const visible = all ? sorted : sorted.slice(0, 6)
   const waiting = homes.filter((h) => h.needsYou).length
   return (
-    <section aria-labelledby="reports-title" className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
-      <div className="border-b border-line px-4 pt-4 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="grid size-7 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
-            <FileText className="size-4" />
-          </span>
-          <h2 id="reports-title" className="text-[17px] font-semibold text-ink">
+    <section aria-labelledby="reports-title">
+      {/* same header as the sections on the left, so the two columns line up */}
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="flex items-baseline gap-2">
+          <h2 id="reports-title" className="text-xl font-semibold text-ink">
             AI reports
           </h2>
           <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{homes.length}</span>
           {waiting > 0 && <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white">{waiting} need{waiting === 1 ? 's' : ''} you</span>}
         </div>
         {homes.length > 1 && (
-          <div className="mt-2 flex items-center gap-1 text-[12px] text-muted">
-            Sort by
-            {(['recent', 'upside'] as const).map((k) => (
-              <button key={k} onClick={() => onSort(k)} aria-pressed={sort === k} className={cn('rounded-md px-2 py-0.5 font-medium', sort === k ? 'bg-line-soft text-ink' : 'hover:text-ink')}>
-                {k === 'recent' ? 'Recent' : 'Biggest upside'}
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => onSort(sort === 'recent' ? 'upside' : 'recent')}
+            className="rounded-md px-2 py-1 text-[12.5px] font-medium text-muted hover:bg-line-soft hover:text-ink"
+            title="Change the order"
+          >
+            {sort === 'recent' ? 'Recent' : 'Biggest upside'} ▾
+          </button>
         )}
       </div>
+      <div className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
       {homes.length ? (
         <ul>
           {visible.map((h, i) => {
@@ -426,10 +424,10 @@ export function ReportsPanel({ homes, sort, onSort, empty }: { homes: Home[]; so
               <li key={h.id} className={cn('relative', i > 0 && 'border-t border-line-soft', n && 'bg-[var(--brand-primary-subtle)]/60')}>
                 {n && <span className="absolute inset-y-0 left-0 w-[3px] bg-[var(--brand-primary)]" aria-hidden="true" />}
                 <Link to={n?.to ?? `/property/${h.id}?tab=report`} className="flex items-center gap-3 px-4 py-3 hover:bg-head/50">
-                  <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
+                  <span className="block size-12 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
-                      <span className="truncate text-[14px] font-semibold text-ink">{h.address}</span>
+                      <span className="truncate text-[14.5px] font-semibold text-ink">{h.address}</span>
                       <span className="shrink-0 text-[13.5px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? gain(h.upside) : '—'}</span>
                     </span>
                     <span className="mt-1 flex items-center justify-between gap-2">
@@ -461,6 +459,7 @@ export function ReportsPanel({ homes, sort, onSort, empty }: { homes: Home[]; so
           {all ? 'Show fewer' : `Show all ${homes.length} reports`}
         </button>
       )}
+      </div>
     </section>
   )
 }
