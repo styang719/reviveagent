@@ -92,7 +92,7 @@ export function ReportCards({ homes, sort, grid = 'sm:grid-cols-2 xl:grid-cols-3
               to={n?.to ?? `/property/${h.id}?tab=report`}
               className={cn(
                 'group flex flex-col rounded-xl border bg-white p-3.5 transition-colors hover:border-[var(--brand-primary-border)]',
-                n ? 'border-[var(--brand-primary-border)] bg-[var(--brand-primary-subtle)]/40' : 'border-line',
+                'border-line',
               )}
             >
               {/* who and how much: the address and the upside carry the card */}
@@ -375,7 +375,7 @@ export function SideNavLayout(parts: Parts) {
                 const preview = k === 'reports' ? 4 : k === 'projects' ? 2 : 5 // one row each, so every type stays near the top
                 return (
                   <section key={k}>
-                    <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} preview={map[k].length > preview} />
+                    <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} preview={map[k].length > preview} needs={waitingOf(map[k])} onNeeds={() => setView({ kind: 'needs' })} />
                     <SectionBody k={k} parts={{ ...parts, [k]: topOf(map[k]).slice(0, preview) }} filter="all" onFilter={() => {}} chips={false} narrow />
                   </section>
                 )
@@ -413,13 +413,18 @@ function ViewHead({ title, icon: Icon, sub }: { title: string; icon: typeof Bell
 }
 
 /** A group inside Needs you / All homes: the type, its count, and a link to see that type on its own. */
-function GroupHead({ k, n, total, onAll, preview }: { k: SectionKey; n: number; total: number; onAll: () => void; preview?: boolean }) {
+function GroupHead({ k, n, total, onAll, preview, needs, onNeeds }: { k: SectionKey; n: number; total: number; onAll: () => void; preview?: boolean; needs?: number; onNeeds?: () => void }) {
   const Icon = SECTIONS[k].icon
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
       <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
         <Icon className="size-4 text-brand" /> {SECTIONS[k].title}
         <span className="text-[13px] font-normal text-muted tabular-nums">{n}</span>
+        {!!needs && (
+          <button onClick={onNeeds} className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-primary-subtle)] px-2 py-0.5 text-[12px] font-semibold text-brand hover:bg-[var(--brand-primary-border)]/50">
+            <span className="size-1.5 rounded-full bg-[var(--brand-primary)]" /> {needs} need{needs === 1 ? 's' : ''} you
+          </button>
+        )}
       </h3>
       <button onClick={onAll} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
         {preview ? `See all ${total}` : 'Open'} <ArrowRight className="size-3.5" />

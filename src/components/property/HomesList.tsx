@@ -166,7 +166,7 @@ export function ProjectCards({ homes, grid = 'xl:grid-cols-2' }: { homes: Home[]
             to={n?.to ?? to}
             className={cn(
               'group flex overflow-hidden rounded-2xl border bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]',
-              n ? 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]' : 'border-line',
+              'border-line',
             )}
           >
             <span className="relative hidden w-[34%] max-w-[220px] shrink-0 overflow-hidden bg-line-soft sm:block">
@@ -332,10 +332,9 @@ export function HomesList({ homes, sort, kind }: { homes: Home[]; sort: HomeSort
                 'relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-5 gap-y-2 px-4 py-3',
                 cols,
                 i > 0 && 'border-t border-line-soft',
-                h.needsYou ? 'bg-[var(--brand-primary-subtle)]/60' : 'hover:bg-head/50',
+                'hover:bg-head/50',
               )}
             >
-              {h.needsYou && <span className="absolute inset-y-0 left-0 w-[3px] bg-[var(--brand-primary)]" aria-hidden="true" />}
               <Link to={a.to} className="flex min-w-0 items-center gap-3">
                 <span className="block size-12 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
                 <span className="min-w-0">
