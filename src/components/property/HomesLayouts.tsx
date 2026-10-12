@@ -290,19 +290,27 @@ const KEYS: SectionKey[] = ['projects', 'reports', 'listings']
 
 // ---------- the page: side nav ----------
 
-type View = { kind: 'needs' } | { kind: 'all' } | { kind: 'section'; k: SectionKey; f: string }
+type View = { kind: 'all' } | { kind: 'section'; k: SectionKey; f: string }
 
 /**
- * Homes with a side nav, in the usual app pattern (Gmail, Linear, Asana): two views on top that cut across
- * everything (Needs you, All homes), then one item per type. Status filters live in the page as sub-tabs
- * under the section title, not as nested nav items. The selected item is filled; counts sit on the right,
- * and a blue count means homes waiting on you.
+ * Homes is the record of every home, not a to-do list (the dashboard is that): All homes, then one item per
+ * type. Status filters live in the page as sub-tabs. A home that needs the agent sorts first, says why in
+ * blue and has the blue action; each group's "N need you" chip filters that group in place.
  */
 export function SideNavLayout(parts: Parts) {
   const map = { projects: parts.projects, reports: parts.reports, listings: parts.listings }
   const total = KEYS.reduce((n, k) => n + map[k].length, 0)
-  const allNeeds = KEYS.reduce((n, k) => n + waitingOf(map[k]), 0)
-  const [view, setView] = useState<View>(() => (allNeeds ? { kind: 'needs' } : { kind: 'all' }))
+  const [view, setView] = useState<View>({ kind: 'all' })
+  // "N need you" chips: show only those homes in that group, in place
+  const [needsOnly, setNeedsOnly] = useState<Set<SectionKey>>(() => new Set())
+  const toggleNeeds = (k: SectionKey) =>
+    setNeedsOnly((s) => {
+      const x = new Set(s)
+      if (x.has(k)) x.delete(k)
+      else x.add(k)
+      return x
+    })
+  const pick = (k: SectionKey) => (needsOnly.has(k) ? map[k].filter((h) => h.needsYou) : map[k])
   const isOn = (v: View) => v.kind === view.kind && (v.kind !== 'section' || (view.kind === 'section' && view.k === v.k))
   const item = (on: boolean) =>
     cn(
@@ -315,11 +323,6 @@ export function SideNavLayout(parts: Parts) {
   return (
     <div className="mt-6 grid items-start gap-8 lg:grid-cols-[232px_minmax(0,1fr)]">
       <nav aria-label="Homes" className="lg:sticky lg:top-4">
-        <p className="px-3 pb-1.5 text-[11.5px] font-semibold tracking-wide text-faint uppercase">Views</p>
-        <button onClick={() => setView({ kind: 'needs' })} className={item(isOn({ kind: 'needs' }))} aria-current={isOn({ kind: 'needs' }) || undefined}>
-          {bar(isOn({ kind: 'needs' }))}
-          <Bell className="size-4 text-brand" /> Needs you {count(allNeeds, allNeeds > 0)}
-        </button>
         <button onClick={() => setView({ kind: 'all' })} className={item(isOn({ kind: 'all' }))} aria-current={isOn({ kind: 'all' }) || undefined}>
           {bar(isOn({ kind: 'all' }))}
           <LayoutGrid className="size-4 text-brand" /> All homes {count(total)}
@@ -354,12 +357,6 @@ export function SideNavLayout(parts: Parts) {
       </nav>
 
       <div className="min-w-0">
-        {view.kind === 'needs' && (
-          <>
-            <ViewHead title="Needs you" icon={Bell} sub={allNeeds ? `${allNeeds} homes where your next move matters, across projects, reports and listings.` : 'Nothing is waiting on you right now.'} />
-            <NeedsList homes={KEYS.flatMap((k) => map[k].filter((h) => h.needsYou))} />
-          </>
-        )}
         {view.kind === 'all' && (
           <>
             <ViewHead title="All homes" icon={LayoutGrid} sub={`${total} homes: ${map.projects.length} projects, ${map.reports.length} AI reports, ${map.listings.length} listings.`} />
@@ -368,8 +365,8 @@ export function SideNavLayout(parts: Parts) {
                 const preview = k === 'reports' ? 4 : k === 'projects' ? 2 : 5 // one row each, so every type stays near the top
                 return (
                   <section key={k}>
-                    <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} preview={map[k].length > preview} needs={waitingOf(map[k])} onNeeds={() => setView({ kind: 'needs' })} />
-                    <SectionBody k={k} parts={{ ...parts, [k]: topOf(map[k]).slice(0, preview) }} filter="all" onFilter={() => {}} chips={false} narrow />
+                    <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} preview={map[k].length > preview} needs={waitingOf(map[k])} needsOn={needsOnly.has(k)} onNeeds={() => toggleNeeds(k)} />
+                    <SectionBody k={k} parts={{ ...parts, [k]: needsOnly.has(k) ? pick(k) : topOf(map[k]).slice(0, preview) }} filter="all" onFilter={() => {}} chips={false} narrow />
                   </section>
                 )
               })}
@@ -378,8 +375,13 @@ export function SideNavLayout(parts: Parts) {
         )}
         {view.kind === 'section' && (
           <>
-            <ViewHead title={SECTIONS[view.k].title} icon={SECTIONS[view.k].icon} sub={SECTIONS[view.k].hint} />
-            <SectionBody k={view.k} parts={parts} filter={view.f} onFilter={(f) => setView({ kind: 'section', k: (view as { k: SectionKey }).k, f })} narrow />
+            <ViewHead
+              title={SECTIONS[view.k].title}
+              icon={SECTIONS[view.k].icon}
+              sub={SECTIONS[view.k].hint}
+              right={waitingOf(map[view.k]) > 0 ? <NeedsChip n={waitingOf(map[view.k])} on={needsOnly.has(view.k)} onClick={() => toggleNeeds((view as { k: SectionKey }).k)} /> : undefined}
+            />
+            <SectionBody k={view.k} parts={{ ...parts, [view.k]: pick(view.k) }} filter={view.f} onFilter={(f) => setView({ kind: 'section', k: (view as { k: SectionKey }).k, f })} narrow />
           </>
         )}
       </div>
@@ -391,75 +393,24 @@ export function SideNavLayout(parts: Parts) {
 const topOf = (homes: Home[]) =>
   [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou) || Number(a.project?.status === 'sold') - Number(b.project?.status === 'sold') || b.at - a.at)
 
-const KIND_LABEL = { project: 'Revive project', report: 'AI report', listing: 'Your listing' } as const
-const KIND_ICON = { project: Hammer, report: FileText, listing: Tag } as const
-
-/**
- * Needs you as one to-do list: every item reads the same way, whatever kind of home it is. The task is the
- * title; under it, which home and why; on the right, what's at stake. The circle ticks it off for now.
- */
-function NeedsList({ homes }: { homes: Home[] }) {
-  const [done, setDone] = useState<Set<string>>(() => new Set())
-  if (!homes.length) return <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">Nothing is waiting on you right now.</p>
-  const order = { project: 0, report: 1, listing: 2 }
-  const items = [...homes].sort((a, b) => order[a.needsYou!.kind] - order[b.needsYou!.kind])
+/** "N need you": a filter chip. On, the group shows only the homes waiting on the agent. */
+function NeedsChip({ n, on, onClick }: { n: number; on: boolean; onClick?: () => void }) {
   return (
-    <ul className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
-      {items.map((h, i) => {
-        const n = h.needsYou!
-        const Icon = KIND_ICON[n.kind]
-        const isDone = done.has(h.id)
-        const why = n.kind === 'project' && h.project ? h.project.stage : n.status
-        return (
-          <li key={h.id} className={cn('flex items-center', i > 0 && 'border-t border-line-soft', isDone && 'opacity-55')}>
-            <button
-              onClick={() =>
-                setDone((s) => {
-                  const x = new Set(s)
-                  if (x.has(h.id)) x.delete(h.id)
-                  else x.add(h.id)
-                  return x
-                })
-              }
-              aria-pressed={isDone}
-              aria-label={isDone ? 'Mark not done' : 'Mark done'}
-              className="grid size-14 shrink-0 place-items-center"
-            >
-              <span className={cn('grid size-[22px] place-items-center rounded-full border-[1.5px]', isDone ? 'border-[var(--green)] bg-[var(--green)] text-white' : 'border-[#c4cad6] hover:border-[var(--brand-primary)]')}>
-                {isDone && <Check className="size-3.5" strokeWidth={3} />}
-              </span>
-            </button>
-            <Link to={n.to} className="group flex min-w-0 flex-1 items-center gap-4 py-3 pr-4">
-              <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
-              <span className="min-w-0 flex-1">
-                <span className={cn('block truncate text-[15px] font-semibold text-ink', isDone && 'text-muted line-through')}>{n.cta}</span>
-                <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted">
-                  <span className="inline-flex shrink-0 items-center gap-1 font-medium text-ink-2">
-                    <Icon className="size-3.5 text-brand" /> {KIND_LABEL[n.kind]}
-                  </span>
-                  <span className="truncate">
-                    · {h.address}, {h.city} · {why}
-                  </span>
-                </span>
-              </span>
-              {h.upside ? (
-                <span className="hidden shrink-0 text-right sm:block">
-                  <span className="block text-[15px] font-semibold text-[var(--green)] tabular-nums">{gain(h.upside)}</span>
-                  <span className="block text-[11.5px] text-muted">with Revive</span>
-                </span>
-              ) : null}
-              <ArrowRight className="size-4 shrink-0 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-brand" />
-            </Link>
-          </li>
-        )
-      })}
-    </ul>
+    <button
+      onClick={onClick}
+      aria-pressed={on}
+      className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold transition-colors', on ? 'bg-[var(--brand-primary)] text-white' : 'bg-[var(--brand-primary-subtle)] text-brand hover:bg-[var(--brand-primary-border)]/50')}
+    >
+      <span className={cn('size-1.5 rounded-full', on ? 'bg-white' : 'bg-[var(--brand-primary)]')} /> {n} need{n === 1 ? 's' : ''} you
+      {on && <span aria-hidden="true">×</span>}
+    </button>
   )
 }
 
-function ViewHead({ title, icon: Icon, sub }: { title: string; icon: typeof Bell; sub: string }) {
+function ViewHead({ title, icon: Icon, sub, right }: { title: string; icon: typeof Bell; sub: string; right?: React.ReactNode }) {
   return (
-    <div className="mb-5">
+    <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+      <div>
       <h2 className="flex items-center gap-2.5 text-xl font-semibold text-ink">
         <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
           <Icon className="size-4" />
@@ -467,23 +418,21 @@ function ViewHead({ title, icon: Icon, sub }: { title: string; icon: typeof Bell
         {title}
       </h2>
       <p className="mt-1 text-[13.5px] text-muted">{sub}</p>
+      </div>
+      {right}
     </div>
   )
 }
 
 /** A group inside Needs you / All homes: the type, its count, and a link to see that type on its own. */
-function GroupHead({ k, n, total, onAll, preview, needs, onNeeds }: { k: SectionKey; n: number; total: number; onAll: () => void; preview?: boolean; needs?: number; onNeeds?: () => void }) {
+function GroupHead({ k, n, total, onAll, preview, needs, needsOn, onNeeds }: { k: SectionKey; n: number; total: number; onAll: () => void; preview?: boolean; needs?: number; needsOn?: boolean; onNeeds?: () => void }) {
   const Icon = SECTIONS[k].icon
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
       <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
         <Icon className="size-4 text-brand" /> {SECTIONS[k].title}
         <span className="text-[13px] font-normal text-muted tabular-nums">{n}</span>
-        {!!needs && (
-          <button onClick={onNeeds} className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-primary-subtle)] px-2 py-0.5 text-[12px] font-semibold text-brand hover:bg-[var(--brand-primary-border)]/50">
-            <span className="size-1.5 rounded-full bg-[var(--brand-primary)]" /> {needs} need{needs === 1 ? 's' : ''} you
-          </button>
-        )}
+        {!!needs && <NeedsChip n={needs} on={!!needsOn} onClick={onNeeds} />}
       </h3>
       <button onClick={onAll} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
         {preview ? `See all ${total}` : 'Open'} <ArrowRight className="size-3.5" />
