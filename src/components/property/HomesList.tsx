@@ -115,6 +115,35 @@ export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined 
   return undefined
 }
 
+/** The project card's progress: a green bar while building, step segments while in review, then the stage. */
+function ProjectProgress({ p, upside }: { p: ProjectLite; upside?: number }) {
+  const active = p.status === 'active'
+  const pct = p.pct ?? Math.round(((p.step + 0.5) / p.steps) * 100)
+  return (
+    <span className="mt-4 block">
+      <span className="flex items-baseline justify-between gap-2 text-[13.5px]">
+        <span className="truncate font-medium text-ink">{active ? 'Construction progress' : 'In review with Revive'}</span>
+        <span className="shrink-0 text-muted tabular-nums">{active ? `${pct}%` : `${p.step + 1}/${p.steps}`}</span>
+      </span>
+      {active ? (
+        <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-line-soft" role="progressbar" aria-label="Construction progress" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+          <span className="block h-full rounded-full bg-[var(--green)]" style={{ width: `${pct}%` }} />
+        </span>
+      ) : (
+        <span className="mt-1.5 flex gap-1" role="progressbar" aria-label="Project steps" aria-valuenow={p.step + 1} aria-valuemin={1} aria-valuemax={p.steps}>
+          {Array.from({ length: p.steps }, (_, i) => (
+            <span key={i} className={cn('h-2 flex-1 rounded-full', i <= p.step ? 'bg-[var(--brand-primary)]' : 'bg-line-soft')} />
+          ))}
+        </span>
+      )}
+      <span className="mt-1.5 flex items-baseline justify-between gap-2 text-[12.5px]">
+        <span className="truncate text-muted">{p.stage}</span>
+        {upside ? <span className="shrink-0 font-semibold text-[var(--green)] tabular-nums">{gain(upside)} with Revive</span> : null}
+      </span>
+    </span>
+  )
+}
+
 const KIND_ICON = { project: Hammer, report: FileText, listing: Tag } as const
 const STATUS_TONE = { blue: 'text-brand', green: 'text-[var(--green)]', purple: 'text-[var(--brand-agent)]', warn: 'text-warn' } as const
 
@@ -158,7 +187,10 @@ export function NeedsYou({ homes }: { homes: Home[] }) {
                     <Icon className="size-3.5" /> {n.status}
                   </span>
                 </span>
-                <span className="mt-4 grid grid-cols-2 gap-4">
+                {h.project ? (
+                  <ProjectProgress p={h.project} upside={h.upside} />
+                ) : (
+                  <span className="mt-4 grid grid-cols-2 gap-4">
                   {n.stats.map((st) => (
                     <span key={st.label} className="min-w-0">
                       <span className="block text-[11.5px] font-medium tracking-wide text-muted uppercase">{st.label}</span>
@@ -166,6 +198,7 @@ export function NeedsYou({ homes }: { homes: Home[] }) {
                     </span>
                   ))}
                 </span>
+                )}
                 <span className="mt-4 flex h-10 items-center justify-center gap-2 rounded-lg bg-line-soft px-3 text-[13.5px] font-medium text-ink transition-colors group-hover:bg-[var(--brand-primary-subtle)] group-hover:text-brand">
                   <Icon className="size-4 shrink-0" /> <span className="truncate">{n.cta}</span>
                 </span>
