@@ -50,6 +50,7 @@ interface Stat {
 }
 
 export interface NeedsYouItem {
+  kind: 'project' | 'report' | 'listing' // what the home is, for the type badge
   reason: string // short eyebrow: why it's here
   tone: 'blue' | 'green' | 'purple' | 'warn'
   title: string
@@ -69,6 +70,7 @@ export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined 
     const photos = /photo/i.test(p.next)
     const pct = p.pct ?? Math.round(((p.step + 0.5) / p.steps) * 100)
     return {
+      kind: 'project',
       reason: 'Waiting on you',
       tone: 'blue',
       title: p.next,
@@ -84,6 +86,7 @@ export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined 
     const opened = r.share.tone === 'opened'
     const f = h.listing?.property.facts ?? h.facts
     return {
+      kind: 'report',
       reason: opened ? 'Homeowner engaged' : 'New lead from your form',
       tone: opened ? 'green' : 'purple',
       title: opened ? `${who} opened your report${f?.reportOpenedDaysAgo !== undefined ? ` ${f.reportOpenedDaysAgo === 0 ? 'today' : `${f.reportOpenedDaysAgo} days ago`}` : ''}` : `${who} ran a report on your lead form`,
@@ -102,6 +105,7 @@ export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined 
     const cut = (f.priceCutDaysAgo ?? 99) <= 7
     if (stale || cut)
       return {
+        kind: 'listing',
         reason: 'Your listing is going stale',
         tone: 'warn',
         title: stale ? `${f.daysOnMarket} days on market${cut ? ', price cut' : ''}` : `Price cut ${f.priceCutDaysAgo === 1 ? 'yesterday' : `${f.priceCutDaysAgo} days ago`}`,
@@ -113,6 +117,23 @@ export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined 
       }
   }
   return undefined
+}
+
+const KIND = {
+  project: { label: 'Revive project', icon: Hammer, cls: 'bg-[var(--brand-primary)] text-white' },
+  report: { label: 'AI report', icon: FileText, cls: 'bg-white text-brand' },
+  listing: { label: 'Your listing', icon: Tag, cls: 'bg-white text-ink' },
+} as const
+
+/** What the home is, pinned to the photo's corner: the same three kinds as the list's tags and tabs. */
+function KindBadge({ kind }: { kind: NeedsYouItem['kind'] }) {
+  const k = KIND[kind]
+  const Icon = k.icon
+  return (
+    <span className={cn('absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11.5px] font-semibold shadow-sm', k.cls)}>
+      <Icon className="size-3.5" /> {k.label}
+    </span>
+  )
 }
 
 const TONE = {
@@ -144,6 +165,7 @@ export function NeedsYou({ homes }: { homes: Home[] }) {
             <article key={h.id} className="group relative flex overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]">
               <Link to={n.to} tabIndex={-1} aria-hidden="true" className="relative hidden w-44 shrink-0 overflow-hidden bg-line-soft sm:block">
                 {h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+                <KindBadge kind={n.kind} />
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pt-8 pb-2.5 text-white">
                   <span className="block truncate text-[13.5px] font-semibold">{h.address}</span>
                   <span className="block truncate text-[11.5px] text-white/80">{h.city}</span>
