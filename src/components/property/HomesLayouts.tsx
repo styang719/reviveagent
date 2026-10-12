@@ -67,12 +67,6 @@ function SortToggle({ sort, setSort }: { sort: HomeSort; setSort: (s: HomeSort) 
   )
 }
 
-const SHARE_TONE = {
-  opened: 'bg-ok-soft text-[var(--green)]',
-  shared: 'bg-[var(--brand-primary-subtle)] text-brand',
-  leadform: 'bg-[var(--brand-agent-subtle)] text-[var(--brand-agent)]',
-  none: 'bg-line-soft text-ink-2',
-} as const
 
 const sortHomes = (homes: Home[], sort: HomeSort) =>
   [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou) || (sort === 'upside' ? (b.upside ?? 0) - (a.upside ?? 0) : b.at - a.at))
@@ -92,7 +86,6 @@ export function ReportCards({ homes, sort, grid = 'sm:grid-cols-2 xl:grid-cols-3
           const n = h.needsYou
           const sh = h.report?.share ?? { label: 'Not shared yet', tone: 'none' as const }
           const none = sh.tone === 'none'
-          const now = h.valueNow ?? 0
           return (
             <Link
               key={h.id}
@@ -102,36 +95,29 @@ export function ReportCards({ homes, sort, grid = 'sm:grid-cols-2 xl:grid-cols-3
                 n ? 'border-[var(--brand-primary-border)] bg-[var(--brand-primary-subtle)]/40' : 'border-line',
               )}
             >
-              <span className="flex items-start gap-3">
-                <span className="relative block size-12 shrink-0 overflow-hidden rounded-lg bg-line-soft">
-                  {h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}
-                </span>
+              {/* who and how much: the address and the upside carry the card */}
+              <span className="flex items-center gap-3">
+                <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1 text-[11px] font-semibold tracking-wide text-muted uppercase">
-                    <FileText className="size-3 text-brand" /> Revive AI report{h.report?.when ? ` · ${h.report.when.replace('Generated ', '')}` : ''}
+                  <span className="block truncate text-[15px] font-semibold text-ink">{h.address}</span>
+                  <span className="block truncate text-[12.5px] text-muted">
+                    {h.city}
+                    {h.product && ` · ${h.product}`}
                   </span>
-                  <span className="block truncate text-[14.5px] font-semibold text-ink">{h.address}</span>
-                  <span className="block truncate text-[12px] text-muted">{h.city}</span>
                 </span>
+                <span className="shrink-0 text-[18px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? gain(h.upside) : '—'}</span>
               </span>
-              <span className="mt-3 flex items-baseline justify-between gap-2 border-t border-dashed border-line pt-2.5 text-[12.5px] tabular-nums">
-                <span className="text-muted">
-                  {now ? money(now) : '—'} <span className="text-faint">→</span> <b className="font-semibold text-ink">{now && h.upside ? money(now + h.upside) : '—'}</b>
+              {/* where it stands, and the one next step */}
+              <span className="mt-3 flex items-center justify-between gap-2 border-t border-line-soft pt-2.5">
+                <span className={cn('inline-flex min-w-0 items-center gap-1.5 truncate text-[12.5px]', n ? 'font-semibold text-brand' : 'text-muted')}>
+                  <span className={cn('size-1.5 shrink-0 rounded-full', n ? 'bg-[var(--brand-primary)]' : sh.tone === 'opened' ? 'bg-[var(--green)]' : sh.tone === 'shared' ? 'bg-[var(--brand-primary-border)]' : 'bg-[#c4cad6]')} />
+                  <span className="truncate">{n ? n.status : sh.label}</span>
+                  {!!h.report?.designs && <Sparkles className="size-3 shrink-0 text-[var(--brand-agent)]" aria-label="Has RenoVision designs" />}
                 </span>
-                <span className="font-semibold text-[var(--green)]">{h.upside ? gain(h.upside) : ''}</span>
-              </span>
-              <span className="mt-0.5 block truncate text-[12px] text-ink-2">{h.product ?? 'No project fit yet'}</span>
-              <span className="mt-2.5 flex items-center justify-between gap-2">
-                <span className={cn('truncate rounded-full px-2 py-0.5 text-[11.5px] font-semibold', n ? 'bg-[var(--brand-primary)] text-white' : SHARE_TONE[sh.tone])}>{n ? n.status : sh.label}</span>
-                <span className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold text-brand">
+                <span className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-brand">
                   {n ? n.cta.replace(/ with .*$/, '') : none ? 'Share' : 'Open'} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </span>
-              {!!h.report?.designs && (
-                <span className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-medium text-[var(--brand-agent)]">
-                  <Sparkles className="size-3" /> {h.report.designs} RenoVision designs
-                </span>
-              )}
             </Link>
           )
         })}
@@ -296,7 +282,7 @@ export function ListingsView({ homes, filter, onFilter, chips = true }: { homes:
 
 function SectionBody({ k, parts, filter, onFilter, chips = true, narrow }: { k: SectionKey; parts: Parts; filter: string; onFilter: (f: string) => void; chips?: boolean; narrow?: boolean }) {
   if (k === 'projects') return <ProjectsView homes={parts.projects} filter={filter} onFilter={onFilter} chips={chips} narrow={narrow} />
-  if (k === 'reports') return <ReportsView homes={parts.reports} filter={filter} onFilter={onFilter} sort={parts.sort} setSort={parts.setSort} chips={chips} grid={narrow ? 'sm:grid-cols-2 xl:grid-cols-3' : undefined} />
+  if (k === 'reports') return <ReportsView homes={parts.reports} filter={filter} onFilter={onFilter} sort={parts.sort} setSort={parts.setSort} chips={chips} grid={narrow ? 'sm:grid-cols-2 2xl:grid-cols-3' : undefined} />
   return <ListingsView homes={parts.listings} filter={filter} onFilter={onFilter} chips={chips} />
 }
 
@@ -386,7 +372,7 @@ export function SideNavLayout(parts: Parts) {
             <ViewHead title="All homes" icon={LayoutGrid} sub={`${total} homes: ${map.projects.length} projects, ${map.reports.length} AI reports, ${map.listings.length} listings.`} />
             <div className="flex flex-col gap-10">
               {KEYS.filter((k) => map[k].length).map((k) => {
-                const preview = k === 'reports' ? 3 : k === 'projects' ? 2 : 5 // one row each, so every type stays near the top
+                const preview = k === 'reports' ? 4 : k === 'projects' ? 2 : 5 // one row each, so every type stays near the top
                 return (
                   <section key={k}>
                     <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} preview={map[k].length > preview} />
