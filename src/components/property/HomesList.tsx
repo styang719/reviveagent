@@ -1,4 +1,4 @@
-import { ArrowRight, Eye, FileText, Hammer, ImagePlus, Send, Sparkles, Tag, TrendingDown } from 'lucide-react'
+import { ArrowRight, Check, Eye, FileText, Hammer, ImagePlus, Send, Sparkles, Tag, TrendingDown } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { photoUrl } from '@/lib/assets'
@@ -144,70 +144,69 @@ function ProjectProgress({ p, upside }: { p: ProjectLite; upside?: number }) {
   )
 }
 
-const KIND_ICON = { project: Hammer, report: FileText, listing: Tag } as const
 const STATUS_TONE = { blue: 'text-brand', green: 'text-[var(--green)]', purple: 'text-[var(--brand-agent)]', warn: 'text-warn' } as const
 
-/** The "Needs you" cards, in the property-card style: photo with its label, address and why, two numbers, the next step. */
-export function NeedsYou({ homes }: { homes: Home[] }) {
-  const items = homes.filter((h) => h.needsYou).slice(0, 4)
-  if (!items.length) return null
+/**
+ * Projects with Revive, always on top as property cards with their progress. One waiting on the agent says
+ * so in blue and its button turns blue with the next step; the rest read "On track".
+ */
+export function ProjectCards({ homes }: { homes: Home[] }) {
+  const sorted = [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou))
   return (
-    <section className="mt-8" aria-labelledby="needs-you">
-      <div className="flex items-baseline gap-2">
-        <h2 id="needs-you" className="text-xl font-semibold text-ink">
-          Needs you
-        </h2>
-        <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white tabular-nums">{items.length}</span>
-      </div>
-      <p className="mt-1 text-[13px] text-muted">The homes where your next move matters most this week.</p>
-      <div className="mt-4 grid gap-4 xl:grid-cols-2">
-        {items.map((h) => {
-          const n = h.needsYou!
-          const Icon = n.icon
-          const KindIcon = KIND_ICON[n.kind]
-          return (
-            <Link
-              key={h.id}
-              to={n.to}
-              className="group flex overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
-            >
-              <span className="relative hidden w-[34%] max-w-[220px] shrink-0 overflow-hidden bg-line-soft sm:block">
-                {h.photo && <img src={img(h.photo)} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-                <span className="absolute top-3 left-3 inline-flex max-w-[calc(100%-24px)] items-center gap-1.5 truncate rounded-full bg-black/55 px-3 py-1 text-[12px] font-medium text-white backdrop-blur-sm">
-                  <KindIcon className="size-3.5 shrink-0" /> <span className="truncate">{n.pill}</span>
+    <div className="grid gap-4 xl:grid-cols-2">
+      {sorted.map((h) => {
+        const p = h.project!
+        const n = h.needsYou
+        const Icon = n?.icon ?? Check
+        const to = `/property/${h.id}?tab=project`
+        return (
+          <Link
+            key={h.id}
+            to={n?.to ?? to}
+            className={cn(
+              'group flex overflow-hidden rounded-2xl border bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]',
+              n ? 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]' : 'border-line',
+            )}
+          >
+            <span className="relative hidden w-[34%] max-w-[220px] shrink-0 overflow-hidden bg-line-soft sm:block">
+              {h.photo && <img src={img(h.photo)} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+              <span className="absolute top-3 left-3 inline-flex max-w-[calc(100%-24px)] items-center gap-1.5 truncate rounded-full bg-black/55 px-3 py-1 text-[12px] font-medium text-white backdrop-blur-sm">
+                <Hammer className="size-3.5 shrink-0" /> <span className="truncate">{p.product}</span>
+              </span>
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col px-5 py-4">
+              <span className="flex items-start justify-between gap-3">
+                <span className="min-w-0">
+                  <span className="block truncate text-[17px] font-semibold text-ink">{h.address}</span>
+                  <span className="mt-0.5 block truncate text-[14px] text-muted">
+                    {h.city}
+                    {h.listing && ' · Your listing'}
+                  </span>
+                </span>
+                <span className={cn('mt-1 inline-flex shrink-0 items-center gap-1.5 text-[12.5px] font-medium', n ? 'text-brand' : 'text-[var(--green)]')}>
+                  <Icon className="size-3.5" /> {n ? n.status : 'On track'}
                 </span>
               </span>
-              <span className="flex min-w-0 flex-1 flex-col px-5 py-4">
-                <span className="flex items-start justify-between gap-3">
-                  <span className="min-w-0">
-                    <span className="block truncate text-[17px] font-semibold text-ink">{h.address}</span>
-                    <span className="mt-0.5 block truncate text-[14px] text-muted">{h.city}</span>
-                  </span>
-                  <span className={cn('mt-1 inline-flex shrink-0 items-center gap-1.5 text-[12.5px] font-medium', STATUS_TONE[n.tone])}>
-                    <Icon className="size-3.5" /> {n.status}
-                  </span>
-                </span>
-                {h.project ? (
-                  <ProjectProgress p={h.project} upside={h.upside} />
-                ) : (
-                  <span className="mt-4 grid grid-cols-2 gap-4">
-                  {n.stats.map((st) => (
-                    <span key={st.label} className="min-w-0">
-                      <span className="block text-[11.5px] font-medium tracking-wide text-muted uppercase">{st.label}</span>
-                      <span className={cn('mt-0.5 block truncate text-[16px] font-semibold tabular-nums', st.tone === 'green' ? 'text-[var(--green)]' : st.tone === 'warn' ? 'text-warn' : 'text-ink')}>{st.value}</span>
-                    </span>
-                  ))}
-                </span>
+              <ProjectProgress p={p} upside={h.upside} />
+              <span
+                className={cn(
+                  'mt-4 flex h-10 items-center justify-center gap-2 rounded-lg px-3 text-[13.5px] font-medium transition-colors',
+                  n ? 'bg-[var(--brand-primary)] text-white group-hover:opacity-90' : 'bg-line-soft text-ink group-hover:bg-[var(--brand-primary-subtle)] group-hover:text-brand',
                 )}
-                <span className="mt-4 flex h-10 items-center justify-center gap-2 rounded-lg bg-line-soft px-3 text-[13.5px] font-medium text-ink transition-colors group-hover:bg-[var(--brand-primary-subtle)] group-hover:text-brand">
-                  <Icon className="size-4 shrink-0" /> <span className="truncate">{n.cta}</span>
-                </span>
+              >
+                {n ? (
+                  <>
+                    <Icon className="size-4 shrink-0" /> <span className="truncate">{n.cta}</span>
+                  </>
+                ) : (
+                  <span className="truncate">{p.status === 'active' ? 'View updates' : 'Open project'}</span>
+                )}
               </span>
-            </Link>
-          )
-        })}
-      </div>
-    </section>
+            </span>
+          </Link>
+        )
+      })}
+    </div>
   )
 }
 
@@ -235,6 +234,16 @@ function Tags({ h }: { h: Home }) {
           <Sparkles className="size-3" /> RenoVision
         </span>
       )}
+    </span>
+  )
+}
+
+/** A row that needs the agent: why, in the reason's color. */
+function NeedsStatus({ n }: { n: NeedsYouItem }) {
+  const Icon = n.icon
+  return (
+    <span className={cn('inline-flex max-w-full items-center gap-1.5 truncate text-[13px] font-semibold', STATUS_TONE[n.tone])}>
+      <Icon className="size-3.5 shrink-0" /> <span className="truncate">{n.status}</span>
     </span>
   )
 }
@@ -281,10 +290,11 @@ function Status({ h }: { h: Home }) {
 }
 
 function action(h: Home) {
+  if (h.needsYou) return { label: h.needsYou.cta.replace(/ to your seller$/, ''), to: h.needsYou.to, primary: true }
   if (h.project) return { label: h.project.status === 'active' ? 'View updates' : 'Open project', to: `/property/${h.id}?tab=project`, primary: false }
   if (h.report) {
     const none = !h.report.share || h.report.share.tone === 'none'
-    return { label: none ? 'Share report' : 'Follow up', to: `/property/${h.id}?tab=report`, primary: none }
+    return { label: none ? 'Share report' : 'Follow up', to: `/property/${h.id}?tab=report`, primary: false } // blue is kept for rows that need you
   }
   return { label: 'See options', to: `/property/${h.id}`, primary: false }
 }
@@ -295,11 +305,12 @@ const SHOW = 8
 /** One row per home. */
 export function HomesList({ homes, sort }: { homes: Home[]; sort: HomeSort }) {
   const [all, setAll] = useState(false)
-  const sorted = [...homes].sort((a, b) => (sort === 'upside' ? (b.upside ?? 0) - (a.upside ?? 0) : b.at - a.at))
+  // anything waiting on the agent comes first, then the chosen order
+  const sorted = [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou) || (sort === 'upside' ? (b.upside ?? 0) - (a.upside ?? 0) : b.at - a.at))
   const visible = all ? sorted : sorted.slice(0, SHOW)
   return (
     <div className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
-      <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_150px_150px] gap-5 border-b border-line bg-head px-4 py-2 text-[11.5px] font-medium tracking-wide text-muted uppercase lg:grid">
+      <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_150px_170px] gap-5 border-b border-line bg-head px-4 py-2 text-[11.5px] font-medium tracking-wide text-muted uppercase lg:grid">
         <span>Home</span>
         <span>Where it stands</span>
         <span>Revive upside</span>
@@ -309,7 +320,15 @@ export function HomesList({ homes, sort }: { homes: Home[]; sort: HomeSort }) {
         {visible.map((h, i) => {
           const a = action(h)
           return (
-            <li key={h.id} className={cn('grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-5 gap-y-2 px-4 py-3 hover:bg-head/50 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_150px_150px]', i > 0 && 'border-t border-line-soft')}>
+            <li
+              key={h.id}
+              className={cn(
+                'relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-5 gap-y-2 px-4 py-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_150px_170px]',
+                i > 0 && 'border-t border-line-soft',
+                h.needsYou ? 'bg-[var(--brand-primary-subtle)]/60' : 'hover:bg-head/50',
+              )}
+            >
+              {h.needsYou && <span className="absolute inset-y-0 left-0 w-[3px] bg-[var(--brand-primary)]" aria-hidden="true" />}
               <Link to={a.to} className="flex min-w-0 items-center gap-3">
                 <span className="block size-12 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
                 <span className="min-w-0">
@@ -323,7 +342,7 @@ export function HomesList({ homes, sort }: { homes: Home[]; sort: HomeSort }) {
                 </span>
               </Link>
               <span className="hidden min-w-0 lg:block">
-                <Status h={h} />
+                {h.needsYou ? <NeedsStatus n={h.needsYou} /> : <Status h={h} />}
               </span>
               <span className="hidden lg:block">
                 <span className="block text-[14.5px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? gain(h.upside) : '—'}</span>

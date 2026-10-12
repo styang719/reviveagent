@@ -1,9 +1,9 @@
-import { FileText, Hammer, Search, Tag } from 'lucide-react'
+import { Bell, FileText, Search, Tag } from 'lucide-react'
 import { useState } from 'react'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
-import { HomesList, NeedsYou, needsYouOf, type Home, type HomeSort } from '@/components/property/HomesList'
+import { HomesList, ProjectCards, needsYouOf, type Home, type HomeSort } from '@/components/property/HomesList'
 import type { ReportRow } from '@/components/property/homeRows'
 import { money } from '@/lib/format'
 import { PROJECT_STEPS } from '@/lib/flows'
@@ -31,7 +31,7 @@ interface ProjectRow {
   pct?: number // construction progress, when known
 }
 
-type Tab = 'all' | 'project' | 'report' | 'listing'
+type Tab = 'all' | 'needs' | 'report' | 'listing'
 
 export default function Properties() {
   const created = useDemo((s) => s.projects)
@@ -133,18 +133,20 @@ export default function Properties() {
     const full = { ...h, person: o?.person?.name, facts: o?.property.facts }
     return { ...full, needsYou: needsYouOf(full) }
   })
-  const shown = homes.filter((h) => match(h.address, h.city, h.product))
-  const inTab = (h: Home) => tab === 'all' || (tab === 'project' && !!h.project) || (tab === 'report' && !!h.report) || (tab === 'listing' && !!h.listing)
+  const shownAll = homes.filter((h) => match(h.address, h.city, h.product))
+  const projectHomes = shownAll.filter((h) => h.project)
+  const shown = shownAll.filter((h) => !h.project) // projects have their own cards above
+  const inTab = (h: Home) => tab === 'all' || (tab === 'needs' && !!h.needsYou) || (tab === 'report' && !!h.report) || (tab === 'listing' && !!h.listing)
   const rows = shown.filter(inTab)
   const firstVisit = !needle && homes.length === 0
 
-  const tabs: { k: Tab; label: string; icon?: typeof Hammer }[] = [
+  const tabs: { k: Tab; label: string; icon?: typeof Bell }[] = [
     { k: 'all', label: 'All homes' },
-    { k: 'project', label: 'Projects', icon: Hammer },
+    { k: 'needs', label: 'Needs you', icon: Bell },
     { k: 'report', label: 'AI reports', icon: FileText },
     { k: 'listing', label: 'Your listings', icon: Tag },
   ]
-  const count = (k: Tab) => shown.filter((h) => k === 'all' || (k === 'project' ? !!h.project : k === 'report' ? !!h.report : !!h.listing)).length
+  const count = (k: Tab) => shown.filter((h) => k === 'all' || (k === 'needs' ? !!h.needsYou : k === 'report' ? !!h.report : !!h.listing)).length
 
   const connectMls = (
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-dashed border-line px-5 py-4">
@@ -190,9 +192,27 @@ export default function Properties() {
         </>
       ) : (
         <>
-          {!needle && <NeedsYou homes={homes} />}
+          <section className="mt-8" aria-labelledby="projects-title">
+            <div className="mb-4 flex items-baseline gap-2">
+              <h2 id="projects-title" className="text-xl font-semibold text-ink">
+                Projects with Revive
+              </h2>
+              <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{projectHomes.length}</span>
+              {projectHomes.some((h) => h.needsYou) && (
+                <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white">{projectHomes.filter((h) => h.needsYou).length} waiting on you</span>
+              )}
+            </div>
+            {projectHomes.length ? (
+              <ProjectCards homes={projectHomes} />
+            ) : needle ? (
+              noMatch
+            ) : (
+              <ProjectsEmpty />
+            )}
+          </section>
 
-          <div className="mt-8 flex flex-wrap items-end justify-between gap-3 border-b border-line">
+          <h2 className="mt-10 text-xl font-semibold text-ink">Reports and listings</h2>
+          <div className="mt-2 flex flex-wrap items-end justify-between gap-3 border-b border-line">
             <div role="tablist" aria-label="Homes" className="-mb-px flex gap-1 overflow-x-auto [scrollbar-width:none]">
               {tabs.map((t) => {
                 const Icon = t.icon
@@ -229,8 +249,8 @@ export default function Properties() {
               noMatch
             ) : tab === 'listing' ? (
               conn.mls ? <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No active listings on the MLS right now.</p> : connectMls
-            ) : tab === 'project' ? (
-              <ProjectsEmpty />
+            ) : tab === 'needs' ? (
+              <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">Nothing waiting on you here. Nice.</p>
             ) : (
               <ReportsEmpty />
             )}
