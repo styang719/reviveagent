@@ -49,7 +49,7 @@ export interface Property {
   sqft: number
   yearBuilt: number
   lot?: number
-  photo?: string // key into src/assets/photos (illustrative photos from the Contacts page)
+  photo?: string // photo key, mapped to an AI-generated home exterior in src/lib/assets.ts
   ownerId?: string // Person
   ownerRole: 'Owner' | 'Seller'
   source: Source
@@ -90,6 +90,7 @@ export interface Referral {
   expiresInHours: number // exclusivity window
   status: 'new' | 'claimed' | 'contacted' | 'listing' | 'lost'
   needsUpdate: boolean // Revive requires agent status updates
+  referredDaysAgo: number
 }
 
 export interface CrmEvent {

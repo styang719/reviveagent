@@ -71,6 +71,7 @@ export function BaseMap({
   wheelZoom = interactive,
   zoomPosition = 'topleft',
   padTop = 24,
+  zoomControl = true,
   className,
   children,
 }: {
@@ -81,6 +82,7 @@ export function BaseMap({
   wheelZoom?: boolean // off on scrolling pages so the wheel scrolls the page
   zoomPosition?: L.ControlPosition
   padTop?: number // extra room at the top when something floats over the map
+  zoomControl?: boolean // off on mobile, where you pinch
   className?: string
   children?: React.ReactNode
 }) {
@@ -99,7 +101,7 @@ export function BaseMap({
       attributionControl
       className={cn('h-full w-full bg-[#eef0f3]', className)}
     >
-      {interactive && <ZoomControl position={zoomPosition} />}
+      {interactive && zoomControl && <ZoomControl position={zoomPosition} />}
       {LIVE_TILES ? <TileLayer url={LIVE_TILES} attribution={ATTRIBUTION} /> : <EmbeddedTiles />}
       {children}
     </MapContainer>

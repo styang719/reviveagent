@@ -3,7 +3,7 @@ import type L from 'leaflet'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Marker, useMap } from 'react-leaflet'
 import { Link, useSearchParams } from 'react-router-dom'
-import { needsAttention, OppDrawer } from '@/components/home/TopOpportunities'
+import { attentionRank, OppDrawer } from '@/components/home/TopOpportunities'
 import { OppTable } from '@/components/opportunity/OppTable'
 import { ValueDrawer } from '@/components/opportunity/ValueDrawer'
 import { BaseMap, TILE_BOUNDS } from '@/components/map/BaseMap'
@@ -149,7 +149,7 @@ export default function Opportunities() {
   // recommended: anything that needs the agent today (a reply, fresh lead activity) comes first
   const sorted = [...searched].sort((a, b) =>
     sort === 'recommended'
-      ? Number(needsAttention(b, outreach[b.id], activity[b.id])) - Number(needsAttention(a, outreach[a.id], activity[a.id]))
+      ? attentionRank(b, outreach[b.id], activity[b.id]) - attentionRank(a, outreach[a.id], activity[a.id])
       : sort === 'score' ? (b.person?.sellScore ?? -1) - (a.person?.sellScore ?? -1) : sort === 'value' ? b.property.valueNow - a.property.valueNow : sort === 'upside' ? b.gain - a.gain : 0,
   )
   const shown = sorted.filter((o) => passes(o, filter))

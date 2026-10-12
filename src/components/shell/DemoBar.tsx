@@ -5,6 +5,7 @@ import type { Tier } from '@/data/types'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
+import { ViewSwitch } from '@/mobile/ViewSwitch'
 
 export const DEMO_BAR_HEIGHT = 44
 
@@ -12,13 +13,12 @@ export function DemoBar() {
   const tier = useDemo((s) => s.tier)
   const setTier = useDemo((s) => s.setTier)
   const setNewAgent = useDemo((s) => s.setNewAgent)
-  const connected = useDemo((s) => !!s.license && s.crmConnected)
   const setImporting = useUi((s) => s.setImporting)
 
-  // New agent comes in two states: nothing connected yet, and MLS + CRM already connected
+  // New agent starts with nothing connected (connecting from the dashboard shows the connected state);
+  // Active stands in for a connected agent with their book, so it has no separate button
   const scenarios: { key: string; label: string; on: boolean; pick: () => void }[] = [
-    { key: 'new', label: TIERS.new.demoLabel, on: tier === 'new' && !connected, pick: () => setNewAgent(false) },
-    { key: 'new-connected', label: 'New agent · MLS & CRM connected', on: tier === 'new' && connected, pick: () => setNewAgent(true) },
+    { key: 'new', label: TIERS.new.demoLabel, on: tier === 'new', pick: () => setNewAgent(false) },
     ...(Object.keys(TIERS) as Tier[])
       .filter((t) => t !== 'new')
       .map((t) => ({ key: t, label: TIERS[t].demoLabel, on: tier === t, pick: () => setTier(t) })),
@@ -34,6 +34,7 @@ export function DemoBar() {
       aria-label="Demo controls"
     >
       <span className="shrink-0 rounded bg-white/10 px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase">Demo</span>
+      <ViewSwitch />
       <span className="shrink-0">View as</span>
       <div className="flex shrink-0 rounded-lg bg-white/10 p-0.5" role="radiogroup" aria-label="Demo scenario">
         {scenarios.map((sc) => (

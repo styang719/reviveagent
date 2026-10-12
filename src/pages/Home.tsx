@@ -1,16 +1,16 @@
 import { DiscussProperty } from '@/components/home/DiscussProperty'
 import { AdvisorCard } from '@/components/home/AdvisorCard'
-import { ProjectPulse } from '@/components/home/ProjectPulse'
-import { ReferralHero } from '@/components/home/ReferralHero'
-import { ReferralUpdates } from '@/components/home/ReferralUpdates'
+import { ReviveHomes, useReviveHomes } from '@/components/home/ReviveHomes'
+import { ReferralsToday } from '@/components/home/ReferralsToday'
 import { ReferEarn } from '@/components/home/ReferralCards'
 import { RevivePathCard } from '@/components/home/RevivePathCard'
 import { SetupTodo } from '@/components/home/ConnectBook'
-import { CaseStudies, ReviveAiIntro } from '@/components/home/NewAgentIntro'
+import { ReviveAiIntro } from '@/components/home/NewAgentIntro'
 import { MarketingCenter } from '@/components/home/MarketingCenter'
 import { YourBook } from '@/components/home/YourBook'
 import { TopOpportunities } from '@/components/home/TopOpportunities'
 import { AGENT, TIERS } from '@/data/tiers'
+import { greetingWord } from '@/lib/greeting'
 import { useNow } from '@/hooks/useNow'
 import { isActionable, useConnections, useOpportunities } from '@/lib/opportunities'
 import { useUi } from '@/store/ui'
@@ -18,10 +18,6 @@ import { PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
 const FEED_SIZE = 5
-
-function greetingWord(h: number) {
-  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
-}
 
 export default function Home() {
   const tier = useDemo((s) => s.tier)
@@ -31,7 +27,6 @@ export default function Home() {
   const importing = useUi((s) => s.importing)
 
   const newReferral = opps.find((o) => o.referral?.status === 'new' && !o.referral.claimedAt && o.referral.expiresAt > now)
-  const waiting = opps.filter((o) => o.referral?.needsUpdateNow && o.id !== newReferral?.id)
   const projects = opps.filter((o) => o.stage === 'project' && o.property.project?.status === 'active')
   const feed = opps.filter((o) => isActionable(o) && o.referral?.status !== 'new')
   const actionableCount = opps.filter(isActionable).length
@@ -49,7 +44,11 @@ export default function Home() {
   // once both sources are in, the ranked list is the agent's book; the source panels would repeat it
   const bookDone = crm && mls && !importing
 
-  const whoToCall = feed.length > 0 && <TopOpportunities opps={feed.slice(0, FEED_SIZE)} />
+  // homes already moving with Revive get their own cards; Top opportunities is who to reach out to next
+  const reviveHomes = useReviveHomes(isNew ? [] : opps)
+  const inRevive = new Set(reviveHomes.map((i) => i.id))
+  const toCall = isNew ? feed : feed.filter((o) => !inRevive.has(o.id))
+  const whoToCall = toCall.length > 0 && <TopOpportunities opps={toCall.slice(0, FEED_SIZE)} />
 
   const greeting = (
     <header className="flex flex-wrap items-start justify-between gap-4">
@@ -78,7 +77,7 @@ export default function Home() {
                 {whoToCall}
               </>
             )}
-            {bookDone ? <MarketingCenter /> : <CaseStudies />}
+            <MarketingCenter />
           </div>
           <aside className="flex flex-col gap-5" aria-label="Getting started">
             <RevivePathCard tier={tier} opps={opps} />
@@ -96,14 +95,11 @@ export default function Home() {
       {greeting}
 
       {/* the same Ask Revive search as a new agent sees; the Revive status leads the right column */}
-      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex min-w-0 flex-col gap-6">
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-12 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="flex min-w-0 flex-col gap-12">
           <ReviveAiIntro />
-          {newReferral && <ReferralHero o={newReferral} />}
-          {tier === 'partner' && <ReferralUpdates waiting={waiting} />}
-          {projects.map((o) => (
-            <ProjectPulse key={o.id} o={o} />
-          ))}
+          {tier === 'partner' && <ReferralsToday opps={opps} />}
+          <ReviveHomes items={reviveHomes} />
           {whoToCall}
         </div>
 

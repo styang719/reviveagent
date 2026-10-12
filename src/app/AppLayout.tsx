@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Outlet, useLocation, useSearchParams } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { DEMO_BAR_HEIGHT, DemoBar } from '@/components/shell/DemoBar'
 import { DockedChat } from '@/components/ai/DockedChat'
@@ -7,6 +7,7 @@ import { CrmDialog } from '@/components/home/ConnectBook'
 import { Sidebar } from '@/components/shell/Sidebar'
 import { TopBar } from '@/components/shell/TopBar'
 import type { Tier } from '@/data/types'
+import { isMobileApp } from '@/mobile/mode'
 import { useDemo } from '@/store/demo'
 
 const TIERS: Tier[] = ['new', 'active', 'partner']
@@ -44,6 +45,10 @@ export function AppLayout() {
   }, [tierParam, setTier])
 
   useEffect(() => window.scrollTo(0, 0), [pathname])
+
+  // in the mobile prototype, every desktop link lands on its mobile twin (the dashboard becomes Revive AI)
+  const location = useLocation()
+  if (isMobileApp()) return <Navigate to={`/m${pathname === '/' ? '' : pathname}${location.search}`} replace state={location.state} />
 
   return (
     <div className="min-h-screen bg-white" style={{ ['--demo-h' as string]: showDemo ? `${DEMO_BAR_HEIGHT}px` : '0px' }}>

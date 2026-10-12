@@ -1,10 +1,10 @@
-import { ArrowRight, Calendar, FileText, Hammer, Search, Sparkles, Tag } from 'lucide-react'
+import { ArrowRight, FileText, Hammer, ImagePlus, MessageSquareDot, Search, Sparkles, Tag } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AiLink } from '@/components/ai/AiLink'
+import { toast } from 'sonner'
 import { LicenseForm } from '@/components/home/ConnectBook'
+import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
-import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
 import { PROJECT_STEPS } from '@/lib/flows'
@@ -12,10 +12,10 @@ import { useConnections, useOpportunities, type Opportunity } from '@/lib/opport
 import { cn, PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
-// Every home the agent is working on, in two sections. With Revive: projects and AI reports in one grid,
-// told apart by a filter and by the label on each photo (a project is a filled blue "Project" tag with
-// its progress; a report is a white "AI report" tag with value and upside). Your listings: the agent's
-// active MLS listings, with what Revive could add to each.
+// Every home the agent is working on, in two sections. With Revive: projects (wide cards with progress,
+// open the Project tab) and AI reports (photo cards with value and upside, open the report), each under
+// its own labeled row, with a filter to show one kind. Your listings: the agent's active MLS listings,
+// with what Revive could add to each.
 
 const img = (key?: string) => (key?.startsWith('data:') ? key : photoUrl(key))
 
@@ -31,6 +31,7 @@ interface ProjectRow {
   step: number // index of the current step
   next?: string
   target?: string
+  pct?: number // construction progress, when known
 }
 
 interface ReportRow {
@@ -45,51 +46,65 @@ interface ReportRow {
   designs?: number // RenoVision designs saved on this home
 }
 
+/** Figma "Property card": square photo with the product badge, then progress, what's next and one action. */
 function ProjectCard({ p }: { p: ProjectRow }) {
-  const pct = Math.round(((p.step + (p.status === 'active' ? 0.5 : 0.2)) / p.steps) * 100)
+  const to = `/property/${p.id}?tab=project`
+  const active = p.status === 'active'
+  const photos = !!p.next && /photo/i.test(p.next)
+  const pct = p.pct ?? Math.round(((p.step + 0.5) / p.steps) * 100)
   return (
-    <Link
-      to={`/property/${p.id}?tab=project`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
-    >
-      <div className="relative h-36 overflow-hidden bg-line-soft">
+    <article className="group flex overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]">
+      <Link to={to} tabIndex={-1} aria-hidden="true" className="relative w-32 shrink-0 self-stretch overflow-hidden bg-line-soft sm:w-56 xl:w-60">
         {p.photo && <img src={img(p.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-        <span
-          className={cn(
-            'absolute top-3 left-3 rounded-full bg-[var(--brand-primary)] px-2.5 py-1 text-[11.5px] font-semibold text-white shadow-sm',
-          )}
-        >
-          <Hammer className="mr-1 inline size-3 -translate-y-px" />
-          Project · {p.status === 'active' ? 'In construction' : 'In review'}
-        </span>
-      </div>
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div>
-          <p className="truncate text-[15px] font-semibold text-ink">{p.address}</p>
-          <p className="text-[12.5px] text-muted">
-            {p.city} · {p.product}
+        <span className="absolute top-2.5 left-2.5 max-w-[calc(100%-20px)] truncate rounded-full bg-black/50 px-2.5 py-1 text-[11.5px] font-medium text-white backdrop-blur-sm">{p.product}</span>
+      </Link>
+      <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
+        <div className="min-w-0">
+          <Link to={to} className="block truncate text-[15px] font-semibold text-ink hover:text-brand">
+            {p.address}
+          </Link>
+          <p className="truncate text-[13px] text-muted">
+            {p.city}
+            {p.target && <> · {p.target}</>}
           </p>
         </div>
         <div>
-          <div className="flex items-baseline justify-between gap-2 text-[12px]">
-            <span className="truncate font-medium text-ink-2">{p.stage}</span>
-            <span className="shrink-0 text-muted tabular-nums">
-              Step {p.step + 1} of {p.steps}
-            </span>
+          <div className="flex items-baseline justify-between gap-2 text-[13px]">
+            <span className="truncate font-medium text-ink">{active ? 'Construction progress' : 'In review with Revive'}</span>
+            <span className="shrink-0 text-muted tabular-nums">{active ? `${pct}%` : `${p.step + 1}/${p.steps}`}</span>
           </div>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line-soft">
-            <div className="h-full rounded-full bg-[var(--brand-primary)]" style={{ width: `${pct}%` }} />
-          </div>
+          {active ? (
+            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-line-soft" role="progressbar" aria-label="Construction progress" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+              <div className="h-full rounded-full bg-[var(--green)]" style={{ width: `${pct}%` }} />
+            </div>
+          ) : (
+            <div className="mt-1.5 flex gap-1" role="progressbar" aria-label="Project steps" aria-valuenow={p.step + 1} aria-valuemin={1} aria-valuemax={p.steps}>
+              {Array.from({ length: p.steps }, (_, i) => (
+                <span key={i} className={cn('h-2 flex-1 rounded-full', i <= p.step ? 'bg-[var(--brand-primary)]' : 'bg-line-soft')} />
+              ))}
+            </div>
+          )}
+          <p className="mt-1.5 truncate text-[12px] text-muted">{p.stage}</p>
         </div>
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3 text-[12.5px]">
-          <span className="flex min-w-0 items-center gap-1.5 text-ink-2">
-            <Calendar className="size-3.5 shrink-0 text-muted" />
-            <span className="truncate">{p.next ?? 'Nothing waiting on you'}</span>
-          </span>
-          {p.target && <span className="shrink-0 font-semibold text-ink tabular-nums">{p.target}</span>}
-        </div>
+        <p className="flex min-h-9 items-start gap-2 text-[12.5px] leading-[18px] text-ink-2">
+          {photos ? <ImagePlus className="mt-px size-3.5 shrink-0 text-brand" /> : <MessageSquareDot className="mt-px size-3.5 shrink-0 text-brand" />}
+          <span className="line-clamp-2">{p.next ?? 'Nothing waiting on you'}</span>
+        </p>
+        {photos ? (
+          <button
+            type="button"
+            onClick={() => toast.success('Photos added', { description: `Revive will have them before the site visit at ${p.address}.` })}
+            className="mt-auto flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-line-soft text-[12.5px] font-medium text-ink transition-colors hover:bg-line"
+          >
+            <ImagePlus className="size-3.5" /> Upload home photos
+          </button>
+        ) : (
+          <Link to={to} className="mt-auto flex h-8 w-full items-center justify-center rounded-lg bg-line-soft text-[12.5px] font-medium text-ink transition-colors hover:bg-line">
+            {active ? 'View updates' : 'Open project'}
+          </Link>
+        )}
       </div>
-    </Link>
+    </article>
   )
 }
 
@@ -101,11 +116,8 @@ function ReportCard({ r }: { r: ReportRow }) {
     >
       <div className="relative h-36 overflow-hidden bg-line-soft">
         {r.photo && <img src={img(r.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-        <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-ink shadow-sm">
-          <FileText className="size-3 text-brand" /> AI report
-        </span>
         {r.designs ? (
-          <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-brand shadow-sm">
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-brand shadow-sm">
             <Sparkles className="size-3" /> {r.designs} RenoVision
           </span>
         ) : null}
@@ -164,7 +176,7 @@ function ListingCard({ o, revive }: { o: Opportunity; revive?: 'project' | 'repo
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div>
           <p className="truncate text-[15px] font-semibold text-ink">{p.address}</p>
-          <p className="text-[12.5px] text-muted">
+          <p className="truncate text-[12.5px] text-muted">
             {p.city}
             {p.beds ? ` · ${p.beds} bd · ${p.baths} ba` : ''} · {p.sqft.toLocaleString()} sqft
           </p>
@@ -199,10 +211,26 @@ function ListingCard({ o, revive }: { o: Opportunity; revive?: 'project' | 'repo
 
 type Kind = 'all' | 'project' | 'report'
 
-function Section({ title, hint, count, children, empty, emptyNode, filter }: { title: string; hint: string; count: number; children: React.ReactNode; empty?: { text: string; cta: string; to: string }; emptyNode?: React.ReactNode; filter?: React.ReactNode }) {
+/** A labeled row inside With Revive: icon, name and count, then its cards. */
+function Group({ icon: Icon, label, count, grid, children }: { icon: typeof Hammer; label: string; count: number; grid: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="mb-3 flex items-center gap-2 text-[14px] font-semibold text-ink">
+        <span className="grid size-6 place-items-center rounded-md bg-[var(--brand-primary-subtle)] text-brand">
+          <Icon className="size-3.5" />
+        </span>
+        {label}
+        <span className="text-[13px] font-normal text-muted tabular-nums">{count}</span>
+      </h3>
+      <div className={cn('grid gap-5', grid)}>{children}</div>
+    </div>
+  )
+}
+
+function Section({ title, hint, count, children, emptyNode, filter }: { title: string; hint: string; count: number; children: React.ReactNode; emptyNode: React.ReactNode; filter?: React.ReactNode }) {
   return (
     <section className="mt-10">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-2.5">
             <h2 className="text-xl font-semibold text-ink">{title}</h2>
@@ -212,21 +240,7 @@ function Section({ title, hint, count, children, empty, emptyNode, filter }: { t
         </div>
         {filter}
       </div>
-      <div className="mb-5" />
-      {count ? (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">{children}</div>
-      ) : emptyNode ? (
-        emptyNode
-      ) : empty ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-line px-5 py-4">
-          <p className="text-[13.5px] text-ink-2">{empty.text}</p>
-          <Button size="sm" variant="outline" asChild>
-            <AiLink to={empty.to}>
-              <Sparkles /> {empty.cta}
-            </AiLink>
-          </Button>
-        </div>
-      ) : null}
+      {count ? children : emptyNode}
     </section>
   )
 }
@@ -274,6 +288,7 @@ export default function Properties() {
           step,
           next: pr.nextFromAgent,
           target: pr.targetList ? `List ${money(pr.targetList)}` : undefined,
+          pct: pr.status === 'active' ? pr.progressPct : undefined,
         }
       }),
   ]
@@ -303,20 +318,22 @@ export default function Properties() {
 
   const shownProjects = projects.filter((p) => match(p.address, p.city, p.product))
   const shownReports = reportRows.filter((r) => match(r.address, r.city, r.product))
-  const reviveCount = (kind !== 'report' ? shownProjects.length : 0) + (kind !== 'project' ? shownReports.length : 0)
+  const showProjects = kind !== 'report' && shownProjects.length > 0
+  const showReports = kind !== 'project' && shownReports.length > 0
   const reviveEmpty = !needle && projects.length === 0 && reportRows.length === 0
   const listings = opps.filter((o) => o.property.source === 'listings' && match(o.property.address, o.property.city, o.product))
   const reportIds = new Set(reportRows.map((r) => r.id))
 
-  const kinds: { k: Kind; label: string; n: number }[] = [
+  const kinds: { k: Kind; label: string; n: number; icon?: typeof Hammer }[] = [
     { k: 'all', label: 'All', n: shownProjects.length + shownReports.length },
-    { k: 'project', label: 'Projects', n: shownProjects.length },
-    { k: 'report', label: 'AI reports', n: shownReports.length },
+    { k: 'project', label: 'Projects', n: shownProjects.length, icon: Hammer },
+    { k: 'report', label: 'AI reports', n: shownReports.length, icon: FileText },
   ]
   const filter = reviveEmpty ? null : (
     <div className="flex gap-2" role="radiogroup" aria-label="Show">
       {kinds.map((f) => {
         const on = kind === f.k
+        const Icon = f.icon
         return (
           <button
             key={f.k}
@@ -325,8 +342,7 @@ export default function Properties() {
             onClick={() => setKind(f.k)}
             className={cn('inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium', on ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-line bg-white text-ink hover:border-[var(--brand-primary-border)]')}
           >
-            {f.k === 'project' && <Hammer className="size-3.5" />}
-            {f.k === 'report' && <FileText className="size-3.5" />}
+            {Icon && <Icon className="size-3.5" />}
             {f.label} <span className={cn('text-[12px] tabular-nums', on ? 'text-white/85' : 'text-muted')}>{f.n}</span>
           </button>
         )
@@ -356,13 +372,13 @@ export default function Properties() {
       <Section
         title="With Revive"
         hint="Projects you’re running with Revive, and homes you’ve run a Revive AI report on."
-        count={reviveCount}
+        count={(showProjects ? shownProjects.length : 0) + (showReports ? shownReports.length : 0)}
         filter={filter}
         emptyNode={
           needle ? (
             noMatch
           ) : reviveEmpty ? (
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
               <ProjectsEmpty />
               <ReportsEmpty />
             </div>
@@ -373,8 +389,22 @@ export default function Properties() {
           )
         }
       >
-        {kind !== 'report' && shownProjects.map((p) => <ProjectCard key={p.id} p={p} />)}
-        {kind !== 'project' && shownReports.map((r) => <ReportCard key={r.id} r={r} />)}
+        <div className="flex flex-col gap-8">
+          {showProjects && (
+            <Group icon={Hammer} label="Projects" count={shownProjects.length} grid="lg:grid-cols-2">
+              {shownProjects.map((p) => (
+                <ProjectCard key={p.id} p={p} />
+              ))}
+            </Group>
+          )}
+          {showReports && (
+            <Group icon={FileText} label="AI reports" count={shownReports.length} grid="sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {shownReports.map((r) => (
+                <ReportCard key={r.id} r={r} />
+              ))}
+            </Group>
+          )}
+        </div>
       </Section>
 
       <Section
@@ -399,10 +429,18 @@ export default function Properties() {
           )
         }
       >
-        {listings.map((o) => (
-          <ListingCard key={o.id} o={o} revive={inProject.has(o.id) ? 'project' : reportIds.has(o.id) ? 'report' : undefined} />
-        ))}
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          {listings.map((o) => (
+            <ListingCard key={o.id} o={o} revive={inProject.has(o.id) ? 'project' : reportIds.has(o.id) ? 'report' : undefined} />
+          ))}
+        </div>
       </Section>
+
+      {reviveEmpty && (
+        <div className="mt-12">
+          <CaseStudies />
+        </div>
+      )}
     </div>
   )
 }

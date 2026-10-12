@@ -2,13 +2,15 @@ import { ExternalLink, FileText, Hammer, MapPin, MessageSquare, PanelLeft, Spark
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
+import { ReviveBubbleBot } from '@/components/ai/ReviveBubbleBot'
 import { PropertyView, usePropertyModel, type PropertyTab } from '@/components/property/PropertyView'
 import { Button } from '@/components/ui/button'
 import { STARTERS } from '@/lib/ai'
 import { rvHome, startProject, startHome, startRenovision, startReport } from '@/lib/flowEngine'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
-import { threadHome, useUi, type ChatThread } from '@/store/ui'
+import { ago, groupThreads, shortTitle, threadIcon } from '@/components/ai/threads'
+import { useUi, type ChatThread } from '@/store/ui'
 
 // Revive AI as its own page. Free questions get answers; "Generate a report" and "Start a project"
 // are guided conversations. Where the finished result opens depends on the hand-off version:
@@ -51,43 +53,8 @@ function SidePanel() {
   )
 }
 
-function ago(t: number) {
-  const m = Math.round((Date.now() - t) / 60000)
-  if (m < 1) return 'Just now'
-  if (m < 60) return `${m} min ago`
-  const h = Math.round(m / 60)
-  return h < 24 ? `${h} hr ago` : `${Math.round(h / 24)} d ago`
-}
-
-/** ChatGPT-style list of conversations: start a new one, or reopen an earlier one. */
-/** Conversations grouped by the home they're about (newest home first), then everything else. */
-function groupThreads(threads: ChatThread[]) {
-  const groups = new Map<string, { key: string; label: string | null; threads: ChatThread[]; at: number }>()
-  for (const t of threads) {
-    const h = threadHome(t)
-    const key = h ? h.label.toLowerCase() : '__other'
-    const g = groups.get(key) ?? { key, label: h?.label ?? null, threads: [], at: 0 }
-    g.threads.push(t)
-    g.at = Math.max(g.at, t.updatedAt)
-    groups.set(key, g)
-  }
-  return [...groups.values()].sort((a, b) => (a.label === null ? 1 : b.label === null ? -1 : b.at - a.at))
-}
-
-/** Inside a home's group the address is already said: "Report · 33 S Orange Grove Blvd" → "Report". */
-function shortTitle(t: ChatThread, home: string | null) {
-  if (!home) return t.title
-  const h = home.toLowerCase()
-  const rest = t.title
-    .split(' · ')
-    .filter((part) => !part.toLowerCase().startsWith(h))
-    .join(' · ')
-  return rest || (t.chat.some((m) => m.blocks?.some((b) => b.kind === 'flow' && b.step === 'home-intent')) ? 'Home search' : 'Conversation')
-}
-
 function ThreadRow({ t, label, active, onOpen, onDelete }: { t: ChatThread; label: string; active: boolean; onOpen: () => void; onDelete: () => void }) {
-  const steps = t.chat.flatMap((m) => m.blocks ?? []).filter((b) => b.kind === 'flow').map((b) => (b.kind === 'flow' ? b.step : ''))
-  const Icon = t.flow?.kind === 'project' || steps.some((x) => x.startsWith('project')) ? Hammer : t.flow?.kind === 'report' || steps.some((x) => x.startsWith('report')) ? FileText : MessageSquare
+  const Icon = threadIcon(t)
   return (
     <li className="group relative">
       <button
@@ -233,10 +200,10 @@ export default function ReviveAI() {
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6">
             {empty ? (
-              <div className="flex flex-col items-center pt-6 text-center sm:pt-14">
-                <span className="rv-ai-tile grid size-16 place-items-center rounded-2xl text-white">
-                  <Sparkles className="size-8" />
-                </span>
+              <div className="relative isolate flex flex-col items-center pt-6 text-center sm:pt-14">
+                {/* a soft, slowly drifting glow behind the empty state, like the dashboard's ask box */}
+                <div aria-hidden="true" className="rv-chat-glow pointer-events-none absolute -inset-x-16 -top-6 -bottom-12 -z-10 rounded-[48px]" />
+                <ReviveBubbleBot size={104} />
                 <h2 className="mt-5 text-2xl font-semibold text-balance text-ink sm:text-[28px]">What can I help you with?</h2>
                 <p className="mt-2 max-w-md text-[15px] text-ink-2">Generate a report, start a project, or ask about any home or anyone in your book.</p>
                 <div className="mt-8 grid w-full gap-3 text-left sm:grid-cols-2">

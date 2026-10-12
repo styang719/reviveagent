@@ -1,7 +1,8 @@
-import { ArrowRight, ArrowUp, Copy, MapPin } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowRight, ArrowUp, Copy, MapPin, Mic } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import aiAvatar from '@/assets/revive-ai-avatar.webp'
 import { Estimate, Reasons } from '@/components/opportunity/OpportunityCard'
 import { UrgencyTag } from '@/components/opportunity/Tags'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { usePropertyModel } from '@/components/property/PropertyView'
 import { properties } from '@/data/properties'
 import { answer, runAiPath, type Block, type ChatMessage, type HereCtx } from '@/lib/ai'
 import { photoUrl } from '@/lib/assets'
+import { isMobileApp } from '@/mobile/mode'
 import { flowInput, startProject, startReport, rvHome, startRenovision } from '@/lib/flowEngine'
 import { suggestAddresses } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
@@ -16,7 +18,6 @@ import { useConnections, useIsProperty, useOpportunities } from '@/lib/opportuni
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
-import { Sparkles } from 'lucide-react'
 import { FlowStepView } from './FlowSteps'
 
 // The Revive AI conversation: thread + composer. Used on the Revive AI page and, in hand-off
@@ -25,12 +26,9 @@ import { FlowStepView } from './FlowSteps'
 let seq = 0
 const uid = () => `m${Date.now()}-${seq++}`
 
+/** Revive AI's face: the glass house, cut out so it sits on any background. */
 export function AiAvatar({ className }: { className?: string }) {
-  return (
-    <span className={cn('rv-ai-tile grid size-8 shrink-0 place-items-center rounded-lg text-white', className)} aria-hidden="true">
-      <Sparkles className="size-4" />
-    </span>
-  )
+  return <img src={aiAvatar} alt="" aria-hidden="true" className={cn('size-8 shrink-0 object-contain drop-shadow-[0_2px_4px_rgba(97,70,180,0.18)]', className)} />
 }
 
 function PropertyBlock({ b }: { b: Extract<Block, { kind: 'property' }> }) {
@@ -90,11 +88,61 @@ function OppRow({ o, linked, children }: { o: { id: string }; linked: boolean; c
   )
 }
 
+/** A project's status: where it is, what's waiting on the agent, the latest updates, and the way to the Project tab. */
+function ProjectBlock({ b }: { b: Extract<Block, { kind: 'project' }> }) {
+  const photo = photoUrl(b.photo)
+  const to = `${isMobileApp() ? '/m' : ''}/property/${b.propertyId}?tab=project`
+  return (
+    <div className="overflow-hidden rounded-xl border border-line bg-white">
+      <div className="flex gap-3 p-3">
+        {photo && <img src={photo} alt="" className="size-16 shrink-0 rounded-lg object-cover" />}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-semibold text-ink">{b.address}</p>
+          <p className="truncate text-[12.5px] text-muted">
+            {b.product} · {b.city}
+            {b.targetList ? ` · list ${money(b.targetList)}` : ''}
+          </p>
+          <div className="mt-2 flex items-center justify-between gap-2 text-[12.5px]">
+            <span className="truncate font-medium text-ink">{b.stageLabel}</span>
+            <span className="shrink-0 text-muted tabular-nums">
+              Step {b.step} of {b.steps}
+            </span>
+          </div>
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line-soft" aria-hidden="true">
+            <div className="h-full rounded-full bg-[var(--green)]" style={{ width: `${b.progressPct}%` }} />
+          </div>
+        </div>
+      </div>
+      {b.next && (
+        <p className="mx-3 mb-3 rounded-lg bg-[var(--brand-primary-subtle)] px-3 py-2 text-[13px] text-ink">
+          <span className="font-semibold text-brand">Waiting on you:</span> {b.next}
+        </p>
+      )}
+      {b.updates.length > 0 && (
+        <div className="border-t border-line-soft px-3 py-2.5">
+          <p className="text-[11.5px] font-semibold tracking-wide text-muted uppercase">Latest updates</p>
+          <ul className="mt-1 flex flex-col gap-0.5">
+            {b.updates.map((u) => (
+              <li key={u} className="text-[13px] text-ink-2">
+                • {u}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <Link to={to} className="flex items-center justify-center gap-1.5 border-t border-line-soft py-2.5 text-[13.5px] font-semibold text-brand hover:bg-head">
+        Open the project <ArrowRight className="size-3.5" />
+      </Link>
+    </div>
+  )
+}
+
 function OppsBlock({ ids }: { ids: string[] }) {
   const opps = useOpportunities()
   const isProperty = useIsProperty()
   return (
-    <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
+    // narrow (the phone, a slim dock): the estimate moves under the address instead of squeezing it
+    <ul className="@container divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
       {ids
         .map((id) => opps.find((o) => o.id === id))
         .filter((o) => !!o)
@@ -108,8 +156,13 @@ function OppsBlock({ ids }: { ids: string[] }) {
                   {o.property.address} <span className="font-normal text-muted">· {o.person?.name ?? o.property.city}</span>
                 </p>
                 <Reasons o={o} max={2} />
+                <div className="mt-1.5 @sm:hidden">
+                  <Estimate o={o} align="left" />
+                </div>
               </div>
-              <Estimate o={o} />
+              <div className="hidden @sm:block">
+                <Estimate o={o} />
+              </div>
             </OppRow>
           </li>
         ))}
@@ -159,6 +212,7 @@ function Blocks({ blocks, onAsk, answered }: { blocks: Block[]; onAsk: (q: strin
       {blocks.map((b, i) => {
         if (b.kind === 'text') return <p key={i} className="text-[15px] leading-6 whitespace-pre-line text-ink">{b.text}</p>
         if (b.kind === 'property') return <PropertyBlock key={i} b={b} />
+        if (b.kind === 'project') return <ProjectBlock key={i} b={b} />
         if (b.kind === 'opps') return <OppsBlock key={i} ids={b.ids} />
         if (b.kind === 'draft') return <DraftBlock key={i} b={b} />
         if (b.kind === 'flow') return <FlowStepView key={i} step={b.step} refId={b.refId} answered={answered} />
@@ -289,7 +343,24 @@ export function Thread({ onAsk, thinking, compact = false }: { onAsk: (q: string
   )
 }
 
-export function Composer({ onAsk, disabled, autoFocus = false, compact = false }: { onAsk: (q: string) => void; disabled?: boolean; autoFocus?: boolean; compact?: boolean }) {
+/** `pill`: the mobile glass message bar, with `leading` (the + button) on the left and a mic until there's text. */
+export function Composer({
+  onAsk,
+  disabled,
+  autoFocus = false,
+  compact = false,
+  pill = false,
+  leading,
+  placeholder,
+}: {
+  onAsk: (q: string) => void
+  disabled?: boolean
+  autoFocus?: boolean
+  compact?: boolean
+  pill?: boolean
+  leading?: ReactNode
+  placeholder?: string // the pill's resting prompt (default "Message")
+}) {
   const [draft, setDraft] = useState('')
   const [active, setActive] = useState(0)
   const [dismissed, setDismissed] = useState(false)
@@ -345,12 +416,18 @@ export function Composer({ onAsk, disabled, autoFocus = false, compact = false }
         </ul>
       )}
       <form
-        className="flex w-full items-end gap-2 rounded-2xl border border-line bg-white p-2 pl-4 shadow-card focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10"
+        className={cn(
+          'flex w-full items-end gap-2',
+          pill
+            ? 'rounded-[28px] border border-white/60 bg-white/40 p-1.5 shadow-[0_8px_28px_rgba(28,46,88,0.14),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-[6px] backdrop-saturate-[1.8]'
+            : 'rounded-2xl border border-line bg-white p-2 pl-4 shadow-card focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10',
+        )}
         onSubmit={(e) => {
           e.preventDefault()
           sendText(open ? suggestions[active].value : draft)
         }}
       >
+        {leading}
         <label htmlFor={compact ? 'ai-input-dock' : 'ai-input'} className="sr-only">
           {awaiting === 'address' ? 'Property address' : 'Ask Revive AI'}
         </label>
@@ -384,12 +461,26 @@ export function Composer({ onAsk, disabled, autoFocus = false, compact = false }
           aria-activedescendant={open ? `${listId}-${active}` : undefined}
           aria-autocomplete={awaiting === 'address' ? 'list' : undefined}
           autoComplete="off"
-          placeholder={awaiting === 'address' ? 'Start typing the address' : hereAddr && compact ? `Ask about ${hereAddr}` : 'Ask Revive AI anything'}
-          className={cn('max-h-40 min-h-10 flex-1 resize-none bg-transparent py-2 text-ink outline-none placeholder:text-faint', compact ? 'text-sm' : 'text-[15px]')}
+          placeholder={pill ? (awaiting === 'address' ? 'Start typing the address' : (placeholder ?? 'Message')) : awaiting === 'address' ? 'Start typing the address' : hereAddr && compact ? `Ask about ${hereAddr}` : 'Ask Revive AI anything'}
+          className={cn(
+            'max-h-40 min-h-10 flex-1 resize-none bg-transparent py-2 text-ink outline-none',
+            pill ? 'py-[9px] text-[16px] placeholder:text-[14.5px] placeholder:text-faint' : cn('placeholder:text-faint', compact ? 'text-sm' : 'text-[15px]'),
+          )}
         />
-        <button type="submit" disabled={!draft.trim() || disabled} className="rv-ai-btn grid size-10 shrink-0 place-items-center rounded-xl text-white disabled:opacity-40" aria-label="Send">
-          <ArrowUp className="size-5" />
-        </button>
+        {pill && !draft.trim() ? (
+          <button type="button" onClick={() => toast('Voice input is coming soon')} className="grid size-10 shrink-0 place-items-center rounded-full text-faint" aria-label="Dictate">
+            <Mic className="size-[22px]" strokeWidth={1.75} />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={!draft.trim() || disabled}
+            className={cn('grid size-10 shrink-0 place-items-center text-white disabled:opacity-40', pill ? 'rounded-full bg-navy' : 'rv-ai-btn rounded-xl')}
+            aria-label="Send"
+          >
+            <ArrowUp className="size-5" />
+          </button>
+        )}
       </form>
     </div>
   )

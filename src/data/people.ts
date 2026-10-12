@@ -33,10 +33,28 @@ const briefPeople: Person[] = [
     activity: ['Started a Renovate to Sell project with Revive · Aug 28'],
   },
   {
+    id: 'james', name: 'James Whitfield', relationship: 'Homeowner', source: 'Your contact', since: 'Contact since 2021',
+    lastTouchDays: 2, reviveScore: 84,
+    notes: [{ text: 'Wants to sell next spring, after a kitchen and bath refresh.', date: 'Oct 1' }],
+    activity: ['Submitted a Renovate to Sell project with Revive · Oct 6'],
+  },
+  {
     id: 'tom', name: 'Tom Becker', relationship: 'Revive referral', source: 'Revive referral', since: 'Referred by Revive · Sep 29',
     lastTouchDays: 7, reviveScore: 66,
     notes: [{ text: 'Wants to sell in spring. Call back mid-October.', date: 'Sep 30' }],
     activity: ['Referral claimed · Sep 29'],
+  },
+  {
+    id: 'ruth', name: 'Ruth Alvarez', relationship: 'Revive referral', source: 'Revive referral', since: 'Referred by Revive · Aug 27',
+    lastTouchDays: 3, reviveScore: 79,
+    notes: [{ text: 'Signed the listing agreement Sep 20. Renovate to Sell before listing.', date: 'Sep 20' }],
+    activity: ['Referral claimed · Aug 27', 'Listing agreement signed · Sep 20'],
+  },
+  {
+    id: 'victor', name: 'Victor Hale', relationship: 'Revive referral', source: 'Revive referral', since: 'Referred by Revive · Sep 4',
+    lastTouchDays: 20, reviveScore: 61,
+    notes: [{ text: 'Went with another agent after the listing appointment.', date: 'Sep 17' }],
+    activity: ['Referral claimed · Sep 4', 'Listing appointment · Sep 15'],
   },
   {
     id: 'grace', name: 'Grace Nguyen', relationship: 'Revive referral', source: 'Revive referral', since: 'Referred by Revive · Sep 12',

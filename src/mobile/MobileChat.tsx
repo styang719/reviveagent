@@ -1,0 +1,167 @@
+import { FileText, Hammer, Menu, Plus, Search, Sparkles, SquarePen, Users } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { AiAvatar, Composer, Thread, useAsk } from '@/components/ai/Chat'
+import { AGENT } from '@/data/tiers'
+import { STARTERS } from '@/lib/ai'
+import { rvHome, startHome, startProject, startRenovision, startReport } from '@/lib/flowEngine'
+import { greetingWord } from '@/lib/greeting'
+import { cn } from '@/lib/utils'
+import { useChatDrawer } from './ChatDrawer'
+import { TodayChecklist } from './TodayChecklist'
+import { useDemo } from '@/store/demo'
+import { useUi } from '@/store/ui'
+
+// Mobile home: Revive AI, full screen. The conversation scrolls under a white fade at the top (Revive in the
+// center, the chats drawer and a new chat on either side) and under the glass message bar and tab bar at the bottom.
+// Reports and projects open as pages; the Revive AI tab brings you back to the conversation.
+
+const STARTER_CARDS = [
+  { icon: FileText, label: 'Generate a Revive AI report', run: () => startReport() },
+  { icon: Hammer, label: 'Start a Revive project', run: () => startProject() },
+  { icon: Users, label: STARTERS[1] },
+  { icon: Sparkles, label: 'Visualize a renovation with RenoVision', run: () => startRenovision() },
+]
+// a new agent: no book to ask about yet, so the tiles are the first report and project, and RenoVision
+const NEW_AGENT_CARDS = [
+  { icon: FileText, label: 'Generate your first Revive AI report', run: () => startReport() },
+  { icon: Hammer, label: 'Start your first project', run: () => startProject() },
+  { icon: Sparkles, label: 'Visualize a renovation with RenoVision', run: () => startRenovision() },
+  // no address of theirs yet: the tile opens the message bar for any address they have in mind
+  { icon: Search, label: 'What’s any home worth? Type an address', run: () => document.getElementById('ai-input-dock')?.focus() },
+]
+
+export default function MobileChat() {
+  const chat = useUi((s) => s.chat)
+  const clearChat = useUi((s) => s.clearChat)
+  const tier = useDemo((s) => s.tier)
+  const { ask, thinking } = useAsk()
+  const empty = chat.length === 0
+  const end = useRef<HTMLDivElement>(null)
+  const [menu, setMenu] = useState(false)
+  const openDrawer = useChatDrawer((s) => s.setOpen)
+  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [chat.length, thinking])
+
+  // arriving with context (/m/ai?q=… or ?flow=report|project|home|renovision), same as the desktop page
+  const [params, setParams] = useSearchParams()
+  const handled = useRef(false)
+  useEffect(() => {
+    if (handled.current) return
+    const q = params.get('q')
+    const flow = params.get('flow')
+    if (!q && !flow) return
+    handled.current = true
+    setParams({}, { replace: true })
+    if (useUi.getState().chat.length) clearChat()
+    const property = params.get('property') ?? undefined
+    const address = params.get('address') ?? undefined
+    if (flow === 'renovision') {
+      startRenovision()
+      if (property) rvHome(property)
+    } else if (flow === 'home' && address) startHome(address)
+    else if (flow === 'report') startReport({ propertyId: property, address })
+    else if (flow === 'project') startProject({ propertyId: property })
+    else if (q) ask(q)
+  })
+
+  const circle =
+    'pointer-events-auto grid size-12 place-items-center rounded-full border border-white/80 bg-white/80 text-ink shadow-[0_6px_20px_rgba(28,46,88,0.12)] backdrop-blur-xl active:scale-95'
+  return (
+    <div className="relative h-full">
+      <div className="absolute inset-0 overflow-y-auto px-4 pt-[116px] pb-[calc(var(--tab-h)+96px)]">
+        {empty ? (
+          <div className="relative isolate flex flex-col">
+            {/* a soft, slowly drifting glow behind the greeting, like the dashboard's ask box; gone once the chat starts */}
+            <div aria-hidden="true" className="rv-chat-glow pointer-events-none absolute -inset-x-8 -top-12 -bottom-10 -z-10 rounded-[40px]" />
+            <h1 className="text-center text-[22px] leading-[30px] font-semibold text-ink">
+              {greetingWord(new Date().getHours())}, {AGENT.firstName}.
+              <br />
+              How can we help you today?
+            </h1>
+            <TodayChecklist />
+            {/* the generic prompts, as a grid of tiles */}
+            <div className="mt-2.5 grid grid-cols-2 gap-2.5">
+              {(tier === 'new' ? NEW_AGENT_CARDS : STARTER_CARDS).map((s) => (
+                <button
+                  key={s.label}
+                  onClick={() => (s.run ? s.run() : ask(s.label))}
+                  className="flex min-h-[76px] flex-col justify-between gap-1 rounded-[22px] border border-white/80 bg-white/60 p-3 text-left text-[14px] leading-[19px] font-medium text-ink shadow-[0_2px_10px_rgba(28,46,88,0.05)] backdrop-blur-sm active:bg-white/90"
+                >
+                  <span className="grid size-8 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-brand">
+                    <s.icon className="size-4" />
+                  </span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <Thread onAsk={ask} thinking={thinking} compact />
+        )}
+        <div ref={end} />
+      </div>
+
+      {/* top: the conversation fades out under Revive */}
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[112px] bg-gradient-to-b from-white from-70% to-transparent">
+        <div className="flex items-start justify-between px-4 pt-3">
+          <button onClick={() => openDrawer(true)} className={circle} aria-label="Chats">
+            <Menu className="size-[22px]" strokeWidth={1.75} />
+          </button>
+          <span className="flex flex-col items-center">
+            <AiAvatar className="size-[68px] drop-shadow-[0_8px_14px_rgba(97,70,180,0.25)]" />
+            <span className="-mt-2.5 rounded-full border border-white/80 bg-white/85 px-3 py-[3px] text-[13px] font-semibold text-ink shadow-[0_4px_14px_rgba(28,46,88,0.12)] backdrop-blur-xl">
+              Revive AI
+            </span>
+          </span>
+          <button onClick={() => chat.length && clearChat()} className={circle} aria-label="New chat">
+            <SquarePen className="size-[22px]" strokeWidth={1.75} />
+          </button>
+        </div>
+      </header>
+
+      {/* bottom: the conversation fades out under the message bar and the tab bar */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[calc(var(--tab-h)+60px)] bg-gradient-to-t from-white/50 to-transparent" />
+      <div className="absolute inset-x-4 bottom-[calc(var(--tab-h)+10px)] z-20">
+        {menu && (
+          <>
+            <button aria-label="Close" className="fixed inset-0 cursor-default" onClick={() => setMenu(false)} />
+            <ul className="absolute bottom-full left-0 mb-2 w-64 overflow-hidden rounded-[22px] border border-white/80 bg-white/85 p-1.5 shadow-[0_12px_36px_rgba(28,46,88,0.18)] backdrop-blur-xl">
+              {STARTER_CARDS.filter((s) => s.run).map((s) => (
+                <li key={s.label}>
+                  <button
+                    onClick={() => {
+                      setMenu(false)
+                      s.run!()
+                    }}
+                    className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-[14.5px] text-ink active:bg-[rgba(28,46,88,0.06)]"
+                  >
+                    <s.icon className="size-[18px] shrink-0 text-brand" />
+                    {s.label.replace(' with RenoVision', '')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        <Composer
+          onAsk={ask}
+          disabled={thinking}
+          compact
+          pill
+          placeholder="Ask about any home or anyone"
+          leading={
+            <button
+              type="button"
+              onClick={() => setMenu((m) => !m)}
+              aria-label="Start a report, project or RenoVision"
+              aria-expanded={menu}
+              className={cn('grid size-10 shrink-0 place-items-center rounded-full text-ink transition-transform', menu && 'rotate-45')}
+            >
+              <Plus className="size-6" strokeWidth={1.75} />
+            </button>
+          }
+        />
+      </div>
+    </div>
+  )
+}

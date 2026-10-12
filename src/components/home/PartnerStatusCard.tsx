@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 
 // Once the agent is a Revive Partner, the status card becomes a membership card: the grade they're at,
 // deals closed toward the next one, and what a higher grade earns (first look at new referrals).
-const GRADES = [
+export const GRADES = [
   { name: 'Starter', from: 2, perk: 'Seller leads from Revive, exclusive for 24 hrs' },
   { name: 'Semi-Pro', from: 7, perk: 'First look at new Revive referrals in your area' },
   { name: 'Producer', from: 12, perk: 'Priority referrals and a dedicated Revive advisor line' },

@@ -1,6 +1,7 @@
-import { ChevronRight, Inbox, LayoutDashboard, MapPinHouse, Megaphone, PanelLeft, Sparkles, TrendingUp, UserCheck } from 'lucide-react'
+import { ChevronRight, Inbox, LayoutDashboard, MapPinHouse, Megaphone, PanelLeft, TrendingUp, UserCheck } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import avatar from '@/assets/avatar-michelle.jpg'
+import aiNav from '@/assets/revive-ai-nav.webp'
 import { AGENT } from '@/data/tiers'
 import { cn } from '@/lib/utils'
 import { ReviveLogo } from './Logo'
@@ -32,23 +33,7 @@ function ReviveAiItem({ collapsed }: { collapsed: boolean }) {
     >
       {({ isActive }) => (
         <>
-          {/* the gradient the resting icon is drawn with */}
-          <svg width="0" height="0" className="absolute" aria-hidden="true">
-            <defs>
-              <linearGradient id="rv-ai-stroke" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#c2ceea" />
-                <stop offset="55%" stopColor="#b080e0" />
-                <stop offset="100%" stopColor="#cda7ec" />
-              </linearGradient>
-            </defs>
-          </svg>
-          {isActive ? (
-            <span className="rv-ai-tile -mx-1 grid size-6 shrink-0 place-items-center rounded-md text-white">
-              <Sparkles className="size-3.5" />
-            </span>
-          ) : (
-            <Sparkles className="size-4 shrink-0" stroke="url(#rv-ai-stroke)" />
-          )}
+          <img src={aiNav} alt="" aria-hidden="true" className={cn('-mx-0.5 size-6 shrink-0 object-contain', !isActive && 'opacity-90')} />
           {!collapsed && <span className={cn('flex-1', isActive ? 'rv-ai-text' : 'rv-ai-text-rest')}>Revive AI</span>}
         </>
       )}

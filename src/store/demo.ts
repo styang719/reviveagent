@@ -34,6 +34,15 @@ export interface NewsItem {
 
 export const DEMO_LICENSE = '02134589'
 
+/** What goes on every marketing template: set once in Marketing center. */
+export interface MarketingProfile {
+  name: string
+  license: string
+  brokerage: string
+  phone: string
+  email: string
+}
+
 interface DemoState {
   tier: Tier
   stageOverrides: Record<string, Stage>
@@ -48,6 +57,7 @@ interface DemoState {
   reports: Record<string, GeneratedReport> // made in Revive AI, keyed by property / report id
   projects: Record<string, CreatedProject> // started in Revive AI, keyed by property / report id
   news: NewsItem[] // what changed, newest first: reports, shares, opens, project updates (Home shows it)
+  marketingProfile: MarketingProfile | null
   shareReport: (propertyId: string, address: string, to?: string) => void
   handoff: Handoff // how Revive AI hands a finished report/project to its page; the docked chat was chosen
   addReport: (r: GeneratedReport, quiet?: boolean) => void
@@ -72,6 +82,9 @@ interface DemoState {
   setStage: (propertyId: string, stage: Stage, activity?: string) => void
   claimReferral: (propertyId: string) => void
   markReferralUpdated: (propertyId: string) => void
+  saveMarketingProfile: (p: MarketingProfile) => void
+  /** referral page: the agent's written update to Revive (also marks the referral up to date) */
+  postReferralUpdate: (propertyId: string, text: string) => void
   connectCrm: () => void
   markReportGenerated: () => void
   connectLicense: (license: string) => void
@@ -95,6 +108,7 @@ const initial = () => ({
   reports: {} as Record<string, GeneratedReport>,
   projects: {} as Record<string, CreatedProject>,
   news: [] as NewsItem[],
+  marketingProfile: null as MarketingProfile | null,
 })
 
 const news = (propertyId: string, address: string, kind: NewsItem['kind'], text: string): NewsItem => ({
@@ -164,6 +178,7 @@ export const useDemo = create<DemoState>()(
           else checked[id] = Date.now()
           return { checked }
         }),
+      saveMarketingProfile: (marketingProfile) => set({ marketingProfile }),
       setNewAgent: (connected) => set({ tier: 'new', license: connected ? DEMO_LICENSE : null, crmConnected: connected }),
       setStage: (id, stage, line) =>
         set((s) => ({ stageOverrides: { ...s.stageOverrides, [id]: stage }, activity: withActivity(s, id, line) })),
@@ -175,6 +190,8 @@ export const useDemo = create<DemoState>()(
         })),
       markReferralUpdated: (id) =>
         set((s) => ({ updated: { ...s.updated, [id]: Date.now() }, activity: withActivity(s, id, 'You sent Revive a status update') })),
+      postReferralUpdate: (id, text) =>
+        set((s) => ({ updated: { ...s.updated, [id]: Date.now() }, activity: withActivity(s, id, `You shared an update: “${text}”`) })),
       connectCrm: () => set({ crmConnected: true }),
       markReportGenerated: () => set({ reportGenerated: true }),
       addReport: (r, quiet) =>
