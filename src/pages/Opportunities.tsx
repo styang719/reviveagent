@@ -1,4 +1,4 @@
-import { ArrowRight, MapPin, Plus, Search, Users } from 'lucide-react'
+import { ArrowRight, LayoutGrid, List, Map as MapIcon, MapPin, PhoneCall, Plus, Search, Users } from 'lucide-react'
 import type L from 'leaflet'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Marker, useMap } from 'react-leaflet'
@@ -6,7 +6,6 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { attentionRank, OppDrawer } from '@/components/home/TopOpportunities'
 import { OppTable } from '@/components/opportunity/OppTable'
 import { ValueDrawer } from '@/components/opportunity/ValueDrawer'
-import { BAR_STYLES, SummaryBar, type BarStyle } from '@/components/opportunity/SummaryBar'
 import { BaseMap, TILE_BOUNDS } from '@/components/map/BaseMap'
 import { pinIcon, pinZ } from '@/components/map/pins'
 import { Button } from '@/components/ui/button'
@@ -21,12 +20,13 @@ import { useUi } from '@/store/ui'
 // Prospecting: homes the agent could win, not ones they already work on. Two sources, as tabs: their own
 // contacts (CRM and lead form), and the nearby market (other agents' listings that expired or were
 // withdrawn, so the owner is free to talk). Their own listings, reports and projects live in Homes; Revive
-// referrals in Lead tracking. One summary line, a few filters per tab, the ranked list and the map.
+// referrals in Lead tracking. A side nav like Homes (views, then sources), status tabs per source, list and map.
 
 const COMMISSION = 0.025 // listing side
 const LIKELY = 80
 
 type Tab = 'contacts' | 'market'
+type View = 'go' | 'all' | Tab
 const TABS: { k: Tab; label: string; hint: string }[] = [
   { k: 'contacts', label: 'Your contacts', hint: 'Homeowners in your CRM and lead form, ranked by who to call first.' },
   { k: 'market', label: 'Nearby market', hint: 'Listings near you that expired or were withdrawn. The owner is free to talk, and Revive gives you a reason to call.' },
@@ -89,6 +89,21 @@ function Fit({ pts, k }: { pts: [number, number][]; k: string }) {
 }
 
 
+function NavItem({ on, onClick, icon: Icon, label, n, blue }: { on: boolean; onClick: () => void; icon: typeof Users; label: string; n: number; blue?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-current={on || undefined}
+      className={cn('relative flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[14px] transition-colors', on ? 'bg-[var(--brand-primary-subtle)] font-semibold text-ink' : 'font-medium text-ink-2 hover:bg-line-soft hover:text-ink')}
+    >
+      {on && <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-[var(--brand-primary)]" aria-hidden="true" />}
+      <Icon className="size-4 shrink-0 text-brand" />
+      <span className="truncate">{label}</span>
+      <span className={cn('ml-auto rounded-full px-1.5 text-[12px] tabular-nums', blue && n ? 'bg-[var(--brand-primary)] font-semibold text-white' : 'text-muted')}>{n}</span>
+    </button>
+  )
+}
+
 export default function Opportunities() {
   const all = useOpportunities()
   const projects = useDemo((s) => s.projects)
@@ -97,28 +112,17 @@ export default function Opportunities() {
   const openCrm = useUi((s) => s.openCrm)
   const importing = useUi((s) => s.importing)
   const [params] = useSearchParams()
-  const [tab, setTabState] = useState<Tab>(() => (params.get('tab') === 'market' ? 'market' : 'contacts'))
-  const [filter, setFilter] = useState<Filter>(() => (FILTERS.contacts.some((f) => f.k === params.get('filter')) ? (params.get('filter') as Filter) : 'all'))
-  const setTab = (t: Tab) => {
-    setTabState(t)
-    setFilter('all')
+  // the side nav, as on Homes: two views across everything, then one item per source
+  const [view, setViewState] = useState<View>(() => (params.get('tab') === 'market' ? 'market' : 'go'))
+  const [filter, setFilter] = useState<Filter>(() => (params.get('tab') === 'market' ? 'all' : 'go'))
+  const tab: Tab | null = view === 'contacts' || view === 'market' ? view : null
+  const setView = (v: View) => {
+    setViewState(v)
+    setFilter(v === 'go' ? 'go' : 'all')
   }
   const [sort, setSort] = useState<Sort>('recommended')
-  const [barStyle, setBarStyleState] = useState<BarStyle>(() => {
-    try {
-      return (localStorage.getItem('rv-opps-bar') as BarStyle) || 'stats'
-    } catch {
-      return 'stats'
-    }
-  })
-  const setBarStyle = (k: BarStyle) => {
-    setBarStyleState(k)
-    try {
-      localStorage.setItem('rv-opps-bar', k)
-    } catch {
-      /* private window */
-    }
-  }
+  // with the side nav, list and map only sit side by side on very wide screens; otherwise a List / Map toggle
+  const [mode, setMode] = useState<'list' | 'map'>('list')
   const [q, setQ] = useState('')
   const [hover, setHover] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
@@ -141,7 +145,7 @@ export default function Opportunities() {
   const inProject = (o: Opportunity) => o.stage === 'project' || !!projects[o.id] || !!o.property.project
   const book = all.filter((o) => !inProject(o) && (inTab(o, 'contacts') || inTab(o, 'market')))
   const ownListings = all.filter((o) => o.property.source === 'listings').length
-  const tabBook = book.filter((o) => inTab(o, tab))
+  const tabBook = tab ? book.filter((o) => inTab(o, tab)) : book
 
   const stats = useMemo(() => {
     const book = all.filter((o) => !inProject(o) && inTab(o, 'contacts'))
@@ -196,13 +200,6 @@ export default function Opportunities() {
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
           <p className="mt-1 text-[15px] text-ink-2">Homes you could win: your contacts, and listings near you that came off the market.</p>
-          <div className="mt-3 inline-flex items-center gap-1 rounded-lg bg-line-soft p-0.5" role="radiogroup" aria-label="Summary layout">
-            {BAR_STYLES.map((b) => (
-              <button key={b.k} role="radio" aria-checked={barStyle === b.k} onClick={() => setBarStyle(b.k)} className={cn('h-7 rounded-md px-2.5 text-[12px] font-medium', barStyle === b.k ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}>
-                {b.label}
-              </button>
-            ))}
-          </div>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <label className="relative flex-1 sm:w-64 sm:flex-none">
@@ -221,56 +218,50 @@ export default function Opportunities() {
         </div>
       </header>
 
-      {/* the two sources as tabs; their own listings live in Homes */}
-      <div className="mt-6 flex flex-wrap items-end justify-between gap-3 border-b border-line">
-        <div role="tablist" aria-label="Where opportunities come from" className="-mb-px flex gap-1">
-          {TABS.map((t) => {
-            const on = tab === t.k
-            const n = book.filter((o) => inTab(o, t.k)).length
-            const Icon = t.k === 'contacts' ? Users : MapPin
-            return (
-              <button
-                key={t.k}
-                role="tab"
-                aria-selected={on}
-                onClick={() => setTab(t.k)}
-                className={cn('inline-flex items-center gap-2 border-b-2 px-4 py-3 text-[15px] font-semibold whitespace-nowrap', on ? 'border-[var(--brand-primary)] text-ink' : 'border-transparent text-muted hover:text-ink')}
-              >
-                <Icon className={cn('size-4', on && 'text-brand')} /> {t.label}
-                <span className={cn('rounded-full px-1.5 text-[12px] tabular-nums', on ? 'bg-[var(--brand-primary-subtle)] text-brand' : 'bg-line-soft text-muted')}>{n}</span>
-              </button>
-            )
-          })}
-        </div>
-        {ownListings > 0 && (
-          <Link to="/properties" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-            Your {plural(ownListings, 'listing')} are in Homes <ArrowRight className="size-3.5" />
-          </Link>
-        )}
-      </div>
+      <div className="mt-6 grid gap-6 xl:min-h-0 xl:flex-1 lg:grid-cols-[216px_minmax(0,1fr)]">
+        <nav aria-label="Opportunities" className="lg:pt-1">
+          <p className="px-3 pb-1.5 text-[11.5px] font-semibold tracking-wide text-faint uppercase">Views</p>
+          <NavItem on={view === 'go'} onClick={() => setView('go')} icon={PhoneCall} label="Worth a call" n={book.filter(worth).length} blue />
+          <NavItem on={view === 'all'} onClick={() => setView('all')} icon={LayoutGrid} label="All opportunities" n={book.length} />
+          <p className="mt-5 px-3 pb-1.5 text-[11.5px] font-semibold tracking-wide text-faint uppercase">By source</p>
+          {TABS.map((t) => (
+            <NavItem key={t.k} on={view === t.k} onClick={() => setView(t.k)} icon={t.k === 'contacts' ? Users : MapPin} label={t.label} n={book.filter((o) => inTab(o, t.k)).length} />
+          ))}
+          <div className="mt-5 border-t border-line pt-4">
+            <button onClick={() => setValueOpen(true)} className="w-full rounded-lg px-3 py-2 text-left hover:bg-line-soft">
+              <span className="block text-[18px] font-semibold text-[var(--green)] tabular-nums">{money(stats.lift + marketLift)}</span>
+              <span className="flex items-center gap-1 text-[12.5px] text-muted">
+                Value to unlock <ArrowRight className="size-3 text-brand" />
+              </span>
+            </button>
+            {ownListings > 0 && (
+              <Link to="/properties" className="mt-1 flex items-center gap-1 px-3 py-1 text-[12.5px] font-medium text-brand hover:underline">
+                Your {plural(ownListings, 'listing')} are in Homes <ArrowRight className="size-3" />
+              </Link>
+            )}
+          </div>
+        </nav>
 
-      {/* the numbers and the filters; three treatments to compare */}
-      <div className="mt-4">
-        <SummaryBar
-          style={barStyle}
-          filters={FILTERS[tab].map((f) => ({ k: f.k, label: f.label, n: sorted.filter((o) => passes(o, f.k)).length }))}
-          filter={filter}
-          setFilter={(k) => setFilter(k as Filter)}
-          primary={tab === 'contacts' ? 3 : 3}
-          metrics={
-            tab === 'contacts'
-              ? [
-                  { value: String(stats.now.length), label: 'To call this week', filter: 'go' },
-                  { value: String(stats.sellers), label: 'Likely sellers', filter: 'seller' },
-                  { value: money(stats.lift), label: 'Value to unlock', green: true, onClick: () => setValueOpen(true) },
-                ]
-              : [
-                  { value: String(tabBook.filter((o) => o.property.facts.expiredDaysAgo !== undefined).length), label: 'Expired', filter: 'expired' },
-                  { value: String(tabBook.filter((o) => o.property.facts.withdrawnDaysAgo !== undefined).length), label: 'Withdrawn', filter: 'withdrawn' },
-                  { value: money(marketLift), label: 'Revive could add', green: true },
-                ]
-          }
-          sort={
+        <div className="flex min-w-0 flex-col xl:min-h-0">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-xl font-semibold text-ink">{view === 'go' ? 'Worth a call' : view === 'all' ? 'All opportunities' : TABS.find((t) => t.k === view)!.label}</h2>
+              <p className="mt-0.5 text-[13.5px] text-muted">
+                {view === 'go'
+                  ? 'Who to reach out to this week, across your contacts and the nearby market.'
+                  : view === 'all'
+                    ? 'Your contacts and the nearby market, ranked by who to call first.'
+                    : TABS.find((t) => t.k === view)!.hint}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+            <div className="inline-flex rounded-lg bg-line-soft p-0.5 2xl:hidden" role="radiogroup" aria-label="Show as">
+              {(['list', 'map'] as const).map((m) => (
+                <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={cn('inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12.5px] font-medium', mode === m ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}>
+                  {m === 'list' ? <List className="size-3.5" /> : <MapIcon className="size-3.5" />} {m === 'list' ? 'List' : 'Map'}
+                </button>
+              ))}
+            </div>
             <label className="flex h-8 items-center gap-1.5 rounded-lg border border-line bg-white pr-2 pl-3 text-[13px] text-muted">
               Sort
               <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="bg-transparent font-semibold text-ink outline-none">
@@ -281,12 +272,25 @@ export default function Opportunities() {
                 ))}
               </select>
             </label>
-          }
-        />
-      </div>
+            </div>
+          </div>
+          {tab && (
+            <div className="mt-3 flex gap-1 overflow-x-auto border-b border-line [scrollbar-width:none]" role="tablist" aria-label="Filter">
+              {FILTERS[tab].map((f) => {
+                const n = sorted.filter((o) => passes(o, f.k)).length
+                if (!n && f.k !== 'all') return null
+                const on = filter === f.k
+                return (
+                  <button key={f.k} role="tab" aria-selected={on} onClick={() => setFilter(f.k)} className={cn('-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-[13.5px] font-medium whitespace-nowrap', on ? 'border-[var(--brand-primary)] text-ink' : 'border-transparent text-muted hover:text-ink')}>
+                    {f.label} <span className={cn('rounded-full px-1.5 text-[12px] tabular-nums', on ? 'bg-[var(--brand-primary-subtle)] text-brand' : 'bg-line-soft text-muted')}>{n}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
 
-      <div className="mt-5 grid gap-5 xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <div className="min-w-0 xl:flex xl:min-h-0 xl:flex-col">
+      <div className="mt-4 grid gap-5 xl:min-h-0 xl:flex-1 2xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <div className={cn('min-w-0 xl:min-h-0 xl:flex-col', mode === 'map' ? 'hidden 2xl:flex' : 'xl:flex')}>
           <div className="xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
           {shown.length ? (
             <OppTable opps={shown} onOpen={setOpenId} hover={hover} onHover={setHover} />
@@ -296,14 +300,14 @@ export default function Opportunities() {
           </div>
         </div>
 
-        <div className="relative isolate h-[420px] overflow-hidden rounded-xl border border-line shadow-card xl:h-full">
+        <div className={cn('relative isolate h-[520px] overflow-hidden rounded-xl border border-line shadow-card xl:h-full', mode === 'list' && 'hidden 2xl:block')}>
           <BaseMap
             center={[AGENT.office.lat, AGENT.office.lng]}
             zoom={11}
             bounds={pinned.map((o) => [o.property.lat, o.property.lng] as [number, number])}
             wheelZoom
           >
-            <Fit pts={pinned.map((o) => [o.property.lat, o.property.lng] as [number, number])} k={`${tab}|${filter}|${needle}`} />
+            <Fit pts={pinned.map((o) => [o.property.lat, o.property.lng] as [number, number])} k={`${view}|${filter}|${needle}|${mode}`} />
             {pinned.map((o) => (
               <Marker
                 key={o.id}
@@ -337,6 +341,9 @@ export default function Opportunities() {
               <span className="size-3 rounded-full border-2 border-[#9aa3b4] bg-white" /> Keep warm
             </span>
           </div>
+        </div>
+      </div>
+
         </div>
       </div>
 
