@@ -292,13 +292,12 @@ const KEYS: SectionKey[] = ['projects', 'reports', 'listings']
 type View = { kind: 'all' } | { kind: 'section'; k: SectionKey; f: string }
 
 /**
- * Homes is the record of every home, not a to-do list (the dashboard is that): All homes, then one item per
+ * Homes is the record of every home, not a to-do list (the dashboard is that): an Overview, then one item per
  * type. Status filters live in the page as sub-tabs. A home that needs the agent sorts first, says why in
  * blue and has the blue action; each group's "N need you" chip filters that group in place.
  */
 export function SideNavLayout(parts: Parts) {
   const map = { projects: parts.projects, reports: parts.reports, listings: parts.listings }
-  const total = KEYS.reduce((n, k) => n + map[k].length, 0)
   const [view, setView] = useState<View>({ kind: 'all' })
   const isOn = (v: View) => v.kind === view.kind && (v.kind !== 'section' || (view.kind === 'section' && view.k === v.k))
   const item = (on: boolean) =>
@@ -314,7 +313,7 @@ export function SideNavLayout(parts: Parts) {
       <nav aria-label="Homes" className="lg:sticky lg:top-4">
         <button onClick={() => setView({ kind: 'all' })} className={item(isOn({ kind: 'all' }))} aria-current={isOn({ kind: 'all' }) || undefined}>
           {bar(isOn({ kind: 'all' }))}
-          <LayoutGrid className="size-4 text-brand" /> All homes {count(total)}
+          <LayoutGrid className="size-4 text-brand" /> Overview
         </button>
 
         <p className="mt-5 px-3 pb-1.5 text-[11.5px] font-semibold tracking-wide text-faint uppercase">By type</p>
@@ -347,14 +346,20 @@ export function SideNavLayout(parts: Parts) {
 
       <div className="min-w-0">
         {view.kind === 'all' && (
-          // everything, each type in turn; what needs the agent sorts first in each, with its reason and action
+          // Overview: a fixed, short preview of each type (what needs the agent first), each ending in See all,
+          // so every type stays near the top; the full lists live under each type
           <div className="flex flex-col gap-10">
-            {KEYS.filter((k) => map[k].length).map((k) => (
-              <section key={k}>
-                <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} />
-                <SectionBody k={k} parts={{ ...parts, [k]: topOf(map[k]) }} filter="all" onFilter={() => {}} chips={false} narrow />
-              </section>
-            ))}
+            {KEYS.filter((k) => map[k].length).map((k) => {
+              const pool = k === 'projects' ? map[k].filter((h) => h.project?.status !== 'sold') : map[k]
+              const cap = k === 'projects' ? 2 : k === 'reports' ? 4 : 5
+              const items = topOf(pool.length ? pool : map[k]).slice(0, cap)
+              return (
+                <section key={k}>
+                  <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} />
+                  <SectionBody k={k} parts={{ ...parts, [k]: items }} filter="all" onFilter={() => {}} chips={false} narrow />
+                </section>
+              )
+            })}
           </div>
         )}
         {view.kind === 'section' && (
@@ -393,7 +398,7 @@ function ViewHead({ title, icon: Icon, sub, right }: { title: string; icon: type
   )
 }
 
-/** A group inside Needs you / All homes: the type, its count, and a link to see that type on its own. */
+/** A group in the Overview: the type, its count, and a link to see that type on its own. */
 function GroupHead({ k, n, onAll }: { k: SectionKey; n: number; total?: number; onAll: () => void }) {
   const Icon = SECTIONS[k].icon
   return (
@@ -403,7 +408,7 @@ function GroupHead({ k, n, onAll }: { k: SectionKey; n: number; total?: number; 
         <span className="text-[13px] font-normal text-muted tabular-nums">{n}</span>
       </h3>
       <button onClick={onAll} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-        Open <ArrowRight className="size-3.5" />
+        See all {n} <ArrowRight className="size-3.5" />
       </button>
     </div>
   )
