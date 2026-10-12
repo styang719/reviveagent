@@ -79,7 +79,7 @@ function ThreadRow({ t, label, active, onOpen, onDelete }: { t: ChatThread; labe
   )
 }
 
-function History({ onPick }: { onPick?: () => void }) {
+function History({ onPick, onHide }: { onPick?: () => void; onHide?: () => void }) {
   const threads = useUi((s) => s.threads)
   const activeId = useUi((s) => s.activeId)
   const chat = useUi((s) => s.chat)
@@ -88,16 +88,23 @@ function History({ onPick }: { onPick?: () => void }) {
   const clearChat = useUi((s) => s.clearChat)
   return (
     <nav aria-label="Revive AI conversations" className="flex h-full min-h-0 flex-col gap-3 p-3">
-      <Button
-        variant="outline"
-        className="justify-start"
-        onClick={() => {
-          if (chat.length) clearChat()
-          onPick?.()
-        }}
-      >
-        <SquarePen /> New chat
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          className="flex-1 justify-start"
+          onClick={() => {
+            if (chat.length) clearChat()
+            onPick?.()
+          }}
+        >
+          <SquarePen /> New chat
+        </Button>
+        {onHide && (
+          <button onClick={onHide} className="grid size-9 shrink-0 place-items-center rounded-lg text-ink-2 hover:bg-line-soft" aria-label="Hide conversations" title="Hide conversations">
+            <PanelLeft className="size-5" />
+          </button>
+        )}
+      </div>
       {threads.length === 0 ? (
         <p className="px-2 text-[13px] text-muted">Your conversations will show up here.</p>
       ) : (
@@ -129,6 +136,22 @@ export default function ReviveAI() {
   const handoff = useDemo((s) => s.handoff)
   const { ask, thinking } = useAsk()
   const [historyOpen, setHistoryOpen] = useState(false)
+  // on desktop the conversations column can be hidden; remembered for this browser
+  const [historyHidden, setHistoryHiddenState] = useState(() => {
+    try {
+      return localStorage.getItem('rv-ai-history-hidden') === '1'
+    } catch {
+      return false
+    }
+  })
+  const setHistoryHidden = (v: boolean) => {
+    setHistoryHiddenState(v)
+    try {
+      localStorage.setItem('rv-ai-history-hidden', v ? '1' : '0')
+    } catch {
+      /* private window */
+    }
+  }
   const threadCount = useUi((s) => s.threads.length)
   const empty = chat.length === 0
   const split = handoff === 'panel' && !!panel
@@ -161,12 +184,20 @@ export default function ReviveAI() {
     <div
       className={cn(
         'relative grid h-[calc(100dvh-var(--demo-h,0px)-65px)] lg:h-[calc(100dvh-var(--demo-h,0px))]',
-        split ? 'lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)_minmax(0,520px)]' : 'grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)]',
+        historyHidden
+          ? split
+            ? 'lg:grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_minmax(0,520px)]'
+            : 'grid-cols-1'
+          : split
+            ? 'lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)_minmax(0,520px)]'
+            : 'grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)]',
       )}
     >
-      <aside className="hidden min-h-0 border-r border-line bg-head lg:block">
-        <History />
-      </aside>
+      {!historyHidden && (
+        <aside className="hidden min-h-0 border-r border-line bg-head lg:block">
+          <History onHide={() => setHistoryHidden(true)} />
+        </aside>
+      )}
       {/* below lg the history opens as a drawer */}
       {historyOpen && (
         <div className="absolute inset-0 z-30 flex lg:hidden">
@@ -186,12 +217,22 @@ export default function ReviveAI() {
             >
               <PanelLeft className="size-5" />
             </button>
+            {historyHidden && (
+              <button
+                onClick={() => setHistoryHidden(false)}
+                className="hidden size-9 place-items-center rounded-lg text-ink-2 hover:bg-line-soft lg:grid"
+                aria-label={`Show conversations (${threadCount})`}
+                title="Show conversations"
+              >
+                <PanelLeft className="size-5" />
+              </button>
+            )}
             <h1 className="flex items-center gap-2.5 text-xl font-semibold text-ink">
               <AiAvatar /> Revive AI
             </h1>
           </div>
           {!empty && (
-            <Button variant="outline" size="sm" onClick={clearChat} className="lg:hidden">
+            <Button variant="outline" size="sm" onClick={clearChat} className={historyHidden ? undefined : 'lg:hidden'}>
               <SquarePen /> New chat
             </Button>
           )}
