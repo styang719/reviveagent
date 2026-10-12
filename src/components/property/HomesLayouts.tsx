@@ -29,7 +29,6 @@ export interface Parts {
   start: Record<SectionKey, { label: string; to?: string; onClick?: () => void }> // the one action for an empty section
 }
 
-const waitingOf = (homes: Home[]) => homes.filter((h) => h.needsYou).length
 
 export function SectionHead({ k, count, waiting, right, small }: { k: SectionKey; count: number; waiting: number; right?: React.ReactNode; small?: boolean }) {
   const s = SECTIONS[k]
@@ -301,16 +300,6 @@ export function SideNavLayout(parts: Parts) {
   const map = { projects: parts.projects, reports: parts.reports, listings: parts.listings }
   const total = KEYS.reduce((n, k) => n + map[k].length, 0)
   const [view, setView] = useState<View>({ kind: 'all' })
-  // "N need you" chips: show only those homes in that group, in place
-  const [needsOnly, setNeedsOnly] = useState<Set<SectionKey>>(() => new Set())
-  const toggleNeeds = (k: SectionKey) =>
-    setNeedsOnly((s) => {
-      const x = new Set(s)
-      if (x.has(k)) x.delete(k)
-      else x.add(k)
-      return x
-    })
-  const pick = (k: SectionKey) => (needsOnly.has(k) ? map[k].filter((h) => h.needsYou) : map[k])
   const isOn = (v: View) => v.kind === view.kind && (v.kind !== 'section' || (view.kind === 'section' && view.k === v.k))
   const item = (on: boolean) =>
     cn(
@@ -358,20 +347,15 @@ export function SideNavLayout(parts: Parts) {
 
       <div className="min-w-0">
         {view.kind === 'all' && (
-          <>
-            <ViewHead title="All homes" icon={LayoutGrid} sub={`${total} homes: ${map.projects.length} projects, ${map.reports.length} AI reports, ${map.listings.length} listings.`} />
-            <div className="flex flex-col gap-10">
-              {KEYS.filter((k) => map[k].length).map((k) => {
-                const preview = k === 'reports' ? 4 : k === 'projects' ? 2 : 5 // one row each, so every type stays near the top
-                return (
-                  <section key={k}>
-                    <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} preview={map[k].length > preview} needs={waitingOf(map[k])} needsOn={needsOnly.has(k)} onNeeds={() => toggleNeeds(k)} />
-                    <SectionBody k={k} parts={{ ...parts, [k]: needsOnly.has(k) ? pick(k) : topOf(map[k]).slice(0, preview) }} filter="all" onFilter={() => {}} chips={false} narrow />
-                  </section>
-                )
-              })}
-            </div>
-          </>
+          // everything, each type in turn; what needs the agent sorts first in each, with its reason and action
+          <div className="flex flex-col gap-10">
+            {KEYS.filter((k) => map[k].length).map((k) => (
+              <section key={k}>
+                <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} />
+                <SectionBody k={k} parts={{ ...parts, [k]: topOf(map[k]) }} filter="all" onFilter={() => {}} chips={false} narrow />
+              </section>
+            ))}
+          </div>
         )}
         {view.kind === 'section' && (
           <>
@@ -379,9 +363,8 @@ export function SideNavLayout(parts: Parts) {
               title={SECTIONS[view.k].title}
               icon={SECTIONS[view.k].icon}
               sub={SECTIONS[view.k].hint}
-              right={waitingOf(map[view.k]) > 0 ? <NeedsChip n={waitingOf(map[view.k])} on={needsOnly.has(view.k)} onClick={() => toggleNeeds((view as { k: SectionKey }).k)} /> : undefined}
             />
-            <SectionBody k={view.k} parts={{ ...parts, [view.k]: pick(view.k) }} filter={view.f} onFilter={(f) => setView({ kind: 'section', k: (view as { k: SectionKey }).k, f })} narrow />
+            <SectionBody k={view.k} parts={{ ...parts, [view.k]: topOf(map[view.k]) }} filter={view.f} onFilter={(f) => setView({ kind: 'section', k: (view as { k: SectionKey }).k, f })} narrow />
           </>
         )}
       </div>
@@ -392,20 +375,6 @@ export function SideNavLayout(parts: Parts) {
 /** The homes to preview first: waiting on you, then still in progress, then newest. */
 const topOf = (homes: Home[]) =>
   [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou) || Number(a.project?.status === 'sold') - Number(b.project?.status === 'sold') || b.at - a.at)
-
-/** "N need you": a filter chip. On, the group shows only the homes waiting on the agent. */
-function NeedsChip({ n, on, onClick }: { n: number; on: boolean; onClick?: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={on}
-      className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold transition-colors', on ? 'bg-[var(--brand-primary)] text-white' : 'bg-[var(--brand-primary-subtle)] text-brand hover:bg-[var(--brand-primary-border)]/50')}
-    >
-      <span className={cn('size-1.5 rounded-full', on ? 'bg-white' : 'bg-[var(--brand-primary)]')} /> {n} need{n === 1 ? 's' : ''} you
-      {on && <span aria-hidden="true">×</span>}
-    </button>
-  )
-}
 
 function ViewHead({ title, icon: Icon, sub, right }: { title: string; icon: typeof Bell; sub: string; right?: React.ReactNode }) {
   return (
@@ -425,17 +394,16 @@ function ViewHead({ title, icon: Icon, sub, right }: { title: string; icon: type
 }
 
 /** A group inside Needs you / All homes: the type, its count, and a link to see that type on its own. */
-function GroupHead({ k, n, total, onAll, preview, needs, needsOn, onNeeds }: { k: SectionKey; n: number; total: number; onAll: () => void; preview?: boolean; needs?: number; needsOn?: boolean; onNeeds?: () => void }) {
+function GroupHead({ k, n, onAll }: { k: SectionKey; n: number; total?: number; onAll: () => void }) {
   const Icon = SECTIONS[k].icon
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
       <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
         <Icon className="size-4 text-brand" /> {SECTIONS[k].title}
         <span className="text-[13px] font-normal text-muted tabular-nums">{n}</span>
-        {!!needs && <NeedsChip n={needs} on={!!needsOn} onClick={onNeeds} />}
       </h3>
       <button onClick={onAll} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-        {preview ? `See all ${total}` : 'Open'} <ArrowRight className="size-3.5" />
+        Open <ArrowRight className="size-3.5" />
       </button>
     </div>
   )
