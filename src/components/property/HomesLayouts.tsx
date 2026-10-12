@@ -264,11 +264,13 @@ export function ReportsView({ homes, filter, onFilter, sort, setSort, chips = tr
   const f = FILTERS.reports.find((x) => x.k === filter) ?? FILTERS.reports[0]
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {chips ? <Chips k="reports" homes={homes} value={filter} onChange={onFilter} /> : <span />}
-        {homes.length > 1 && <SortToggle sort={sort} setSort={setSort} />}
-      </div>
-      <div className="mt-4">
+      {chips && (
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <Chips k="reports" homes={homes} value={filter} onChange={onFilter} />
+          {homes.length > 1 && <SortToggle sort={sort} setSort={setSort} />}
+        </div>
+      )}
+      <div className={chips ? 'mt-4' : undefined}>
         <ReportCards key={filter} homes={homes.filter(f.test)} sort={sort} grid={grid} />
       </div>
     </div>
@@ -379,11 +381,11 @@ export function SideNavLayout(parts: Parts) {
             <ViewHead title="All homes" icon={LayoutGrid} sub={`${total} homes: ${map.projects.length} projects, ${map.reports.length} AI reports, ${map.listings.length} listings.`} />
             <div className="flex flex-col gap-10">
               {KEYS.filter((k) => map[k].length).map((k) => {
-                const preview = k === 'reports' ? 6 : k === 'projects' ? 4 : 5
+                const preview = k === 'reports' ? 3 : k === 'projects' ? 2 : 5 // one row each, so every type stays near the top
                 return (
                   <section key={k}>
                     <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} preview={map[k].length > preview} />
-                    <SectionBody k={k} parts={{ ...parts, [k]: map[k].slice(0, preview) }} filter="all" onFilter={() => {}} chips={false} narrow />
+                    <SectionBody k={k} parts={{ ...parts, [k]: topOf(map[k]).slice(0, preview) }} filter="all" onFilter={() => {}} chips={false} narrow />
                   </section>
                 )
               })}
@@ -400,6 +402,10 @@ export function SideNavLayout(parts: Parts) {
     </div>
   )
 }
+
+/** The homes to preview first: waiting on you, then still in progress, then newest. */
+const topOf = (homes: Home[]) =>
+  [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou) || Number(a.project?.status === 'sold') - Number(b.project?.status === 'sold') || b.at - a.at)
 
 function ViewHead({ title, icon: Icon, sub }: { title: string; icon: typeof Bell; sub: string }) {
   return (
