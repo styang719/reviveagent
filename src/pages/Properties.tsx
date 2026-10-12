@@ -3,12 +3,12 @@ import { useState } from 'react'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
-import { HomesList, ProjectCards, needsYouOf, type Home, type HomeSort } from '@/components/property/HomesList'
+import { HomesList, ProjectCards, ReportsPanel, needsYouOf, type Home, type HomeSort } from '@/components/property/HomesList'
 import type { ReportRow } from '@/components/property/homeRows'
 import { money } from '@/lib/format'
 import { PROJECT_STEPS } from '@/lib/flows'
 import { useConnections, useOpportunities } from '@/lib/opportunities'
-import { cn, PAGE } from '@/lib/utils'
+import { PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
 // Every home the agent is working on, once each: Revive projects, homes with a Revive AI report, and the
@@ -155,16 +155,6 @@ export default function Properties() {
   const listingHomes = shown.filter((h) => h.listing)
   const reportHomes = shown.filter((h) => h.report && !h.listing)
   const firstVisit = !needle && homes.length === 0
-  const sortControl = (
-    <div className="flex items-center gap-1 text-[12.5px] text-muted">
-      Sort by
-      {(['recent', 'upside'] as const).map((k) => (
-        <button key={k} onClick={() => setSort(k)} aria-pressed={sort === k} className={cn('rounded-md px-2 py-1 font-medium', sort === k ? 'bg-line-soft text-ink' : 'hover:text-ink')}>
-          {k === 'recent' ? 'Recent' : 'Biggest upside'}
-        </button>
-      ))}
-    </div>
-  )
 
   const connectMls = (
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-dashed border-line px-5 py-4">
@@ -210,40 +200,44 @@ export default function Properties() {
         </>
       ) : (
         <>
-          <section className="mt-8" aria-labelledby="projects-title">
-            <div className="mb-4 flex items-baseline gap-2">
-              <h2 id="projects-title" className="text-xl font-semibold text-ink">
-                Projects with Revive
-              </h2>
-              <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{projectHomes.length}</span>
-              {projectHomes.some((h) => h.needsYou) && (
-                <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white">{projectHomes.filter((h) => h.needsYou).length} waiting on you</span>
+          {/* left: projects and your listings; right: AI reports as a panel */}
+          <div className="mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="min-w-0">
+            <section aria-labelledby="projects-title">
+              <div className="mb-4 flex items-baseline gap-2">
+                <h2 id="projects-title" className="text-xl font-semibold text-ink">
+                  Projects with Revive
+                </h2>
+                <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{projectHomes.length}</span>
+                {projectHomes.some((h) => h.needsYou) && (
+                  <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white">{projectHomes.filter((h) => h.needsYou).length} waiting on you</span>
+                )}
+              </div>
+              {projectHomes.length ? (
+                <ProjectCards homes={projectHomes} grid="2xl:grid-cols-2" />
+              ) : needle ? (
+                noMatch
+              ) : (
+                <ProjectsEmpty />
               )}
+            </section>
+
+            <ListSection title="Your listings" homes={listingHomes}>
+              {listingHomes.length ? (
+                <HomesList homes={listingHomes} sort="recent" kind="listing" />
+              ) : needle ? (
+                noMatch
+              ) : conn.mls ? (
+                <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No active listings on the MLS right now.</p>
+              ) : (
+                connectMls
+              )}
+            </ListSection>
             </div>
-            {projectHomes.length ? (
-              <ProjectCards homes={projectHomes} />
-            ) : needle ? (
-              noMatch
-            ) : (
-              <ProjectsEmpty />
-            )}
-          </section>
-
-          <ListSection title="AI reports" homes={reportHomes} right={reportHomes.length > 1 ? sortControl : undefined}>
-            {reportHomes.length ? <HomesList homes={reportHomes} sort={sort} kind="report" /> : needle ? noMatch : <ReportsEmpty />}
-          </ListSection>
-
-          <ListSection title="Your listings" homes={listingHomes}>
-            {listingHomes.length ? (
-              <HomesList homes={listingHomes} sort="recent" kind="listing" />
-            ) : needle ? (
-              noMatch
-            ) : conn.mls ? (
-              <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No active listings on the MLS right now.</p>
-            ) : (
-              connectMls
-            )}
-          </ListSection>
+            <div className="xl:sticky xl:top-6">
+              <ReportsPanel homes={reportHomes} sort={sort} onSort={setSort} empty={needle ? noMatch : <ReportsEmpty />} />
+            </div>
+          </div>
         </>
       )}
     </div>

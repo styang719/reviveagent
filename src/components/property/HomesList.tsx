@@ -150,10 +150,10 @@ const STATUS_TONE = { blue: 'text-brand', green: 'text-[var(--green)]', purple: 
  * Projects with Revive, always on top as property cards with their progress. One waiting on the agent says
  * so in blue and its button turns blue with the next step; the rest read "On track".
  */
-export function ProjectCards({ homes }: { homes: Home[] }) {
+export function ProjectCards({ homes, grid = 'xl:grid-cols-2' }: { homes: Home[]; grid?: string }) {
   const sorted = [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou))
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
+    <div className={cn('grid gap-4', grid)}>
       {sorted.map((h) => {
         const p = h.project!
         const n = h.needsYou
@@ -279,8 +279,11 @@ function Status({ h, kind }: { h: Home; kind?: ListKind }) {
   if (h.listing) {
     const st = listingStatus(h.listing)
     return (
-      <span className="flex flex-wrap items-center gap-2">
-        <span className={cn('inline-flex rounded-full px-2.5 py-1 text-[12px] font-semibold whitespace-nowrap', st.warn ? 'bg-warn-soft text-warn' : 'bg-ok-soft text-[var(--green)]')}>{st.label}</span>
+      <span className="block">
+        <span className={cn('inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-semibold whitespace-nowrap', st.warn ? 'bg-warn-soft text-warn' : 'bg-ok-soft text-[var(--green)]')}>{st.label}</span>
+        {h.listing.property.facts.daysOnMarket !== undefined && (
+          <span className={cn('mt-1 block text-[12px] tabular-nums', h.listing.property.facts.daysOnMarket >= 30 ? 'font-semibold text-warn' : 'text-muted')}>{h.listing.property.facts.daysOnMarket} days listed</span>
+        )}
       </span>
     )
   }
@@ -306,7 +309,7 @@ export type ListKind = 'report' | 'listing'
 export function HomesList({ homes, sort, kind }: { homes: Home[]; sort: HomeSort; kind?: ListKind }) {
   const [all, setAll] = useState(false)
   const listing = kind === 'listing'
-  const cols = listing ? 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_90px_110px_150px_170px]' : 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_150px_170px]'
+  const cols = listing ? 'lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)_120px_150px]' : 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_150px_170px]'
   // anything waiting on the agent comes first, then the chosen order
   const sorted = [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou) || (sort === 'upside' ? (b.upside ?? 0) - (a.upside ?? 0) : b.at - a.at))
   const visible = all ? sorted : sorted.slice(0, SHOW)
@@ -315,9 +318,7 @@ export function HomesList({ homes, sort, kind }: { homes: Home[]; sort: HomeSort
       <div className={cn('hidden gap-5 border-b border-line bg-head px-4 py-2 text-[11.5px] font-medium tracking-wide text-muted uppercase lg:grid', cols)}>
         <span>{listing ? 'Listing' : 'Home'}</span>
         <span>{kind === 'report' ? 'With the homeowner' : listing ? 'Status' : 'Where it stands'}</span>
-        {listing && <span className="text-right">Days listed</span>}
-        {listing && <span className="text-right">List price</span>}
-        <span>Revive upside</span>
+        <span>{listing ? 'Price · with Revive' : 'Revive upside'}</span>
         <span />
       </div>
       <ul>
@@ -349,16 +350,17 @@ export function HomesList({ homes, sort, kind }: { homes: Home[]; sort: HomeSort
               <span className="hidden min-w-0 lg:block">
                 {h.needsYou && !listing ? <NeedsStatus n={h.needsYou} /> : <Status h={h} kind={kind} />}
               </span>
-              {listing && (
-                <span className={cn('hidden text-right text-[14px] tabular-nums lg:block', (h.listing?.property.facts.daysOnMarket ?? 0) >= 30 ? 'font-semibold text-warn' : 'text-ink-2')}>
-                  {h.listing?.property.facts.daysOnMarket ?? '—'}
+              {listing ? (
+                <span className="hidden lg:block">
+                  <span className="block text-[14.5px] font-semibold text-ink tabular-nums">{h.listing ? money(h.listing.property.valueNow) : '—'}</span>
+                  <span className="block text-[12.5px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? `${gain(h.upside)} with Revive` : ''}</span>
+                </span>
+              ) : (
+                <span className="hidden lg:block">
+                  <span className="block text-[14.5px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? gain(h.upside) : '—'}</span>
+                  <span className="block truncate text-[12px] text-muted">{h.product ?? (h.valueNow ? `Value ${money(h.valueNow)}` : '')}</span>
                 </span>
               )}
-              {listing && <span className="hidden text-right text-[14px] font-semibold text-ink tabular-nums lg:block">{h.listing ? money(h.listing.property.valueNow) : '—'}</span>}
-              <span className="hidden lg:block">
-                <span className="block text-[14.5px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? gain(h.upside) : '—'}</span>
-                <span className="block truncate text-[12px] text-muted">{h.product ?? (h.valueNow ? `Value ${money(h.valueNow)}` : '')}</span>
-              </span>
               <Link
                 to={a.to}
                 className={cn(
@@ -378,5 +380,87 @@ export function HomesList({ homes, sort, kind }: { homes: Home[]; sort: HomeSort
         </button>
       )}
     </div>
+  )
+}
+
+/**
+ * AI reports as a narrow panel for the right column: each report is a compact row (photo, address, where it is
+ * with the homeowner, upside). One that needs the agent is highlighted, sorted first, with its next step.
+ */
+export function ReportsPanel({ homes, sort, onSort, empty }: { homes: Home[]; sort: HomeSort; onSort: (s: HomeSort) => void; empty: React.ReactNode }) {
+  const [all, setAll] = useState(false)
+  const sorted = [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou) || (sort === 'upside' ? (b.upside ?? 0) - (a.upside ?? 0) : b.at - a.at))
+  const visible = all ? sorted : sorted.slice(0, 6)
+  const waiting = homes.filter((h) => h.needsYou).length
+  return (
+    <section aria-labelledby="reports-title" className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
+      <div className="border-b border-line px-4 pt-4 pb-3">
+        <div className="flex items-center gap-2">
+          <span className="grid size-7 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
+            <FileText className="size-4" />
+          </span>
+          <h2 id="reports-title" className="text-[17px] font-semibold text-ink">
+            AI reports
+          </h2>
+          <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{homes.length}</span>
+          {waiting > 0 && <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white">{waiting} need{waiting === 1 ? 's' : ''} you</span>}
+        </div>
+        {homes.length > 1 && (
+          <div className="mt-2 flex items-center gap-1 text-[12px] text-muted">
+            Sort by
+            {(['recent', 'upside'] as const).map((k) => (
+              <button key={k} onClick={() => onSort(k)} aria-pressed={sort === k} className={cn('rounded-md px-2 py-0.5 font-medium', sort === k ? 'bg-line-soft text-ink' : 'hover:text-ink')}>
+                {k === 'recent' ? 'Recent' : 'Biggest upside'}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {homes.length ? (
+        <ul>
+          {visible.map((h, i) => {
+            const n = h.needsYou
+            const sh = h.report?.share ?? { label: 'Not shared yet', tone: 'none' as const }
+            const NIcon = n?.icon
+            return (
+              <li key={h.id} className={cn('relative', i > 0 && 'border-t border-line-soft', n && 'bg-[var(--brand-primary-subtle)]/60')}>
+                {n && <span className="absolute inset-y-0 left-0 w-[3px] bg-[var(--brand-primary)]" aria-hidden="true" />}
+                <Link to={n?.to ?? `/property/${h.id}?tab=report`} className="flex items-center gap-3 px-4 py-3 hover:bg-head/50">
+                  <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-[14px] font-semibold text-ink">{h.address}</span>
+                      <span className="shrink-0 text-[13.5px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? gain(h.upside) : '—'}</span>
+                    </span>
+                    <span className="mt-1 flex items-center justify-between gap-2">
+                      {n && NIcon ? (
+                        <span className={cn('inline-flex min-w-0 items-center gap-1 truncate text-[12.5px] font-semibold', STATUS_TONE[n.tone])}>
+                          <NIcon className="size-3.5 shrink-0" /> <span className="truncate">{n.status}</span>
+                        </span>
+                      ) : (
+                        <span className={cn('inline-flex max-w-full truncate rounded-full px-2 py-0.5 text-[11.5px] font-semibold', SHARE_TONE[sh.tone])}>{sh.label}</span>
+                      )}
+                      {!!h.report?.designs && <Sparkles className="size-3.5 shrink-0 text-[var(--brand-agent)]" aria-label="Has RenoVision designs" />}
+                    </span>
+                    {n && (
+                      <span className="mt-2 inline-flex h-7 items-center gap-1 rounded-md bg-[var(--brand-primary)] px-2.5 text-[12px] font-medium text-white">
+                        {n.cta} <ArrowRight className="size-3" />
+                      </span>
+                    )}
+                  </span>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      ) : (
+        <div className="p-4">{empty}</div>
+      )}
+      {homes.length > 6 && (
+        <button onClick={() => setAll((v) => !v)} className="w-full border-t border-line-soft py-2.5 text-[13px] font-medium text-brand hover:bg-head">
+          {all ? 'Show fewer' : `Show all ${homes.length} reports`}
+        </button>
+      )}
+    </section>
   )
 }
