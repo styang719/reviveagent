@@ -357,14 +357,7 @@ export function SideNavLayout(parts: Parts) {
         {view.kind === 'needs' && (
           <>
             <ViewHead title="Needs you" icon={Bell} sub={allNeeds ? `${allNeeds} homes where your next move matters, across projects, reports and listings.` : 'Nothing is waiting on you right now.'} />
-            <div className="flex flex-col gap-10">
-              {KEYS.filter((k) => waitingOf(map[k])).map((k) => (
-                <section key={k}>
-                  <GroupHead k={k} n={waitingOf(map[k])} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} />
-                  <SectionBody k={k} parts={{ ...parts, [k]: map[k].filter((h) => h.needsYou) }} filter="all" onFilter={() => {}} chips={false} narrow />
-                </section>
-              ))}
-            </div>
+            <NeedsList homes={KEYS.flatMap((k) => map[k].filter((h) => h.needsYou))} />
           </>
         )}
         {view.kind === 'all' && (
@@ -397,6 +390,72 @@ export function SideNavLayout(parts: Parts) {
 /** The homes to preview first: waiting on you, then still in progress, then newest. */
 const topOf = (homes: Home[]) =>
   [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou) || Number(a.project?.status === 'sold') - Number(b.project?.status === 'sold') || b.at - a.at)
+
+const KIND_LABEL = { project: 'Revive project', report: 'AI report', listing: 'Your listing' } as const
+const KIND_ICON = { project: Hammer, report: FileText, listing: Tag } as const
+
+/**
+ * Needs you as one to-do list: every item reads the same way, whatever kind of home it is. The task is the
+ * title; under it, which home and why; on the right, what's at stake. The circle ticks it off for now.
+ */
+function NeedsList({ homes }: { homes: Home[] }) {
+  const [done, setDone] = useState<Set<string>>(() => new Set())
+  if (!homes.length) return <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">Nothing is waiting on you right now.</p>
+  const order = { project: 0, report: 1, listing: 2 }
+  const items = [...homes].sort((a, b) => order[a.needsYou!.kind] - order[b.needsYou!.kind])
+  return (
+    <ul className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
+      {items.map((h, i) => {
+        const n = h.needsYou!
+        const Icon = KIND_ICON[n.kind]
+        const isDone = done.has(h.id)
+        const why = n.kind === 'project' && h.project ? h.project.stage : n.status
+        return (
+          <li key={h.id} className={cn('flex items-center', i > 0 && 'border-t border-line-soft', isDone && 'opacity-55')}>
+            <button
+              onClick={() =>
+                setDone((s) => {
+                  const x = new Set(s)
+                  if (x.has(h.id)) x.delete(h.id)
+                  else x.add(h.id)
+                  return x
+                })
+              }
+              aria-pressed={isDone}
+              aria-label={isDone ? 'Mark not done' : 'Mark done'}
+              className="grid size-14 shrink-0 place-items-center"
+            >
+              <span className={cn('grid size-[22px] place-items-center rounded-full border-[1.5px]', isDone ? 'border-[var(--green)] bg-[var(--green)] text-white' : 'border-[#c4cad6] hover:border-[var(--brand-primary)]')}>
+                {isDone && <Check className="size-3.5" strokeWidth={3} />}
+              </span>
+            </button>
+            <Link to={n.to} className="group flex min-w-0 flex-1 items-center gap-4 py-3 pr-4">
+              <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
+              <span className="min-w-0 flex-1">
+                <span className={cn('block truncate text-[15px] font-semibold text-ink', isDone && 'text-muted line-through')}>{n.cta}</span>
+                <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted">
+                  <span className="inline-flex shrink-0 items-center gap-1 font-medium text-ink-2">
+                    <Icon className="size-3.5 text-brand" /> {KIND_LABEL[n.kind]}
+                  </span>
+                  <span className="truncate">
+                    · {h.address}, {h.city} · {why}
+                  </span>
+                </span>
+              </span>
+              {h.upside ? (
+                <span className="hidden shrink-0 text-right sm:block">
+                  <span className="block text-[15px] font-semibold text-[var(--green)] tabular-nums">{gain(h.upside)}</span>
+                  <span className="block text-[11.5px] text-muted">with Revive</span>
+                </span>
+              ) : null}
+              <ArrowRight className="size-4 shrink-0 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-brand" />
+            </Link>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
 
 function ViewHead({ title, icon: Icon, sub }: { title: string; icon: typeof Bell; sub: string }) {
   return (
