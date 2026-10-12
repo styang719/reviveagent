@@ -1,18 +1,21 @@
-import { ArrowRight, Calendar, Search, Sparkles } from 'lucide-react'
+import { ArrowRight, Calendar, FileText, Hammer, Search, Sparkles, Tag } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AiLink } from '@/components/ai/AiLink'
+import { LicenseForm } from '@/components/home/ConnectBook'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
 import { Button } from '@/components/ui/button'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
 import { PROJECT_STEPS } from '@/lib/flows'
-import { useOpportunities } from '@/lib/opportunities'
+import { useConnections, useOpportunities, type Opportunity } from '@/lib/opportunities'
 import { cn, PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
-// Every property the agent is working on with Revive, in two sections: Revive projects (open the
-// property page on the Project tab) and Revive AI reports (open it on the report tab).
+// Every home the agent is working on, in two sections. With Revive: projects and AI reports in one grid,
+// told apart by a filter and by the label on each photo (a project is a filled blue "Project" tag with
+// its progress; a report is a white "AI report" tag with value and upside). Your listings: the agent's
+// active MLS listings, with what Revive could add to each.
 
 const img = (key?: string) => (key?.startsWith('data:') ? key : photoUrl(key))
 
@@ -49,15 +52,15 @@ function ProjectCard({ p }: { p: ProjectRow }) {
       to={`/property/${p.id}?tab=project`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
     >
-      <div className="relative h-40 overflow-hidden bg-line-soft">
+      <div className="relative h-36 overflow-hidden bg-line-soft">
         {p.photo && <img src={img(p.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
         <span
           className={cn(
-            'absolute top-3 left-3 rounded-full px-2.5 py-1 text-[11.5px] font-semibold shadow-sm',
-            p.status === 'active' ? 'bg-[var(--brand-primary)] text-white' : 'bg-white text-ink',
+            'absolute top-3 left-3 rounded-full bg-[var(--brand-primary)] px-2.5 py-1 text-[11.5px] font-semibold text-white shadow-sm',
           )}
         >
-          {p.status === 'active' ? 'In construction' : 'In review with Revive'}
+          <Hammer className="mr-1 inline size-3 -translate-y-px" />
+          Project · {p.status === 'active' ? 'In construction' : 'In review'}
         </span>
       </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
@@ -98,9 +101,12 @@ function ReportCard({ r }: { r: ReportRow }) {
     >
       <div className="relative h-36 overflow-hidden bg-line-soft">
         {r.photo && <img src={img(r.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+        <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-ink shadow-sm">
+          <FileText className="size-3 text-brand" /> AI report
+        </span>
         {r.designs ? (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-brand shadow-sm">
-            <Sparkles className="size-3" /> {r.designs} RenoVision design{r.designs === 1 ? '' : 's'}
+          <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-brand shadow-sm">
+            <Sparkles className="size-3" /> {r.designs} RenoVision
           </span>
         ) : null}
       </div>
@@ -131,19 +137,87 @@ function ReportCard({ r }: { r: ReportRow }) {
   )
 }
 
-function Section({ title, hint, count, children, empty, emptyNode }: { title: string; hint: string; count: number; children: React.ReactNode; empty: { text: string; cta: string; to: string }; emptyNode?: React.ReactNode }) {
+/** Where the listing stands on the MLS, for the photo label. */
+function listingStatus(o: Opportunity) {
+  const f = o.property.facts
+  if (f.expiredDaysAgo !== undefined) return { label: `Expired ${f.expiredDaysAgo} days ago`, warn: true }
+  if (f.withdrawnDaysAgo !== undefined) return { label: 'Withdrawn', warn: true }
+  if (f.priceCutDaysAgo !== undefined && f.priceCutDaysAgo <= 14) return { label: `Price cut ${f.priceCutDaysAgo === 1 ? 'yesterday' : `${f.priceCutDaysAgo} days ago`}`, warn: true }
+  if (f.daysOnMarket !== undefined) return { label: `Active · ${f.daysOnMarket} days`, warn: f.daysOnMarket >= 30 }
+  return { label: 'Active', warn: false }
+}
+
+function ListingCard({ o, revive }: { o: Opportunity; revive?: 'project' | 'report' }) {
+  const st = listingStatus(o)
+  const p = o.property
+  return (
+    <Link
+      to={`/property/${o.id}${revive === 'project' ? '?tab=project' : ''}`}
+      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]"
+    >
+      <div className="relative h-36 overflow-hidden bg-line-soft">
+        {p.photo && <img src={img(p.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+        <span className={cn('absolute top-3 left-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-semibold shadow-sm', st.warn ? 'bg-warn-soft text-warn' : 'bg-white text-ink')}>
+          <Tag className="size-3" /> {st.label}
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <div>
+          <p className="truncate text-[15px] font-semibold text-ink">{p.address}</p>
+          <p className="text-[12.5px] text-muted">
+            {p.city}
+            {p.beds ? ` · ${p.beds} bd · ${p.baths} ba` : ''} · {p.sqft.toLocaleString()} sqft
+          </p>
+        </div>
+        <dl className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-head px-3 py-2">
+            <dt className="text-[11px] text-muted">List price</dt>
+            <dd className="text-[15px] font-semibold text-ink tabular-nums">{money(p.valueNow)}</dd>
+          </div>
+          <div className="rounded-lg bg-ok-soft px-3 py-2">
+            <dt className="text-[11px] text-muted">With Revive</dt>
+            <dd className="text-[15px] font-semibold text-[var(--green)] tabular-nums">{o.gain ? gain(o.gain) : '—'}</dd>
+          </div>
+        </dl>
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3 text-[12.5px]">
+          {revive ? (
+            <span className="inline-flex items-center gap-1 truncate font-medium text-brand">
+              {revive === 'project' ? <Hammer className="size-3.5" /> : <FileText className="size-3.5" />}
+              {revive === 'project' ? 'Revive project' : 'Revive AI report'}
+            </span>
+          ) : (
+            <span className="truncate text-ink-2">{o.product ?? 'No Revive fit yet'}</span>
+          )}
+          <span className="flex shrink-0 items-center gap-1 font-medium text-brand">
+            {revive ? 'Open' : 'See options'} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+type Kind = 'all' | 'project' | 'report'
+
+function Section({ title, hint, count, children, empty, emptyNode, filter }: { title: string; hint: string; count: number; children: React.ReactNode; empty?: { text: string; cta: string; to: string }; emptyNode?: React.ReactNode; filter?: React.ReactNode }) {
   return (
     <section className="mt-10">
-      <div className="flex items-center gap-2.5">
-        <h2 className="text-xl font-semibold text-ink">{title}</h2>
-        <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{count}</span>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-xl font-semibold text-ink">{title}</h2>
+            <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{count}</span>
+          </div>
+          <p className="mt-1.5 text-[13px] text-muted">{hint}</p>
+        </div>
+        {filter}
       </div>
-      <p className="mt-1.5 mb-5 text-[13px] text-muted">{hint}</p>
+      <div className="mb-5" />
       {count ? (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">{children}</div>
       ) : emptyNode ? (
         emptyNode
-      ) : (
+      ) : empty ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-line px-5 py-4">
           <p className="text-[13.5px] text-ink-2">{empty.text}</p>
           <Button size="sm" variant="outline" asChild>
@@ -152,7 +226,7 @@ function Section({ title, hint, count, children, empty, emptyNode }: { title: st
             </AiLink>
           </Button>
         </div>
-      )}
+      ) : null}
     </section>
   )
 }
@@ -163,7 +237,9 @@ export default function Properties() {
   const renovisions = useDemo((s) => s.renovisions)
   const designsOn = (id: string) => Object.values(renovisions).filter((d) => d.propertyId === id).reduce((n, d) => n + d.pairs.length, 0)
   const opps = useOpportunities()
+  const conn = useConnections()
   const [q, setQ] = useState('')
+  const [kind, setKind] = useState<Kind>('all')
   const needle = q.trim().toLowerCase()
   const noMatch = <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No homes match “{q.trim()}”.</p>
   const match = (...fields: (string | undefined)[]) => !needle || fields.some((f) => f?.toLowerCase().includes(needle))
@@ -225,14 +301,45 @@ export default function Properties() {
       .map((o) => ({ id: o.id, address: o.property.address, city: o.property.city, photo: o.property.photo, valueNow: o.property.valueNow, upside: o.gain || undefined, product: o.product, designs: designsOn(o.id) })),
   ]
 
-  const firstVisit = !needle && projects.length === 0 && reportRows.length === 0
+  const shownProjects = projects.filter((p) => match(p.address, p.city, p.product))
+  const shownReports = reportRows.filter((r) => match(r.address, r.city, r.product))
+  const reviveCount = (kind !== 'report' ? shownProjects.length : 0) + (kind !== 'project' ? shownReports.length : 0)
+  const reviveEmpty = !needle && projects.length === 0 && reportRows.length === 0
+  const listings = opps.filter((o) => o.property.source === 'listings' && match(o.property.address, o.property.city, o.product))
+  const reportIds = new Set(reportRows.map((r) => r.id))
+
+  const kinds: { k: Kind; label: string; n: number }[] = [
+    { k: 'all', label: 'All', n: shownProjects.length + shownReports.length },
+    { k: 'project', label: 'Projects', n: shownProjects.length },
+    { k: 'report', label: 'AI reports', n: shownReports.length },
+  ]
+  const filter = reviveEmpty ? null : (
+    <div className="flex gap-2" role="radiogroup" aria-label="Show">
+      {kinds.map((f) => {
+        const on = kind === f.k
+        return (
+          <button
+            key={f.k}
+            role="radio"
+            aria-checked={on}
+            onClick={() => setKind(f.k)}
+            className={cn('inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium', on ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-line bg-white text-ink hover:border-[var(--brand-primary-border)]')}
+          >
+            {f.k === 'project' && <Hammer className="size-3.5" />}
+            {f.k === 'report' && <FileText className="size-3.5" />}
+            {f.label} <span className={cn('text-[12px] tabular-nums', on ? 'text-white/85' : 'text-muted')}>{f.n}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
 
   return (
     <div className={PAGE}>
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Homes</h1>
-          <p className="mt-1 text-[15px] text-ink-2">Every home you’re working on with Revive. Each one has its own page with the report, project and marketing.</p>
+          <p className="mt-1 text-[15px] text-ink-2">Every home you’re working on: with Revive, and your own listings. Each one has its own page.</p>
         </div>
         <label className="relative w-full sm:w-72">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
@@ -246,41 +353,56 @@ export default function Properties() {
         </label>
       </div>
 
-      {firstVisit ? (
-        // nothing here yet: say what each section is for, show the proof nearby, and make starting easy
-        <>
-          <div className="mt-8 grid gap-6 lg:grid-cols-2">
-            <ProjectsEmpty />
-            <ReportsEmpty />
-          </div>
-        </>
-      ) : (
-        <>
       <Section
-        title="Projects with Revive"
-        hint="From review with Revive to construction to listing. Opens the project."
-        count={projects.filter((p) => match(p.address, p.city, p.product)).length}
-        empty={{ text: 'No projects yet. Start one from any report.', cta: 'Start a project', to: '/ai?flow=project' }}
-        emptyNode={needle ? noMatch : <ProjectsEmpty />}
+        title="With Revive"
+        hint="Projects you’re running with Revive, and homes you’ve run a Revive AI report on."
+        count={reviveCount}
+        filter={filter}
+        emptyNode={
+          needle ? (
+            noMatch
+          ) : reviveEmpty ? (
+            <div className="grid gap-6 lg:grid-cols-2">
+              <ProjectsEmpty />
+              <ReportsEmpty />
+            </div>
+          ) : kind === 'project' ? (
+            <ProjectsEmpty />
+          ) : (
+            <ReportsEmpty />
+          )
+        }
       >
-        {projects.filter((p) => match(p.address, p.city, p.product)).map((p) => (
-          <ProjectCard key={p.id} p={p} />
-        ))}
+        {kind !== 'report' && shownProjects.map((p) => <ProjectCard key={p.id} p={p} />)}
+        {kind !== 'project' && shownReports.map((r) => <ReportCard key={r.id} r={r} />)}
       </Section>
 
       <Section
-        title="Revive AI reports"
-        hint="Homes you’ve run a report on. Share it with the homeowner, or turn it into a project."
-        count={reportRows.filter((r) => match(r.address, r.city, r.product)).length}
-        empty={{ text: 'No reports yet. Any address works, nothing to connect first.', cta: 'Generate a report', to: '/ai?flow=report' }}
-        emptyNode={needle ? noMatch : <ReportsEmpty />}
+        title="Your listings"
+        hint="Your active listings from the MLS, and what Revive could add to each."
+        count={listings.length}
+        emptyNode={
+          needle ? (
+            noMatch
+          ) : !conn.mls ? (
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-dashed border-line px-5 py-4">
+              <div className="min-w-0">
+                <p className="text-[14.5px] font-semibold text-ink">See your listings here</p>
+                <p className="mt-0.5 text-[13.5px] text-ink-2">Add your DRE license number and Revive pulls your active listings from the MLS.</p>
+              </div>
+              <div className="w-full sm:w-auto">
+                <LicenseForm inline />
+              </div>
+            </div>
+          ) : (
+            <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No active listings on the MLS right now.</p>
+          )
+        }
       >
-        {reportRows.filter((r) => match(r.address, r.city, r.product)).map((r) => (
-          <ReportCard key={r.id} r={r} />
+        {listings.map((o) => (
+          <ListingCard key={o.id} o={o} revive={inProject.has(o.id) ? 'project' : reportIds.has(o.id) ? 'report' : undefined} />
         ))}
       </Section>
-        </>
-      )}
     </div>
   )
 }
