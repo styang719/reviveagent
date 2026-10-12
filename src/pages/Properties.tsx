@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
@@ -11,6 +12,7 @@ import { PROJECT_STEPS } from '@/lib/flows'
 import { useConnections, useOpportunities } from '@/lib/opportunities'
 import { cn, PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
+import { useUi } from '@/store/ui'
 
 // Every home the agent is working on, once each: Revive projects, homes with a Revive AI report, and the
 // agent's own MLS listings. "Needs you" on top pulls out the few with something waiting on the agent;
@@ -23,14 +25,21 @@ interface ProjectRow {
   city: string
   photo?: string
   product: string
-  status: 'review' | 'active'
+  status: 'review' | 'active' | 'sold'
   stage: string
   steps: number
   step: number // index of the current step
   next?: string
   target?: string
   pct?: number // construction progress, when known
+  sold?: { when: string; asIs: number; sale: number }
 }
+
+// the agent's finished Revive projects (one per deal closed), sample data
+const COMPLETED: ProjectRow[] = [
+  { id: 'done-linda-vista', address: '418 Linda Vista Ave', city: 'Pasadena, CA 91103', photo: 'comp-103-2', product: 'Renovate to Sell', status: 'sold', stage: 'Sold', steps: 6, step: 5, sold: { when: 'Sold Aug 14, 2026', asIs: 1310000, sale: 1520000 } },
+  { id: 'done-lorain', address: '2730 Lorain Rd', city: 'San Marino, CA 91108', photo: 'comp-106-1', product: 'Sell 360', status: 'sold', stage: 'Sold', steps: 6, step: 5, sold: { when: 'Sold May 2, 2026', asIs: 985000, sale: 1180000 } },
+]
 
 export default function Properties() {
   const created = useDemo((s) => s.projects)
@@ -54,25 +63,30 @@ export default function Properties() {
   const [sort, setSort] = useState<HomeSort>('recent')
   const [layout, setLayoutState] = useState<LayoutKey>(() => {
     try {
-      return (localStorage.getItem('rv-homes-layout') as LayoutKey) || 'sections'
+      return (localStorage.getItem('rv-homes-layout2') as LayoutKey) || 'tabs2'
     } catch {
-      return 'sections'
+      return 'tabs2'
     }
   })
   const setLayout = (k: LayoutKey) => {
     setLayoutState(k)
     try {
-      localStorage.setItem('rv-homes-layout', k)
+      localStorage.setItem('rv-homes-layout2', k)
     } catch {
       /* private window */
     }
   }
+  const requestAi = useUi((s) => s.requestAi)
+  const openStep = useUi((s) => s.openStep)
+  const navigate = useNavigate()
   const Layout = LAYOUTS.find((l) => l.k === layout)?.C ?? LAYOUTS[0].C
   const needle = q.trim().toLowerCase()
   const noMatch = <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No homes match “{q.trim()}”.</p>
   const match = (...fields: (string | undefined)[]) => !needle || fields.some((f) => f?.toLowerCase().includes(needle))
 
+  const tier = useDemo((s) => s.tier)
   const projects: ProjectRow[] = [
+    ...COMPLETED.slice(0, tier === 'partner' ? 2 : tier === 'active' ? 1 : 0),
     ...Object.values(created).map((p) => ({
       id: p.propertyId,
       address: p.address,
@@ -135,7 +149,7 @@ export default function Properties() {
   // every home once: a project wins over its report; a listing joins whichever it already is
   const byId = new Map<string, Home>()
   const put = (id: string, base: Omit<Home, 'needsYou'>) => byId.set(id, base)
-  for (const p of projects) put(p.id, { id: p.id, address: p.address, city: p.city, photo: p.photo, project: p, product: p.product, upside: opps.find((o) => o.id === p.id)?.gain || undefined, at: Date.now() })
+  for (const p of projects) put(p.id, { id: p.id, address: p.address, city: p.city, photo: p.photo, project: p, product: p.product, upside: p.sold ? p.sold.sale - p.sold.asIs : opps.find((o) => o.id === p.id)?.gain || undefined, at: p.sold ? 0 : Date.now() })
   for (const r of reportRows) put(r.id, { id: r.id, address: r.address, city: r.city, photo: r.photo, report: r, upside: r.upside, valueNow: r.valueNow, product: r.product, at: r.at ?? 0 })
   for (const o of opps.filter((x) => x.property.source === 'listings')) {
     const prev = byId.get(o.id)
@@ -216,6 +230,11 @@ export default function Properties() {
             projects: needle ? noMatch : <ProjectsEmpty />,
             reports: needle ? noMatch : <ReportsEmpty />,
             listings: needle ? noMatch : conn.mls ? <p className="rounded-xl border border-dashed border-line bg-white px-5 py-4 text-[13.5px] text-muted">No active listings on the MLS right now.</p> : connectMls,
+          }}
+          start={{
+            projects: { label: 'Start a project', onClick: () => requestAi('/ai?flow=project') },
+            reports: { label: 'Generate a report', onClick: () => requestAi('/ai?flow=report') },
+            listings: { label: 'Add your listings', onClick: () => (openStep('license'), navigate('/')) },
           }}
         />
       )}

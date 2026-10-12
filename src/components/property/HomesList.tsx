@@ -16,12 +16,13 @@ export interface ProjectLite {
   city: string
   photo?: string
   product: string
-  status: 'review' | 'active'
+  status: 'review' | 'active' | 'sold'
   stage: string
   steps: number
   step: number
   next?: string
   pct?: number
+  sold?: { when: string; asIs: number; sale: number } // a finished project
 }
 
 export interface Home {
