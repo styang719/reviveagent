@@ -32,10 +32,10 @@ interface ProjectRow {
 }
 
 /** A section of the list: title, count, how many need you, and an optional control on the right. */
-function ListSection({ title, homes, right, children }: { title: string; homes: Home[]; right?: React.ReactNode; children: React.ReactNode }) {
+function ListSection({ title, homes, right, flush, children }: { title: string; homes: Home[]; right?: React.ReactNode; flush?: boolean; children: React.ReactNode }) {
   const waiting = homes.filter((h) => h.needsYou).length
   return (
-    <section className="mt-10">
+    <section className={flush ? undefined : 'mt-10'}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-baseline gap-2">
           <h2 className="text-xl font-semibold text-ink">{title}</h2>
@@ -200,29 +200,28 @@ export default function Properties() {
         </>
       ) : (
         <>
-          {/* left: projects and your listings; right: AI reports as a panel */}
-          <div className="mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-            <div className="min-w-0">
-            <section aria-labelledby="projects-title">
-              <div className="mb-4 flex items-baseline gap-2">
-                <h2 id="projects-title" className="text-xl font-semibold text-ink">
-                  Projects with Revive
-                </h2>
-                <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{projectHomes.length}</span>
-                {projectHomes.some((h) => h.needsYou) && (
-                  <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white">{projectHomes.filter((h) => h.needsYou).length} waiting on you</span>
-                )}
-              </div>
-              {projectHomes.length ? (
-                <ProjectCards homes={projectHomes} grid="2xl:grid-cols-2" />
-              ) : needle ? (
-                noMatch
-              ) : (
-                <ProjectsEmpty />
+          <section className="mt-8" aria-labelledby="projects-title">
+            <div className="mb-4 flex items-baseline gap-2">
+              <h2 id="projects-title" className="text-xl font-semibold text-ink">
+                Projects with Revive
+              </h2>
+              <span className="rounded-full bg-line-soft px-2 py-0.5 text-[12px] font-medium text-ink-2 tabular-nums">{projectHomes.length}</span>
+              {projectHomes.some((h) => h.needsYou) && (
+                <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[12px] font-semibold text-white">{projectHomes.filter((h) => h.needsYou).length} waiting on you</span>
               )}
-            </section>
+            </div>
+            {projectHomes.length ? (
+              <ProjectCards homes={projectHomes} />
+            ) : needle ? (
+              noMatch
+            ) : (
+              <ProjectsEmpty />
+            )}
+          </section>
 
-            <ListSection title="Your listings" homes={listingHomes}>
+          {/* projects get the full width; below, your listings with the AI reports beside them */}
+          <div className="mt-10 grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+            <ListSection title="Your listings" homes={listingHomes} flush>
               {listingHomes.length ? (
                 <HomesList homes={listingHomes} sort="recent" kind="listing" />
               ) : needle ? (
@@ -233,10 +232,7 @@ export default function Properties() {
                 connectMls
               )}
             </ListSection>
-            </div>
-            <div>
-              <ReportsPanel homes={reportHomes} sort={sort} onSort={setSort} empty={needle ? noMatch : <ReportsEmpty />} />
-            </div>
+            <ReportsPanel homes={reportHomes} sort={sort} onSort={setSort} empty={needle ? noMatch : <ReportsEmpty />} />
           </div>
         </>
       )}
