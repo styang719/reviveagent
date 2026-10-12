@@ -71,62 +71,67 @@ const SHARE_TONE = {
   opened: 'bg-ok-soft text-[var(--green)]',
   shared: 'bg-[var(--brand-primary-subtle)] text-brand',
   leadform: 'bg-[var(--brand-agent-subtle)] text-[var(--brand-agent)]',
-  none: 'bg-white/90 text-ink-2',
+  none: 'bg-line-soft text-ink-2',
 } as const
 
 const sortHomes = (homes: Home[], sort: HomeSort) =>
   [...homes].sort((a, b) => Number(!!b.needsYou) - Number(!!a.needsYou) || (sort === 'upside' ? (b.upside ?? 0) - (a.upside ?? 0) : b.at - a.at))
 
-/** AI reports as photo cards (not a table): where it is with the homeowner on the photo, upside, next step. */
-export function ReportCards({ homes, sort, grid = 'sm:grid-cols-2 xl:grid-cols-4', limit = 8 }: { homes: Home[]; sort: HomeSort; grid?: string; limit?: number }) {
+/**
+ * AI reports as small report "documents", quieter than project cards: a thumbnail, the report's title line,
+ * today → after Revive, where it is with the homeowner, and one text action.
+ */
+export function ReportCards({ homes, sort, grid = 'sm:grid-cols-2 xl:grid-cols-3', limit = 9 }: { homes: Home[]; sort: HomeSort; grid?: string; limit?: number }) {
   const [all, setAll] = useState(false)
   const sorted = sortHomes(homes, sort)
   const visible = all ? sorted : sorted.slice(0, limit)
   return (
     <div>
-      <div className={cn('grid gap-4', grid)}>
+      <div className={cn('grid gap-3', grid)}>
         {visible.map((h) => {
           const n = h.needsYou
           const sh = h.report?.share ?? { label: 'Not shared yet', tone: 'none' as const }
           const none = sh.tone === 'none'
+          const now = h.valueNow ?? 0
           return (
             <Link
               key={h.id}
               to={n?.to ?? `/property/${h.id}?tab=report`}
               className={cn(
-                'group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)]',
-                n ? 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]' : 'border-line',
+                'group flex flex-col rounded-xl border bg-white p-3.5 transition-colors hover:border-[var(--brand-primary-border)]',
+                n ? 'border-[var(--brand-primary-border)] bg-[var(--brand-primary-subtle)]/40' : 'border-line',
               )}
             >
-              <span className="relative block aspect-[16/9] overflow-hidden bg-line-soft">
-                {h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-                <span className={cn('absolute top-2.5 left-2.5 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold shadow-sm', n ? 'bg-[var(--brand-primary)] text-white' : SHARE_TONE[sh.tone])}>
-                  {n ? n.status : sh.label}
+              <span className="flex items-start gap-3">
+                <span className="relative block size-12 shrink-0 overflow-hidden rounded-lg bg-line-soft">
+                  {h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}
                 </span>
-                {!!h.report?.designs && (
-                  <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-[var(--brand-agent)]">
-                    <Sparkles className="size-3" /> RenoVision
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1 text-[11px] font-semibold tracking-wide text-muted uppercase">
+                    <FileText className="size-3 text-brand" /> Revive AI report{h.report?.when ? ` · ${h.report.when.replace('Generated ', '')}` : ''}
                   </span>
-                )}
-              </span>
-              <span className="flex flex-1 flex-col gap-2 p-3.5">
-                <span className="min-w-0">
                   <span className="block truncate text-[14.5px] font-semibold text-ink">{h.address}</span>
-                  <span className="block truncate text-[12.5px] text-muted">{h.city}</span>
-                </span>
-                <span className="flex items-baseline justify-between gap-2">
-                  <span className="text-[15px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? gain(h.upside) : '—'}</span>
-                  <span className="truncate text-[12px] text-muted">{h.product ?? ''}</span>
-                </span>
-                <span
-                  className={cn(
-                    'mt-auto flex h-8 items-center justify-center gap-1.5 rounded-lg text-[12.5px] font-medium',
-                    n ? 'bg-[var(--brand-primary)] text-white' : 'bg-line-soft text-ink group-hover:bg-[var(--brand-primary-subtle)] group-hover:text-brand',
-                  )}
-                >
-                  {n ? n.cta : none ? 'Share report' : 'Open report'} <ArrowRight className="size-3.5" />
+                  <span className="block truncate text-[12px] text-muted">{h.city}</span>
                 </span>
               </span>
+              <span className="mt-3 flex items-baseline justify-between gap-2 border-t border-dashed border-line pt-2.5 text-[12.5px] tabular-nums">
+                <span className="text-muted">
+                  {now ? money(now) : '—'} <span className="text-faint">→</span> <b className="font-semibold text-ink">{now && h.upside ? money(now + h.upside) : '—'}</b>
+                </span>
+                <span className="font-semibold text-[var(--green)]">{h.upside ? gain(h.upside) : ''}</span>
+              </span>
+              <span className="mt-0.5 block truncate text-[12px] text-ink-2">{h.product ?? 'No project fit yet'}</span>
+              <span className="mt-2.5 flex items-center justify-between gap-2">
+                <span className={cn('truncate rounded-full px-2 py-0.5 text-[11.5px] font-semibold', n ? 'bg-[var(--brand-primary)] text-white' : SHARE_TONE[sh.tone])}>{n ? n.status : sh.label}</span>
+                <span className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold text-brand">
+                  {n ? n.cta.replace(/ with .*$/, '') : none ? 'Share' : 'Open'} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </span>
+              {!!h.report?.designs && (
+                <span className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-medium text-[var(--brand-agent)]">
+                  <Sparkles className="size-3" /> {h.report.designs} RenoVision designs
+                </span>
+              )}
             </Link>
           )
         })}

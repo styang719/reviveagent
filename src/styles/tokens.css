@@ -415,3 +415,13 @@
 .rv-m .text-xl { font-size: 17px; line-height: 24px; }
 .rv-pill.k-reno { background: var(--green); }
 .rv-pill.k-asis { background: #fff; color: var(--ink-2, #475467); border-color: #c4cad6; }
+/* the immersive map: home marker, for-sale and Revive project pins */
+.rv-home {
+  display: grid; place-items: center; width: 34px; height: 34px; transform: translate(-50%, -100%);
+  border-radius: 50% 50% 50% 0; rotate: -45deg; background: var(--brand-primary); border: 3px solid #fff;
+  box-shadow: 0 4px 12px rgba(28, 46, 88, 0.35);
+}
+.rv-home > span { rotate: 45deg; width: 10px; height: 10px; border-radius: 50%; background: #fff; }
+.rv-pill.k-sale { background: #fff; color: var(--navy); border-color: var(--navy); }
+.rv-pill.k-revive { background: var(--teal); color: var(--navy); }
+.rv-pill.sel { transform: translate(-50%, -50%) scale(1.18); box-shadow: 0 0 0 3px rgba(62, 98, 182, 0.35); z-index: 1; }

@@ -252,7 +252,7 @@ export default function Opportunities() {
         </div>
       </div>
 
-      {comps && <CompsPanel o={comps} onClose={() => setCompsId(null)} />}
+      {comps && <CompsPanel o={comps} onClose={() => setCompsId(null)} onContact={() => (setCompsId(null), setOpenId(comps.id))} />}
 
       <ValueDrawer
         opps={book}
