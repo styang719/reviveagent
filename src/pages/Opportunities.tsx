@@ -6,6 +6,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { attentionRank, OppDrawer } from '@/components/home/TopOpportunities'
 import { OppTable } from '@/components/opportunity/OppTable'
 import { ValueDrawer } from '@/components/opportunity/ValueDrawer'
+import { BAR_STYLES, SummaryBar, type BarStyle } from '@/components/opportunity/SummaryBar'
 import { BaseMap, TILE_BOUNDS } from '@/components/map/BaseMap'
 import { pinIcon, pinZ } from '@/components/map/pins'
 import { Button } from '@/components/ui/button'
@@ -103,6 +104,21 @@ export default function Opportunities() {
     setFilter('all')
   }
   const [sort, setSort] = useState<Sort>('recommended')
+  const [barStyle, setBarStyleState] = useState<BarStyle>(() => {
+    try {
+      return (localStorage.getItem('rv-opps-bar') as BarStyle) || 'stats'
+    } catch {
+      return 'stats'
+    }
+  })
+  const setBarStyle = (k: BarStyle) => {
+    setBarStyleState(k)
+    try {
+      localStorage.setItem('rv-opps-bar', k)
+    } catch {
+      /* private window */
+    }
+  }
   const [q, setQ] = useState('')
   const [hover, setHover] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
@@ -180,6 +196,13 @@ export default function Opportunities() {
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
           <p className="mt-1 text-[15px] text-ink-2">Homes you could win: your contacts, and listings near you that came off the market.</p>
+          <div className="mt-3 inline-flex items-center gap-1 rounded-lg bg-line-soft p-0.5" role="radiogroup" aria-label="Summary layout">
+            {BAR_STYLES.map((b) => (
+              <button key={b.k} role="radio" aria-checked={barStyle === b.k} onClick={() => setBarStyle(b.k)} className={cn('h-7 rounded-md px-2.5 text-[12px] font-medium', barStyle === b.k ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}>
+                {b.label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <label className="relative flex-1 sm:w-64 sm:flex-none">
@@ -226,57 +249,40 @@ export default function Opportunities() {
         )}
       </div>
 
-      {/* one summary line instead of four cards */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <p className="text-[14px] text-ink-2">
-          {tab === 'contacts' ? (
-            <>
-              <b className="font-semibold text-ink">{stats.now.length}</b> to call this week · <b className="font-semibold text-ink">{stats.sellers}</b> likely sellers ·{' '}
-              <b className="font-semibold text-[var(--green)]">{money(stats.lift)}</b> value to unlock{' '}
-              <button onClick={() => setValueOpen(true)} className="font-medium text-brand hover:underline">
-                See the breakdown
-              </button>
-            </>
-          ) : (
-            <>
-              <b className="font-semibold text-ink">{tabBook.length}</b> listings near you came off the market · <b className="font-semibold text-[var(--green)]">{money(marketLift)}</b> Revive could add
-            </>
-          )}
-        </p>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Filter opportunities">
-            {FILTERS[tab].map((f) => {
-              const n = sorted.filter((o) => passes(o, f.k)).length
-              const on = filter === f.k
-              if (!n && f.k !== 'all' && !on) return null
-              return (
-                <button
-                  key={f.k}
-                  role="radio"
-                  aria-checked={on}
-                  onClick={() => setFilter(f.k)}
-                  className={cn(
-                    'inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium transition-colors',
-                    on ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-line bg-white text-ink hover:border-[var(--brand-primary-border)]',
-                  )}
-                >
-                  {f.label}
-                  <span className={cn('text-[12px] tabular-nums', on ? 'text-white/85' : 'text-muted')}>{n}</span>
-                </button>
-              )
-            })}
-          </div>
-          <label className="flex h-8 items-center gap-1.5 rounded-lg border border-line bg-white pr-2 pl-3 text-[13px] text-muted">
-            Sort
-            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="bg-transparent font-semibold text-ink outline-none">
-              {SORTS.map((s) => (
-                <option key={s.k} value={s.k}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+      {/* the numbers and the filters; three treatments to compare */}
+      <div className="mt-4">
+        <SummaryBar
+          style={barStyle}
+          filters={FILTERS[tab].map((f) => ({ k: f.k, label: f.label, n: sorted.filter((o) => passes(o, f.k)).length }))}
+          filter={filter}
+          setFilter={(k) => setFilter(k as Filter)}
+          primary={tab === 'contacts' ? 3 : 3}
+          metrics={
+            tab === 'contacts'
+              ? [
+                  { value: String(stats.now.length), label: 'To call this week', filter: 'go' },
+                  { value: String(stats.sellers), label: 'Likely sellers', filter: 'seller' },
+                  { value: money(stats.lift), label: 'Value to unlock', green: true, onClick: () => setValueOpen(true) },
+                ]
+              : [
+                  { value: String(tabBook.filter((o) => o.property.facts.expiredDaysAgo !== undefined).length), label: 'Expired', filter: 'expired' },
+                  { value: String(tabBook.filter((o) => o.property.facts.withdrawnDaysAgo !== undefined).length), label: 'Withdrawn', filter: 'withdrawn' },
+                  { value: money(marketLift), label: 'Revive could add', green: true },
+                ]
+          }
+          sort={
+            <label className="flex h-8 items-center gap-1.5 rounded-lg border border-line bg-white pr-2 pl-3 text-[13px] text-muted">
+              Sort
+              <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="bg-transparent font-semibold text-ink outline-none">
+                {SORTS.map((s) => (
+                  <option key={s.k} value={s.k}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          }
+        />
       </div>
 
       <div className="mt-5 grid gap-5 xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
