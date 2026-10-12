@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
-import { LAYOUTS, type LayoutKey } from '@/components/property/HomesLayouts'
+import { SideNavLayout } from '@/components/property/HomesLayouts'
 import { needsYouOf, type Home, type HomeSort } from '@/components/property/HomesList'
 import type { ReportRow } from '@/components/property/homeRows'
 import { money } from '@/lib/format'
 import { PROJECT_STEPS } from '@/lib/flows'
 import { useConnections, useOpportunities } from '@/lib/opportunities'
-import { cn, PAGE } from '@/lib/utils'
+import { PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 
@@ -61,25 +61,9 @@ export default function Properties() {
   const conn = useConnections()
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<HomeSort>('recent')
-  const [layout, setLayoutState] = useState<LayoutKey>(() => {
-    try {
-      return (localStorage.getItem('rv-homes-layout2') as LayoutKey) || 'tabs2'
-    } catch {
-      return 'tabs2'
-    }
-  })
-  const setLayout = (k: LayoutKey) => {
-    setLayoutState(k)
-    try {
-      localStorage.setItem('rv-homes-layout2', k)
-    } catch {
-      /* private window */
-    }
-  }
   const requestAi = useUi((s) => s.requestAi)
   const openStep = useUi((s) => s.openStep)
   const navigate = useNavigate()
-  const Layout = LAYOUTS.find((l) => l.k === layout)?.C ?? LAYOUTS[0].C
   const needle = q.trim().toLowerCase()
   const noMatch = <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">No homes match “{q.trim()}”.</p>
   const match = (...fields: (string | undefined)[]) => !needle || fields.some((f) => f?.toLowerCase().includes(needle))
@@ -187,14 +171,6 @@ export default function Properties() {
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Homes</h1>
           <p className="mt-1 text-[15px] text-ink-2">Every home you’re working on, with Revive and on your own. Each one has its own page.</p>
-          {/* three layouts to compare */}
-          <div className="mt-3 inline-flex items-center gap-1 rounded-lg bg-line-soft p-0.5" role="radiogroup" aria-label="Page layout">
-            {LAYOUTS.map((l) => (
-              <button key={l.k} role="radio" aria-checked={layout === l.k} onClick={() => setLayout(l.k)} className={cn('h-7 rounded-md px-2.5 text-[12px] font-medium', layout === l.k ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}>
-                {l.label}
-              </button>
-            ))}
-          </div>
         </div>
         <label className="relative w-full sm:w-72">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
@@ -220,7 +196,7 @@ export default function Properties() {
           </div>
         </>
       ) : (
-        <Layout
+        <SideNavLayout
           projects={projectHomes}
           reports={reportHomes}
           listings={listingHomes}

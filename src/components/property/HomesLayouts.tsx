@@ -1,4 +1,4 @@
-import { ArrowRight, Bell, Check, FileText, Hammer, ImageIcon, Plus, Sparkles, Tag, TrendingUp } from 'lucide-react'
+import { ArrowRight, Bell, Check, FileText, Hammer, ImageIcon, LayoutGrid, Plus, Sparkles, Tag, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { photoUrl } from '@/lib/assets'
@@ -13,10 +13,10 @@ import { HomesList, ProjectCards, type Home, type HomeSort } from './HomesList'
 const img = (key?: string) => (key?.startsWith('data:') ? key : photoUrl(key))
 
 export type SectionKey = 'projects' | 'reports' | 'listings'
-export const SECTIONS: Record<SectionKey, { title: string; icon: typeof Hammer; hint: string }> = {
-  projects: { title: 'Projects with Revive', icon: Hammer, hint: 'Homes Revive is renovating with you, from review to listing.' },
-  reports: { title: 'AI reports', icon: FileText, hint: 'Homes you’ve run a Revive AI report on. Share them, follow up, start a project.' },
-  listings: { title: 'Your listings', icon: Tag, hint: 'Your active MLS listings, and what Revive could add to each.' },
+export const SECTIONS: Record<SectionKey, { title: string; nav: string; icon: typeof Hammer; hint: string }> = {
+  projects: { title: 'Projects with Revive', nav: 'Projects', icon: Hammer, hint: 'Homes Revive is renovating with you, from review to listing.' },
+  reports: { title: 'AI reports', nav: 'AI reports', icon: FileText, hint: 'Homes you’ve run a Revive AI report on. Share them, follow up, start a project.' },
+  listings: { title: 'Your listings', nav: 'Your listings', icon: Tag, hint: 'Your active MLS listings, and what Revive could add to each.' },
 }
 
 export interface Parts {
@@ -147,30 +147,28 @@ type Filter = { k: string; label: string; test: (h: Home) => boolean }
 export const FILTERS: Record<SectionKey, Filter[]> = {
   projects: [
     { k: 'all', label: 'All', test: () => true },
-    { k: 'needs', label: 'Needs you', test: (h) => !!h.needsYou },
     { k: 'review', label: 'In review', test: (h) => h.project?.status === 'review' },
     { k: 'active', label: 'In construction', test: (h) => h.project?.status === 'active' },
     { k: 'sold', label: 'Completed', test: (h) => h.project?.status === 'sold' },
   ],
   reports: [
     { k: 'all', label: 'All', test: () => true },
-    { k: 'needs', label: 'Needs you', test: (h) => !!h.needsYou },
     { k: 'none', label: 'Not shared', test: (h) => !h.report?.share || h.report.share.tone === 'none' },
     { k: 'shared', label: 'Shared', test: (h) => h.report?.share?.tone === 'shared' },
     { k: 'opened', label: 'Opened', test: (h) => h.report?.share?.tone === 'opened' || h.report?.share?.tone === 'leadform' },
   ],
   listings: [
     { k: 'all', label: 'All', test: () => true },
-    { k: 'needs', label: 'Needs you', test: (h) => !!h.needsYou },
     { k: 'cut', label: 'Price cut', test: (h) => (h.listing?.property.facts.priceCutDaysAgo ?? 99) <= 14 },
     { k: 'stale', label: '30+ days', test: (h) => (h.listing?.property.facts.daysOnMarket ?? 0) >= 30 },
   ],
 }
 export const countFor = (k: SectionKey, f: string, homes: Home[]) => homes.filter(FILTERS[k].find((x) => x.k === f)!.test).length
 
+/** Status sub-tabs under a section title: one row, mutually exclusive, with counts; empty statuses hidden. */
 function Chips({ k, homes, value, onChange }: { k: SectionKey; homes: Home[]; value: string; onChange: (f: string) => void }) {
   return (
-    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={`Filter ${SECTIONS[k].title}`}>
+    <div className="flex gap-1 overflow-x-auto border-b border-line [scrollbar-width:none]" role="tablist" aria-label={`${SECTIONS[k].title} by status`}>
       {FILTERS[k].map((f) => {
         const n = homes.filter(f.test).length
         if (!n && f.k !== 'all') return null
@@ -178,13 +176,12 @@ function Chips({ k, homes, value, onChange }: { k: SectionKey; homes: Home[]; va
         return (
           <button
             key={f.k}
-            role="radio"
-            aria-checked={on}
+            role="tab"
+            aria-selected={on}
             onClick={() => onChange(f.k)}
-            className={cn('inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium', on ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-line bg-white text-ink hover:border-[var(--brand-primary-border)]')}
+            className={cn('-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-[13.5px] font-medium whitespace-nowrap', on ? 'border-[var(--brand-primary)] text-ink' : 'border-transparent text-muted hover:text-ink')}
           >
-            {f.k === 'needs' && <span className={cn('size-1.5 rounded-full', on ? 'bg-white' : 'bg-[var(--brand-primary)]')} />}
-            {f.label} <span className={cn('text-[12px] tabular-nums', on ? 'text-white/85' : 'text-muted')}>{n}</span>
+            {f.label} <span className={cn('rounded-full px-1.5 text-[12px] tabular-nums', on ? 'bg-[var(--brand-primary-subtle)] text-brand' : 'bg-line-soft text-muted')}>{n}</span>
           </button>
         )
       })}
@@ -290,30 +287,6 @@ export function ListingsView({ homes, filter, onFilter, chips = true }: { homes:
   )
 }
 
-function StartPill({ k, start }: { k: SectionKey; start: Parts['start'][SectionKey] }) {
-  const Icon = SECTIONS[k].icon
-  const cls = 'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-dashed border-[var(--brand-primary-border)] px-3.5 text-[13px] font-medium text-brand hover:bg-[var(--brand-primary-subtle)]'
-  const body = (
-    <>
-      <Plus className="size-3.5" /> <Icon className="size-3.5" /> {start.label}
-    </>
-  )
-  return start.to ? (
-    <Link to={start.to} className={cls}>
-      {body}
-    </Link>
-  ) : (
-    <button onClick={start.onClick} className={cls}>
-      {body}
-    </button>
-  )
-}
-
-function useFilters() {
-  const [f, setF] = useState<Record<SectionKey, string>>({ projects: 'all', reports: 'all', listings: 'all' })
-  return [f, (k: SectionKey, v: string) => setF((x) => ({ ...x, [k]: v }))] as const
-}
-
 function SectionBody({ k, parts, filter, onFilter, chips = true, narrow }: { k: SectionKey; parts: Parts; filter: string; onFilter: (f: string) => void; chips?: boolean; narrow?: boolean }) {
   if (k === 'projects') return <ProjectsView homes={parts.projects} filter={filter} onFilter={onFilter} chips={chips} narrow={narrow} />
   if (k === 'reports') return <ReportsView homes={parts.reports} filter={filter} onFilter={onFilter} sort={parts.sort} setSort={parts.setSort} chips={chips} grid={narrow ? 'sm:grid-cols-2 xl:grid-cols-3' : undefined} />
@@ -322,227 +295,138 @@ function SectionBody({ k, parts, filter, onFilter, chips = true, narrow }: { k: 
 
 const KEYS: SectionKey[] = ['projects', 'reports', 'listings']
 
-// ---------- D · Smart tabs ----------
+// ---------- the page: side nav ----------
 
-/** Tabs only for sections that have homes; an empty section becomes a small "start" pill at the end of the bar. */
-export function SmartTabsLayout(parts: Parts) {
-  const map = { projects: parts.projects, reports: parts.reports, listings: parts.listings }
-  const present = KEYS.filter((k) => map[k].length)
-  const missing = KEYS.filter((k) => !map[k].length)
-  const [tab, setTab] = useState<SectionKey>(() => present.find((k) => waitingOf(map[k])) ?? present[0] ?? 'projects')
-  const [filters, setFilter] = useFilters()
-  const active = present.includes(tab) ? tab : present[0]
-  return (
-    <>
-      <div className="mt-6 flex flex-wrap items-end justify-between gap-3 border-b border-line">
-        <div role="tablist" aria-label="Homes" className="-mb-px flex gap-1 overflow-x-auto [scrollbar-width:none]">
-          {present.map((k) => {
-            const Icon = SECTIONS[k].icon
-            const on = active === k
-            const w = waitingOf(map[k])
-            return (
-              <button
-                key={k}
-                role="tab"
-                aria-selected={on}
-                onClick={() => setTab(k)}
-                className={cn('inline-flex items-center gap-2 border-b-2 px-4 py-3 text-[15px] font-semibold whitespace-nowrap', on ? 'border-[var(--brand-primary)] text-ink' : 'border-transparent text-muted hover:text-ink')}
-              >
-                <Icon className={cn('size-4', on && 'text-brand')} />
-                {SECTIONS[k].title}
-                <span className={cn('rounded-full px-1.5 text-[12px] tabular-nums', on ? 'bg-[var(--brand-primary-subtle)] text-brand' : 'bg-line-soft text-muted')}>{map[k].length}</span>
-                {w > 0 && <span className="rounded-full bg-[var(--brand-primary)] px-1.5 text-[11px] font-semibold text-white">{w} need{w === 1 ? 's' : ''} you</span>}
-              </button>
-            )
-          })}
-        </div>
-        {missing.length > 0 && (
-          <div className="mb-2 flex gap-2">
-            {missing.map((k) => (
-              <StartPill key={k} k={k} start={parts.start[k]} />
-            ))}
-          </div>
-        )}
-      </div>
-      <div className="mt-5" role="tabpanel">
-        {active ? <SectionBody k={active} parts={parts} filter={filters[active]} onFilter={(v) => setFilter(active, v)} /> : parts.empty.projects}
-      </div>
-    </>
-  )
-}
+type View = { kind: 'needs' } | { kind: 'all' } | { kind: 'section'; k: SectionKey; f: string }
 
-// ---------- E · Side nav ----------
-
-/** A folder-style nav on the left: Needs you, then each section with its filters and counts. */
+/**
+ * Homes with a side nav, in the usual app pattern (Gmail, Linear, Asana): two views on top that cut across
+ * everything (Needs you, All homes), then one item per type. Status filters live in the page as sub-tabs
+ * under the section title, not as nested nav items. The selected item is filled; counts sit on the right,
+ * and a blue count means homes waiting on you.
+ */
 export function SideNavLayout(parts: Parts) {
   const map = { projects: parts.projects, reports: parts.reports, listings: parts.listings }
+  const total = KEYS.reduce((n, k) => n + map[k].length, 0)
   const allNeeds = KEYS.reduce((n, k) => n + waitingOf(map[k]), 0)
-  const [sel, setSel] = useState<{ k: SectionKey | 'needs'; f: string }>(() => (allNeeds ? { k: 'needs', f: 'all' } : { k: KEYS.find((k) => map[k].length) ?? 'projects', f: 'all' }))
-  const item = (on: boolean) => cn('flex w-full items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-left text-[13.5px]', on ? 'bg-[var(--brand-primary-subtle)] font-semibold text-brand' : 'text-ink-2 hover:bg-line-soft')
+  const [view, setView] = useState<View>(() => (allNeeds ? { kind: 'needs' } : { kind: 'all' }))
+  const isOn = (v: View) => v.kind === view.kind && (v.kind !== 'section' || (view.kind === 'section' && view.k === v.k))
+  const item = (on: boolean) =>
+    cn(
+      'relative flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[14px] transition-colors',
+      on ? 'bg-[var(--brand-primary-subtle)] font-semibold text-ink' : 'font-medium text-ink-2 hover:bg-line-soft hover:text-ink',
+    )
+  const bar = (on: boolean) => on && <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-[var(--brand-primary)]" aria-hidden="true" />
+  const count = (n: number, blue?: boolean) => <span className={cn('ml-auto rounded-full px-1.5 text-[12px] tabular-nums', blue ? 'bg-[var(--brand-primary)] font-semibold text-white' : 'text-muted')}>{n}</span>
+
   return (
-    <div className="mt-6 grid items-start gap-8 lg:grid-cols-[230px_minmax(0,1fr)]">
+    <div className="mt-6 grid items-start gap-8 lg:grid-cols-[232px_minmax(0,1fr)]">
       <nav aria-label="Homes" className="lg:sticky lg:top-4">
-        <button onClick={() => setSel({ k: 'needs', f: 'all' })} className={cn(item(sel.k === 'needs'), 'mb-3 py-2 text-[14.5px] font-semibold')}>
-          <span className="inline-flex items-center gap-2">
-            <Bell className="size-4" /> Needs you
-          </span>
-          <span className={cn('rounded-full px-2 text-[12px] tabular-nums', allNeeds ? 'bg-[var(--brand-primary)] text-white' : 'bg-line-soft text-muted')}>{allNeeds}</span>
+        <p className="px-3 pb-1.5 text-[11.5px] font-semibold tracking-wide text-faint uppercase">Views</p>
+        <button onClick={() => setView({ kind: 'needs' })} className={item(isOn({ kind: 'needs' }))} aria-current={isOn({ kind: 'needs' }) || undefined}>
+          {bar(isOn({ kind: 'needs' }))}
+          <Bell className="size-4 text-brand" /> Needs you {count(allNeeds, allNeeds > 0)}
         </button>
+        <button onClick={() => setView({ kind: 'all' })} className={item(isOn({ kind: 'all' }))} aria-current={isOn({ kind: 'all' }) || undefined}>
+          {bar(isOn({ kind: 'all' }))}
+          <LayoutGrid className="size-4 text-brand" /> All homes {count(total)}
+        </button>
+
+        <p className="mt-5 px-3 pb-1.5 text-[11.5px] font-semibold tracking-wide text-faint uppercase">By type</p>
         {KEYS.map((k) => {
           const Icon = SECTIONS[k].icon
           const homes = map[k]
+          const v: View = { kind: 'section', k, f: 'all' }
+          const on = isOn(v)
+          if (!homes.length) {
+            const st = parts.start[k]
+            return (
+              <div key={k} className="flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium text-faint">
+                <Icon className="size-4" /> {SECTIONS[k].nav}
+                <button onClick={st.onClick} className="ml-auto inline-flex items-center gap-0.5 text-[12.5px] font-semibold text-brand hover:underline" title={st.label}>
+                  <Plus className="size-3.5" /> Add
+                </button>
+              </div>
+            )
+          }
           return (
-            <div key={k} className="mb-3 border-t border-line pt-3">
-              <button onClick={() => homes.length && setSel({ k, f: 'all' })} className={cn(item(sel.k === k && sel.f === 'all'), 'text-[14.5px] font-semibold text-ink')}>
-                <span className="inline-flex items-center gap-2">
-                  <Icon className="size-4 text-brand" /> {SECTIONS[k].title}
-                </span>
-                <span className="text-[12px] font-normal text-muted tabular-nums">{homes.length}</span>
-              </button>
-              {homes.length ? (
-                <div className="mt-0.5 flex flex-col pl-6">
-                  {FILTERS[k].slice(1).map((f) => {
-                    const n = homes.filter(f.test).length
-                    if (!n) return null
-                    return (
-                      <button key={f.k} onClick={() => setSel({ k, f: f.k })} className={item(sel.k === k && sel.f === f.k)}>
-                        <span className="inline-flex items-center gap-1.5">
-                          {f.k === 'needs' && <span className="size-1.5 rounded-full bg-[var(--brand-primary)]" />}
-                          {f.label}
-                        </span>
-                        <span className="text-[12px] text-muted tabular-nums">{n}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="mt-1 pl-6">
-                  <StartPill k={k} start={parts.start[k]} />
-                </div>
-              )}
-            </div>
+            <button key={k} onClick={() => setView(v)} className={item(on)} aria-current={on || undefined}>
+              {bar(on)}
+              <Icon className="size-4 text-brand" />
+              <span className="truncate">{SECTIONS[k].nav}</span>
+              {count(homes.length)}
+            </button>
           )
         })}
       </nav>
+
       <div className="min-w-0">
-        {sel.k === 'needs' ? (
-          <div className="flex flex-col gap-10">
-            {KEYS.filter((k) => waitingOf(map[k])).map((k) => (
-              <section key={k}>
-                <SectionHead k={k} count={waitingOf(map[k])} waiting={0} small />
-                <SectionBody k={k} parts={parts} filter="needs" onFilter={() => {}} chips={false} narrow />
-              </section>
-            ))}
-            {!allNeeds && <p className="rounded-xl border border-dashed border-line px-5 py-4 text-[13.5px] text-muted">Nothing is waiting on you right now.</p>}
-          </div>
-        ) : (
-          <section>
-            <SectionHead k={sel.k} count={map[sel.k].length} waiting={waitingOf(map[sel.k])} />
-            <SectionBody k={sel.k} parts={parts} filter={sel.f} onFilter={(f) => setSel({ k: sel.k as SectionKey, f })} chips={false} narrow />
-          </section>
+        {view.kind === 'needs' && (
+          <>
+            <ViewHead title="Needs you" icon={Bell} sub={allNeeds ? `${allNeeds} homes where your next move matters, across projects, reports and listings.` : 'Nothing is waiting on you right now.'} />
+            <div className="flex flex-col gap-10">
+              {KEYS.filter((k) => waitingOf(map[k])).map((k) => (
+                <section key={k}>
+                  <GroupHead k={k} n={waitingOf(map[k])} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} />
+                  <SectionBody k={k} parts={{ ...parts, [k]: map[k].filter((h) => h.needsYou) }} filter="all" onFilter={() => {}} chips={false} narrow />
+                </section>
+              ))}
+            </div>
+          </>
+        )}
+        {view.kind === 'all' && (
+          <>
+            <ViewHead title="All homes" icon={LayoutGrid} sub={`${total} homes: ${map.projects.length} projects, ${map.reports.length} AI reports, ${map.listings.length} listings.`} />
+            <div className="flex flex-col gap-10">
+              {KEYS.filter((k) => map[k].length).map((k) => {
+                const preview = k === 'reports' ? 6 : k === 'projects' ? 4 : 5
+                return (
+                  <section key={k}>
+                    <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} total={map[k].length} preview={map[k].length > preview} />
+                    <SectionBody k={k} parts={{ ...parts, [k]: map[k].slice(0, preview) }} filter="all" onFilter={() => {}} chips={false} narrow />
+                  </section>
+                )
+              })}
+            </div>
+          </>
+        )}
+        {view.kind === 'section' && (
+          <>
+            <ViewHead title={SECTIONS[view.k].title} icon={SECTIONS[view.k].icon} sub={SECTIONS[view.k].hint} />
+            <SectionBody k={view.k} parts={parts} filter={view.f} onFilter={(f) => setView({ kind: 'section', k: (view as { k: SectionKey }).k, f })} narrow />
+          </>
         )}
       </div>
     </div>
   )
 }
 
-// ---------- F · Summary tiles ----------
-
-/** Three tiles that sum up each section (and turn into a start action when empty); pick one to see it below. */
-export function TilesLayout(parts: Parts) {
-  const map = { projects: parts.projects, reports: parts.reports, listings: parts.listings }
-  const present = KEYS.filter((k) => map[k].length)
-  const [tab, setTab] = useState<SectionKey>(() => present.find((k) => waitingOf(map[k])) ?? present[0] ?? 'projects')
-  const [filters, setFilter] = useFilters()
-  const active = present.includes(tab) ? tab : present[0]
-  const p = parts.projects
-  const facts: Record<SectionKey, string[]> = {
-    projects: [
-      `${p.filter((h) => h.project?.status !== 'sold').length} in progress · ${p.filter((h) => h.project?.status === 'sold').length} completed`,
-      (() => {
-        const sold = p.filter((h) => h.project?.sold).reduce((n, h) => n + (h.project!.sold!.sale - h.project!.sold!.asIs), 0)
-        return sold ? `${gain(sold)} added for your sellers` : 'Revive covers the work until it sells'
-      })(),
-    ],
-    reports: [
-      `${countFor('reports', 'opened', parts.reports)} opened · ${countFor('reports', 'none', parts.reports)} not shared yet`,
-      `${gain(parts.reports.reduce((n, h) => n + (h.upside ?? 0), 0))} upside across them`,
-    ],
-    listings: [
-      `${countFor('listings', 'cut', parts.listings)} price cuts · ${countFor('listings', 'stale', parts.listings)} at 30+ days`,
-      `${gain(parts.listings.reduce((n, h) => n + (h.upside ?? 0), 0))} Revive could add`,
-    ],
-  }
+function ViewHead({ title, icon: Icon, sub }: { title: string; icon: typeof Bell; sub: string }) {
   return (
-    <>
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        {KEYS.map((k) => {
-          const Icon = SECTIONS[k].icon
-          const homes = map[k]
-          const w = waitingOf(homes)
-          const on = active === k
-          if (!homes.length) {
-            const st = parts.start[k]
-            const inner = (
-              <>
-                <span className="grid size-9 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
-                  <Icon className="size-4" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-[15px] font-semibold text-ink">{SECTIONS[k].title}</span>
-                  <span className="mt-0.5 inline-flex items-center gap-1 text-[13px] font-semibold text-brand">
-                    <Plus className="size-3.5" /> {st.label}
-                  </span>
-                </span>
-              </>
-            )
-            const cls = 'flex items-center gap-3 rounded-2xl border border-dashed border-[var(--brand-primary-border)] bg-white p-4 text-left hover:bg-[var(--brand-primary-subtle)]/50'
-            return st.to ? (
-              <Link key={k} to={st.to} className={cls}>
-                {inner}
-              </Link>
-            ) : (
-              <button key={k} onClick={st.onClick} className={cls}>
-                {inner}
-              </button>
-            )
-          }
-          return (
-            <button
-              key={k}
-              onClick={() => setTab(k)}
-              aria-pressed={on}
-              className={cn('rounded-2xl border bg-white p-4 text-left shadow-card transition-colors', on ? 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]' : 'border-line hover:border-[var(--brand-primary-border)]')}
-            >
-              <span className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-2">
-                  <span className={cn('grid size-8 place-items-center rounded-lg', on ? 'bg-[var(--brand-primary)] text-white' : 'bg-[var(--brand-primary-subtle)] text-brand')}>
-                    <Icon className="size-4" />
-                  </span>
-                  <span className="text-[15px] font-semibold text-ink">{SECTIONS[k].title}</span>
-                </span>
-                {w > 0 && <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[11.5px] font-semibold text-white">{w} need{w === 1 ? 's' : ''} you</span>}
-              </span>
-              <span className="mt-3 block text-[28px] leading-none font-semibold text-ink tabular-nums">{homes.length}</span>
-              <span className="mt-2 block text-[13px] text-ink-2">{facts[k][0]}</span>
-              <span className="mt-0.5 block text-[12.5px] font-medium text-[var(--green)]">{facts[k][1]}</span>
-            </button>
-          )
-        })}
-      </div>
-      {active && (
-        <section className="mt-8">
-          <SectionHead k={active} count={map[active].length} waiting={waitingOf(map[active])} />
-          <SectionBody k={active} parts={parts} filter={filters[active]} onFilter={(v) => setFilter(active, v)} />
-        </section>
-      )}
-    </>
+    <div className="mb-5">
+      <h2 className="flex items-center gap-2.5 text-xl font-semibold text-ink">
+        <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
+          <Icon className="size-4" />
+        </span>
+        {title}
+      </h2>
+      <p className="mt-1 text-[13.5px] text-muted">{sub}</p>
+    </div>
   )
 }
 
-export const LAYOUTS = [
-  { k: 'tabs2', label: 'D · Smart tabs', C: SmartTabsLayout },
-  { k: 'side', label: 'E · Side nav', C: SideNavLayout },
-  { k: 'tiles', label: 'F · Summary tiles', C: TilesLayout },
-] as const
-export type LayoutKey = (typeof LAYOUTS)[number]['k']
+/** A group inside Needs you / All homes: the type, its count, and a link to see that type on its own. */
+function GroupHead({ k, n, total, onAll, preview }: { k: SectionKey; n: number; total: number; onAll: () => void; preview?: boolean }) {
+  const Icon = SECTIONS[k].icon
+  return (
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
+        <Icon className="size-4 text-brand" /> {SECTIONS[k].title}
+        <span className="text-[13px] font-normal text-muted tabular-nums">{n}</span>
+      </h3>
+      <button onClick={onAll} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
+        {preview ? `See all ${total}` : 'Open'} <ArrowRight className="size-3.5" />
+      </button>
+    </div>
+  )
+}
