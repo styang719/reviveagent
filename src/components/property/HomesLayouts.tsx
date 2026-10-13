@@ -330,9 +330,9 @@ export function ListingsView({ homes, filter, onFilter, chips = true }: { homes:
   )
 }
 
-function SectionBody({ k, parts, filter, onFilter, chips = true, narrow }: { k: SectionKey; parts: Parts; filter: string; onFilter: (f: string) => void; chips?: boolean; narrow?: boolean }) {
+function SectionBody({ k, parts, filter, onFilter, chips = true, narrow, row }: { k: SectionKey; parts: Parts; filter: string; onFilter: (f: string) => void; chips?: boolean; narrow?: boolean; row?: boolean }) {
   if (k === 'projects') return <ProjectsView homes={parts.projects} filter={filter} onFilter={onFilter} chips={chips} narrow={narrow} />
-  if (k === 'reports') return <ReportsView homes={parts.reports} filter={filter} onFilter={onFilter} sort={parts.sort} setSort={parts.setSort} chips={chips} grid={narrow ? 'sm:grid-cols-2 2xl:grid-cols-3' : undefined} />
+  if (k === 'reports') return <ReportsView homes={parts.reports} filter={filter} onFilter={onFilter} sort={parts.sort} setSort={parts.setSort} chips={chips} grid={row ? 'md:grid-cols-3' : narrow ? 'sm:grid-cols-2 2xl:grid-cols-3' : undefined} />
   return <ListingsView homes={parts.listings} filter={filter} onFilter={onFilter} chips={chips} />
 }
 
@@ -402,12 +402,12 @@ export function SideNavLayout(parts: Parts) {
           <div className="flex flex-col gap-14">
             {KEYS.filter((k) => map[k].length).map((k) => {
               const pool = k === 'projects' ? map[k].filter((h) => h.project?.status !== 'sold') : map[k]
-              const cap = k === 'projects' ? 2 : 5
+              const cap = k === 'projects' ? 2 : k === 'reports' ? 3 : 5
               const items = topOf(pool.length ? pool : map[k]).slice(0, cap)
               return (
                 <section key={k}>
                   <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} />
-                  <SectionBody k={k} parts={{ ...parts, [k]: items }} filter="all" onFilter={() => {}} chips={false} narrow />
+                  <SectionBody k={k} parts={{ ...parts, [k]: items }} filter="all" onFilter={() => {}} chips={false} narrow row={k === 'reports'} />
                 </section>
               )
             })}

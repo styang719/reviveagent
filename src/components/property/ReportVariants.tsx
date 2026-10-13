@@ -71,9 +71,10 @@ function Row({ h }: { h: Home }) {
   const b = useBits(h)
   const r = h.report!
   return (
-    <Link to={b.to} className="group flex flex-col gap-3 rounded-xl border border-line bg-white p-3.5 transition-colors hover:border-[var(--brand-primary-border)]">
-      <span className="flex items-center gap-3">
-        <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
+    <Link to={b.to} className="group @container block rounded-xl border border-line bg-white transition-colors hover:border-[var(--brand-primary-border)]">
+      <span className="flex flex-col gap-3 p-3 @[300px]:p-3.5">
+      <span className="flex items-center gap-2.5 @[300px]:gap-3">
+        <span className="block size-10 shrink-0 @[300px]:size-11 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15px] font-semibold text-ink">{h.address}</span>
           <span className="mt-0.5 block truncate text-[12.5px] text-muted">{h.city}</span>
@@ -93,8 +94,9 @@ function Row({ h }: { h: Home }) {
           </span>
         </span>
         <span className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-brand">
-          {b.cta} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          {b.cta} <ArrowRight className="hidden size-3.5 transition-transform @[300px]:block group-hover:translate-x-0.5" />
         </span>
+      </span>
       </span>
     </Link>
   )

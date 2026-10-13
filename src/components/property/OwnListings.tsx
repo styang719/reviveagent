@@ -1,11 +1,11 @@
-import { ArrowUpDown, Check, ChevronRight, Home as HomeIcon, Sparkles } from 'lucide-react'
+import { ArrowUpDown, Check, ChevronRight, Home as HomeIcon, Plus, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { photoUrl } from '@/lib/assets'
 import { hash } from '@/lib/flows'
 import { money } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import { useUi } from '@/store/ui'
+import { toast } from 'sonner'
 import type { Home } from './HomesList'
 
 // Your other listings, laid out like a table (shared columns, one header) but with each listing in its own card: days on market against the area average, list price and
@@ -78,7 +78,7 @@ function Head({ k, sort, setSort, children }: { k: Sort; sort: Sort | null; setS
 export function OwnListings({ homes }: { homes: Home[] }) {
   const [sort, setSort] = useState<Sort | null>(null)
   const [addr, setAddr] = useState('')
-  const requestAi = useUi((s) => s.requestAi)
+  const [adding, setAdding] = useState(false)
   const rows = homes.map((h) => {
     const p = h.listing!.property
     const f = p.facts
@@ -100,7 +100,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="overflow-x-auto">
-        <div className="flex min-w-[780px] flex-col gap-3 p-px pb-1">
+        <div className="flex min-w-[780px] flex-col gap-3">
           <div className={cn(COLS, 'items-center rounded-xl border border-line-soft bg-[#f7f8f8] px-4 py-3 2xl:px-6 text-[11.5px] leading-4 font-semibold tracking-[0.04em] whitespace-nowrap text-[#5b5f6e] uppercase')}>
             <span className="pl-[52px]">Address</span>
             <Head k="dom" sort={sort} setSort={setSort}>DOM</Head>
@@ -114,7 +114,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
             const vs = dom - AREA_DOM
             const coming = dom === 0 && !f.priceCutDaysAgo
             return (
-              <div key={h.id} className={cn(COLS, 'min-h-[114px] items-center rounded-2xl border border-line bg-white px-4 py-5 shadow-card transition-shadow hover:shadow-[0_12px_32px_rgba(28,46,88,0.12)] 2xl:p-6')}>
+              <div key={h.id} className={cn(COLS, 'min-h-[114px] items-center rounded-2xl border border-line bg-white px-4 py-5 transition-colors hover:border-[var(--brand-primary-border)] 2xl:p-6')}>
                 <Link to={`/property/${h.id}`} className="group flex min-w-0 items-start gap-3 self-start">
                   <span className="block size-10 shrink-0 overflow-hidden rounded-lg border-2 border-white bg-line-soft shadow-[0_2px_8px_rgba(27,31,79,0.1)]">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
                   <span className="flex min-w-0 flex-col gap-1">
@@ -180,25 +180,38 @@ export function OwnListings({ homes }: { homes: Home[] }) {
           })}
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-dashed border-line bg-white px-5 py-4 2xl:px-6">
-        <div className="flex flex-col gap-[5px]">
-          <p className="text-[16px] leading-6 font-semibold text-ink">Not listed yet?</p>
-          <p className="text-[14px] leading-5 text-[#5b5f6e]">Run a report on any address to see its potential before it hits the MLS.</p>
-        </div>
+      {/* listings come from the MLS; one that hasn't synced yet can be added by address or MLS number */}
+      {adding ? (
         <form
           onSubmit={(e) => {
             e.preventDefault()
-            if (addr.trim()) requestAi(`/ai?flow=report&address=${encodeURIComponent(addr.trim())}`)
+            if (!addr.trim()) return
+            toast.success('Listing added', { description: `Revive will match ${addr.trim()} on the MLS and add it here.` })
+            setAddr('')
+            setAdding(false)
           }}
-          className="flex w-full gap-3 sm:w-auto"
+          className="flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-[var(--brand-primary-border)] bg-white px-4 py-3"
         >
-          <label className="relative flex-1 sm:w-72">
+          <label className="relative min-w-0 flex-1">
             <HomeIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#8f94a1]" />
-            <input value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Enter a property address" className="h-9 w-full rounded-lg border border-[#e5e7eb] bg-white pr-3 pl-9 text-[14px] outline-none placeholder:text-[#8f94a1] focus:border-[var(--brand-primary-border)]" />
+            <input autoFocus value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Address or MLS number" className="h-9 w-full rounded-lg border border-[#e5e7eb] bg-white pr-3 pl-9 text-[14px] outline-none placeholder:text-[#8f94a1] focus:border-[var(--brand-primary-border)]" />
           </label>
-          <button className="h-9 rounded-lg border border-[#b6b9c3] bg-white px-4 text-[14px] font-medium text-ink hover:border-[var(--brand-primary-border)]">Run report</button>
+          <button type="button" onClick={() => setAdding(false)} className="h-9 rounded-lg px-3 text-[14px] font-medium text-muted hover:text-ink">
+            Cancel
+          </button>
+          <button className="h-9 rounded-lg bg-[var(--brand-primary)] px-4 text-[14px] font-medium text-white hover:opacity-90">Add listing</button>
         </form>
-      </div>
+      ) : (
+        <button onClick={() => setAdding(true)} className="group flex w-full items-center gap-3 rounded-2xl border border-dashed border-line bg-white px-4 py-3 text-left transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)]/40">
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-brand transition-colors group-hover:bg-[var(--brand-primary)] group-hover:text-white">
+            <Plus className="size-4" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[14px] font-semibold text-ink">Add a listing</span>
+            <span className="block text-[12.5px] text-muted">Listings sync from the MLS under your license. Missing one? Add it by address or MLS number.</span>
+          </span>
+        </button>
+      )}
     </div>
   )
 }
