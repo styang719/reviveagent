@@ -18,7 +18,7 @@ const AREA_DOM = 27 // average days on market nearby
 const COMMISSION = 0.03
 const img = (key?: string) => (key?.startsWith('data:') ? key : photoUrl(key))
 const usd = (n: number) => `$${n.toLocaleString('en-US')}`
-const COLS = 'grid grid-cols-[200px_80px_180px_180px_minmax(0,1fr)] gap-x-8 xl:gap-x-[49px]'
+const COLS = 'grid grid-cols-[minmax(140px,1fr)_72px_minmax(130px,1fr)_minmax(130px,1fr)_minmax(230px,1.3fr)] gap-x-4 2xl:gap-x-10' // fits a laptop beside the Homes nav; roomier on wide screens
 
 function conditionLabel(n: number) {
   return n < 40 ? 'Poor' : n < 50 ? 'Fair' : n < 70 ? 'Great' : 'Excellent'
@@ -43,10 +43,19 @@ function Meter({ n }: { n: number }) {
   )
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+/** A label and value under a meter; on narrower screens the label shortens ("Current condition:" → "Now"). */
+function Detail({ label, short, value }: { label: string; short?: string; value: string }) {
   return (
     <span className="flex justify-between gap-2 text-[12px] leading-[18px] whitespace-nowrap text-[#5b5f6e]">
-      {label} <b className="font-semibold">{value}</b>
+      {short ? (
+        <>
+          <span className="2xl:hidden">{short}</span>
+          <span className="hidden 2xl:inline">{label}</span>
+        </>
+      ) : (
+        label
+      )}{' '}
+      <b className="font-semibold">{value}</b>
     </span>
   )
 }
@@ -91,8 +100,8 @@ export function OwnListings({ homes }: { homes: Home[] }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-[#eeeef0] bg-white">
       <div className="overflow-x-auto">
-        <div className="min-w-[960px]">
-          <div className={cn(COLS, 'items-center border-b border-[#eeeef0] bg-[#f7f8f8] py-3 pr-6 pl-6 text-[11.5px] leading-4 font-semibold tracking-[0.04em] whitespace-nowrap text-[#5b5f6e] uppercase')}>
+        <div className="min-w-[780px]">
+          <div className={cn(COLS, 'items-center border-b border-[#eeeef0] bg-[#f7f8f8] py-3 pr-4 pl-4 text-[11.5px] leading-4 font-semibold tracking-[0.04em] whitespace-nowrap text-[#5b5f6e] uppercase')}>
             <span className="pl-[52px]">Address</span>
             <Head k="dom" sort={sort} setSort={setSort}>DOM</Head>
             <Head k="price" sort={sort} setSort={setSort}>List price</Head>
@@ -105,7 +114,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
             const vs = dom - AREA_DOM
             const coming = dom === 0 && !f.priceCutDaysAgo
             return (
-              <div key={h.id} className={cn(COLS, 'min-h-[114px] items-center border-b border-[#eeeef0] p-6')}>
+              <div key={h.id} className={cn(COLS, 'min-h-[114px] items-center border-b border-[#eeeef0] px-4 py-5 2xl:p-6')}>
                 <Link to={`/property/${h.id}`} className="group flex min-w-0 items-start gap-3 self-start">
                   <span className="block size-10 shrink-0 overflow-hidden rounded-lg border-2 border-white bg-line-soft shadow-[0_2px_8px_rgba(27,31,79,0.1)]">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
                   <span className="flex min-w-0 flex-col gap-1">
@@ -126,10 +135,10 @@ export function OwnListings({ homes }: { homes: Home[] }) {
                   ) : reno ? (
                     <span className="flex flex-col gap-3 pt-1">
                       <Meter n={now} />
-                      <Detail label="Current condition:" value={conditionLabel(now)} />
+                      <Detail label="Current condition:" short="Now" value={conditionLabel(now)} />
                     </span>
                   ) : (
-                    <Detail label="Current sqft:" value={`${p.sqft.toLocaleString()} sqft`} />
+                    <Detail label="Current sqft:" short="Now" value={`${p.sqft.toLocaleString()} sqft`} />
                   )}
                 </span>
                 <span className="flex flex-col gap-2 self-start">
@@ -139,13 +148,13 @@ export function OwnListings({ homes }: { homes: Home[] }) {
                   ) : reno ? (
                     <span className="flex flex-col gap-3 pt-1">
                       <Meter n={after} />
-                      <Detail label="After renovation:" value={`${conditionLabel(after)} ${after}`} />
+                      <Detail label="After renovation:" short="After" value={conditionLabel(after)} />
                     </span>
                   ) : (
-                    <Detail label="Additional sqft:" value={`+${aduSqft.toLocaleString()} sqft`} />
+                    <Detail label="Additional sqft:" short="Added" value={`+${aduSqft.toLocaleString()} sqft`} />
                   )}
                 </span>
-                <span className="flex items-center justify-between gap-4">
+                <span className="flex items-center justify-between gap-2">
                   {onTrack ? (
                     <Badge tone="secondary">
                       <Check className="size-3.5" /> Selling on track
@@ -162,7 +171,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
                       <Badge tone="agent">+{money(Math.max(1000, Math.round((upside * COMMISSION) / 1000) * 1000))} Commission</Badge>
                     </span>
                   )}
-                  <Link to={h.needsYou?.to ?? `/property/${h.id}`} className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-4 text-[14px] leading-5 font-medium text-[#5b5f6e] hover:bg-line-soft hover:text-ink">
+                  <Link to={h.needsYou?.to ?? `/property/${h.id}`} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg px-2 text-[14px] 2xl:px-4 leading-5 font-medium text-[#5b5f6e] hover:bg-line-soft hover:text-ink">
                     Details <ChevronRight className="size-4" />
                   </Link>
                 </span>
