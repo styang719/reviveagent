@@ -47,7 +47,8 @@ function useBits(h: Home) {
   const sh = h.report?.share ?? { label: 'Not shared yet', tone: 'none' as const }
   const noPhotos = !!h.report?.noPhotos
   const status = n && !noPhotos ? n.status : sh.label // the CTA says Add photos; the status stays where it is with the homeowner
-  const cta = noPhotos ? 'Add photos' : n ? n.cta.replace(/ with .*$/, '') : sh.tone === 'none' ? 'Share' : 'Open'
+  // once it's with the homeowner, following up comes first; before that, photos (for a current value) come before sharing
+  const cta = n && !noPhotos ? n.cta.replace(/ with .*$/, '') : sh.tone === 'opened' || sh.tone === 'leadform' ? 'Follow up' : sh.tone === 'shared' ? 'Nudge' : noPhotos ? 'Add photos' : 'Share'
   const to = n?.to ?? `/property/${h.id}?tab=report`
   return { n, noPhotos, status, cta, to, hot: !!n && !noPhotos }
 }
@@ -81,13 +82,13 @@ function Row({ h }: { h: Home }) {
         <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15px] font-semibold text-ink">{h.address}</span>
-          <span className="block truncate text-[12.5px] text-muted">{h.city}</span>
+          <span className="mt-0.5 block truncate text-[12.5px] text-muted">{h.city}</span>
         </span>
         <span className="shrink-0 text-right">
           <span className="flex items-center justify-end gap-1.5 text-[16px] leading-6 font-semibold text-ink tabular-nums">
             {money(r.potential ?? r.valueNow)} <Grade g={r.grade} />
           </span>
-          <span className={cn('block text-[12px] tabular-nums', b.noPhotos ? 'text-muted' : 'font-semibold text-[var(--green)]')}>{b.noPhotos ? 'No photos' : h.upside ? gain(h.upside) : ''}</span>
+          <span className={cn('mt-0.5 block text-[12px] tabular-nums', b.noPhotos ? 'text-muted' : 'font-semibold text-[var(--green)]')}>{b.noPhotos ? 'No photos' : h.upside ? gain(h.upside) : ''}</span>
         </span>
       </span>
       <span className="flex items-center justify-between gap-2 border-t border-line-soft pt-2.5">
