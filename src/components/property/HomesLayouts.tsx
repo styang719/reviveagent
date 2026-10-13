@@ -358,11 +358,11 @@ export function SideNavLayout(parts: Parts) {
           <div className="flex flex-col gap-10">
             {KEYS.filter((k) => map[k].length).map((k) => {
               const pool = k === 'projects' ? map[k].filter((h) => h.project?.status !== 'sold') : map[k]
-              const cap = k === 'projects' ? 2 : k === 'reports' ? 4 : 5
+              const cap = k === 'projects' ? 2 : 5
               const items = topOf(pool.length ? pool : map[k]).slice(0, cap)
               return (
                 <section key={k}>
-                  <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} />
+                  <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} start={k !== 'listings' ? parts.start[k] : undefined} />
                   <SectionBody k={k} parts={{ ...parts, [k]: items }} filter="all" onFilter={() => {}} chips={false} narrow />
                 </section>
               )
@@ -375,6 +375,7 @@ export function SideNavLayout(parts: Parts) {
               title={SECTIONS[view.k].title}
               icon={SECTIONS[view.k].icon}
               sub={SECTIONS[view.k].hint}
+              right={view.k !== 'listings' ? <NewButton start={parts.start[view.k]} /> : undefined}
             />
             <SectionBody k={view.k} parts={{ ...parts, [view.k]: topOf(map[view.k]) }} filter={view.f} onFilter={(f) => setView({ kind: 'section', k: (view as { k: SectionKey }).k, f })} narrow />
           </>
@@ -406,7 +407,16 @@ function ViewHead({ title, icon: Icon, sub, right }: { title: string; icon: type
 }
 
 /** A group in the Overview: the type, its count, and a link to see that type on its own. */
-function GroupHead({ k, n, onAll }: { k: SectionKey; n: number; total?: number; onAll: () => void }) {
+/** "+ New report" / "+ Start project": start one right where the list is. */
+function NewButton({ start }: { start: Parts['start'][SectionKey] }) {
+  return (
+    <button onClick={start.onClick} className="inline-flex h-8 items-center gap-1 rounded-lg border border-line bg-white px-2.5 text-[13px] font-medium text-ink hover:border-[var(--brand-primary-border)] hover:text-brand">
+      <Plus className="size-3.5" /> {start.label}
+    </button>
+  )
+}
+
+function GroupHead({ k, n, onAll, start }: { k: SectionKey; n: number; total?: number; onAll: () => void; start?: Parts['start'][SectionKey] }) {
   const Icon = SECTIONS[k].icon
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
@@ -414,9 +424,12 @@ function GroupHead({ k, n, onAll }: { k: SectionKey; n: number; total?: number; 
         <Icon className="size-4 text-brand" /> {SECTIONS[k].title}
         <span className="text-[13px] font-normal text-muted tabular-nums">{n}</span>
       </h3>
-      <button onClick={onAll} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-        See all {n} <ArrowRight className="size-3.5" />
-      </button>
+      <span className="flex items-center gap-3">
+        {start && <NewButton start={start} />}
+        <button onClick={onAll} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
+          See all {n} <ArrowRight className="size-3.5" />
+        </button>
+      </span>
     </div>
   )
 }

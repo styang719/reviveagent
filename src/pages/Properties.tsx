@@ -234,8 +234,8 @@ export default function Properties() {
             listings: needle ? noMatch : conn.mls ? <p className="rounded-xl border border-dashed border-line bg-white px-5 py-4 text-[13.5px] text-muted">No active listings on the MLS right now.</p> : connectMls,
           }}
           start={{
-            projects: { label: 'Start a project', onClick: () => requestAi('/ai?flow=project') },
-            reports: { label: 'Generate a report', onClick: () => requestAi('/ai?flow=report') },
+            projects: { label: 'Start project', onClick: () => requestAi('/ai?flow=project') },
+            reports: { label: 'New report', onClick: () => requestAi('/ai?flow=report') },
             listings: { label: 'Add your listings', onClick: () => (openStep('license'), navigate('/')) },
           }}
         />
