@@ -35,54 +35,8 @@ function useReportStyle() {
   }, [])
   return reportStyle
 }
-// how the agent adds a new report or project: three versions to compare, shared across the page
-export type AddStyle = 'menu' | 'tile' | 'nav'
-export const ADD_STYLES: { k: AddStyle; label: string }[] = [
-  { k: 'menu', label: 'A · New menu' },
-  { k: 'tile', label: 'B · Add tiles' },
-  { k: 'nav', label: 'C · Nav button' },
-]
-let addStyle: AddStyle = (() => {
-  try {
-    return (localStorage.getItem('rv-add-style') as AddStyle) || 'menu'
-  } catch {
-    return 'menu'
-  }
-})()
-const addSubs = new Set<() => void>()
-export function setAddStyle(k: AddStyle) {
-  addStyle = k
-  try {
-    localStorage.setItem('rv-add-style', k)
-  } catch {
-    /* private window */
-  }
-  addSubs.forEach((f) => f())
-}
-export function useAddStyle() {
-  const [, force] = useState(0)
-  useEffect(() => {
-    const f = () => force((n) => n + 1)
-    addSubs.add(f)
-    return () => void addSubs.delete(f)
-  }, [])
-  return addStyle
-}
-export function AddStyleSwitch() {
-  const style = useAddStyle()
-  return (
-    <div className="inline-flex items-center gap-0.5 rounded-lg bg-line-soft p-0.5" role="radiogroup" aria-label="How to add new">
-      {ADD_STYLES.map((r) => (
-        <button key={r.k} role="radio" aria-checked={style === r.k} onClick={() => setAddStyle(r.k)} className={cn('h-6 rounded-md px-2 text-[11.5px] font-medium', style === r.k ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}>
-          {r.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-/** A and C: one "+ New" button that opens a short menu (a new report, or a project). */
-export function NewMenu({ start, block }: { start: Parts['start']; block?: boolean }) {
+/** The one way to add: a "+ New" button beside search that opens a short menu (a new report, or a project). */
+export function NewMenu({ start }: { start: Parts['start'] }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -96,16 +50,16 @@ export function NewMenu({ start, block }: { start: Parts['start']; block?: boole
     { k: 'projects' as const, icon: Hammer, title: 'Start a project', sub: 'Send a home to Revive for review.' },
   ]
   return (
-    <div ref={ref} className={cn('relative', block && 'w-full')}>
+    <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className={cn('inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-primary)] px-4 text-[14px] font-medium text-white shadow-sm hover:opacity-90', block && 'w-full')}
+        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-primary)] px-4 text-[14px] font-medium text-white shadow-sm hover:opacity-90"
       >
         <Plus className="size-4" /> New <ChevronDown className="size-4 opacity-80" />
       </button>
       {open && (
-        <div className={cn('absolute z-30 mt-1.5 w-72 rounded-xl border border-line bg-white p-1.5 shadow-[0_16px_40px_rgba(28,46,88,0.16)]', block ? 'left-0' : 'right-0')}>
+        <div className={cn('absolute z-30 mt-1.5 w-72 rounded-xl border border-line bg-white p-1.5 shadow-[0_16px_40px_rgba(28,46,88,0.16)]', 'right-0')}>
           {items.map((it) => (
             <button key={it.k} onClick={() => (setOpen(false), start[it.k].onClick?.())} className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-head">
               <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
@@ -120,27 +74,6 @@ export function NewMenu({ start, block }: { start: Parts['start']; block?: boole
         </div>
       )}
     </div>
-  )
-}
-
-/** B: a dashed "add" tile at the end of a grid, or a slim dashed bar under wide cards. */
-export function AddTile({ label, sub, onClick, slim }: { label: string; sub: string; onClick?: () => void; slim?: boolean }) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'group flex items-center justify-center gap-3 rounded-xl border-2 border-dashed border-line bg-white/60 text-left transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)]/40',
-        slim ? 'w-full px-4 py-3' : 'min-h-[120px] flex-col p-4 text-center',
-      )}
-    >
-      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-brand transition-colors group-hover:bg-[var(--brand-primary)] group-hover:text-white">
-        <Plus className="size-4" />
-      </span>
-      <span>
-        <span className="block text-[14px] font-semibold text-ink">{label}</span>
-        <span className="block text-[12.5px] text-muted">{sub}</span>
-      </span>
-    </button>
   )
 }
 
@@ -398,9 +331,8 @@ export function ListingsView({ homes, filter, onFilter, chips = true }: { homes:
 }
 
 function SectionBody({ k, parts, filter, onFilter, chips = true, narrow }: { k: SectionKey; parts: Parts; filter: string; onFilter: (f: string) => void; chips?: boolean; narrow?: boolean }) {
-  const tiles = useAddStyle() === 'tile'
-  if (k === 'projects') return <ProjectsView homes={parts.projects} filter={filter} onFilter={onFilter} chips={chips} narrow={narrow} add={tiles ? <AddTile slim label="Start a project" sub="Send a home to Revive for review" onClick={parts.start.projects.onClick} /> : undefined} />
-  if (k === 'reports') return <ReportsView homes={parts.reports} filter={filter} onFilter={onFilter} sort={parts.sort} setSort={parts.setSort} chips={chips} add={tiles ? <AddTile label="New AI report" sub="Any address" onClick={parts.start.reports.onClick} /> : undefined} grid={narrow ? 'sm:grid-cols-2 2xl:grid-cols-3' : undefined} />
+  if (k === 'projects') return <ProjectsView homes={parts.projects} filter={filter} onFilter={onFilter} chips={chips} narrow={narrow} />
+  if (k === 'reports') return <ReportsView homes={parts.reports} filter={filter} onFilter={onFilter} sort={parts.sort} setSort={parts.setSort} chips={chips} grid={narrow ? 'sm:grid-cols-2 2xl:grid-cols-3' : undefined} />
   return <ListingsView homes={parts.listings} filter={filter} onFilter={onFilter} chips={chips} />
 }
 
@@ -416,7 +348,6 @@ type View = { kind: 'all' } | { kind: 'section'; k: SectionKey; f: string }
  * blue and has the blue action; each group's "N need you" chip filters that group in place.
  */
 export function SideNavLayout(parts: Parts) {
-  const addMode = useAddStyle()
   const map = { projects: parts.projects, reports: parts.reports, listings: parts.listings }
   const [view, setView] = useState<View>({ kind: 'all' })
   const isOn = (v: View) => v.kind === view.kind && (v.kind !== 'section' || (view.kind === 'section' && view.k === v.k))
@@ -431,11 +362,6 @@ export function SideNavLayout(parts: Parts) {
   return (
     <div className="mt-6 grid items-start gap-8 lg:grid-cols-[232px_minmax(0,1fr)]">
       <nav aria-label="Homes" className="lg:sticky lg:top-4">
-        {addMode === 'nav' && (
-          <div className="mb-4">
-            <NewMenu start={parts.start} block />
-          </div>
-        )}
         <button onClick={() => setView({ kind: 'all' })} className={item(isOn({ kind: 'all' }))} aria-current={isOn({ kind: 'all' }) || undefined}>
           {bar(isOn({ kind: 'all' }))}
           <LayoutGrid className="size-4 text-brand" /> Overview

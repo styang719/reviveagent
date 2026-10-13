@@ -19,12 +19,6 @@ export const REPORT_STYLES: { k: ReportStyle; label: string }[] = [
   { k: 'value', label: 'C · Value first' },
 ]
 
-const GRADE: Record<string, string> = { A: 'bg-[#16a34a]', B: 'bg-[#84cc16]', C: 'bg-[#f59e0b]', D: 'bg-[#9aa3b4]' }
-function Grade({ g }: { g?: string }) {
-  if (!g) return null
-  return <span title={`Revive grade ${g}`} className={cn('inline-flex size-5 shrink-0 items-center justify-center rounded-md text-[11px] leading-none font-bold text-white', GRADE[g])}>{g}</span>
-}
-
 /** Who ran it: initials, blue for the agent, purple for a homeowner. */
 export function RanBy({ h, size = 'sm' }: { h: Home; size?: 'sm' | 'md' }) {
   const r = h.report?.ranBy
@@ -86,7 +80,7 @@ function Row({ h }: { h: Home }) {
         </span>
         <span className="shrink-0 text-right">
           <span className="flex items-center justify-end gap-1.5 text-[16px] leading-6 font-semibold text-ink tabular-nums">
-            {money(r.potential ?? r.valueNow)} <Grade g={r.grade} />
+            {money(r.potential ?? r.valueNow)}
           </span>
           <span className={cn('mt-0.5 block text-[12px] tabular-nums', b.noPhotos ? 'text-muted' : 'font-semibold text-[var(--green)]')}>{b.noPhotos ? 'No photos' : h.upside ? gain(h.upside) : ''}</span>
         </span>
@@ -134,7 +128,7 @@ function Photo({ h }: { h: Home }) {
           <span className="text-right">
             <span className="block text-[11.5px] text-muted">Potential value</span>
             <span className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-ink tabular-nums">
-              {money(r.potential ?? r.valueNow)} <Grade g={r.grade} />
+              {money(r.potential ?? r.valueNow)}
             </span>
           </span>
         </span>
@@ -164,7 +158,7 @@ function Value({ h }: { h: Home }) {
         <span>
           <span className="block text-[11.5px] text-muted">Potential value</span>
           <span className="flex items-center gap-2 text-[22px] leading-7 font-semibold text-ink tabular-nums">
-            {money(r.potential ?? r.valueNow)} <Grade g={r.grade} />
+            {money(r.potential ?? r.valueNow)}
           </span>
         </span>
         <span className="text-right text-[12.5px] tabular-nums">

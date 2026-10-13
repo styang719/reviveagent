@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
-import { AddStyleSwitch, NewMenu, SideNavLayout, useAddStyle } from '@/components/property/HomesLayouts'
+import { NewMenu, SideNavLayout } from '@/components/property/HomesLayouts'
 import { needsYouOf, type Home, type HomeSort } from '@/components/property/HomesList'
 import { gradeOf, initialsOf, type ReportRow } from '@/components/property/homeRows'
 import { AGENT } from '@/data/tiers'
@@ -63,7 +63,6 @@ export default function Properties() {
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<HomeSort>('recent')
   const requestAi = useUi((s) => s.requestAi)
-  const addMode = useAddStyle()
   const openStep = useUi((s) => s.openStep)
   const navigate = useNavigate()
   const needle = q.trim().toLowerCase()
@@ -204,12 +203,9 @@ export default function Properties() {
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Homes</h1>
           <p className="mt-1 text-[15px] text-ink-2">Every home you’re working on, with Revive and on your own. Each one has its own page.</p>
-          <div className="mt-3">
-            <AddStyleSwitch />
-          </div>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-        {addMode === 'menu' && <NewMenu start={start} />}
+        <NewMenu start={start} />
         <label className="relative w-full sm:w-72">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
           <input
