@@ -89,7 +89,7 @@ export function needsYouOf(h: Omit<Home, 'needsYou'>): NeedsYouItem | undefined 
     return {
       kind: 'report',
       pill: 'AI report',
-      status: opened ? `Opened report${when}` : `Ran a report${when}`,
+      status: opened ? (when ? `Opened report${when}` : r.share.label) : `Ran a report${when}`,
       tone: opened ? 'green' : 'purple',
       stats: [{ label: 'Value today', value: money(r.valueNow) }, upside],
       cta: who ? `Follow up with ${who}` : 'Follow up',

@@ -146,7 +146,8 @@ export default function Properties() {
           product: o.product,
           designs: designsOn(o.id),
           at: Date.now() - (o.property.facts.leadFormDaysAgo ?? o.property.facts.reportOpenedDaysAgo ?? 30) * 86_400_000,
-          share: shareOf(o.id),
+          // sample: a couple of reports already with the homeowner, so every state shows in the demo
+          share: ((sh) => (sh?.tone !== 'none' ? sh : o.property.address === '77 Harbor View Dr' ? { label: 'Shared · not opened', tone: 'shared' as const } : o.property.address === '301 Mission St' ? { label: 'Opened 3d ago', tone: 'opened' as const } : sh))(shareOf(o.id)),
           ranBy: byOwner ? { name: o.person!.name, initials: initialsOf(o.person!.name), you: false } : { name: AGENT.name, initials: initialsOf(AGENT.name), you: true },
           noPhotos,
           potential: o.property.valueNow + Math.max(0, o.gain),
