@@ -1,9 +1,8 @@
 import { ArrowRight, LayoutGrid, MapPin, PhoneCall, Plus, Search, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { attentionRank, OppDrawer } from '@/components/home/TopOpportunities'
+import { attentionRank, OppDrawer, OppRow } from '@/components/home/TopOpportunities'
 import { CompsPanel } from '@/components/opportunity/CompsPanel'
-import { ScanTable } from '@/components/opportunity/ScanTable'
 import { ValueDrawer } from '@/components/opportunity/ValueDrawer'
 import { Button } from '@/components/ui/button'
 import { money, plural } from '@/lib/format'
@@ -100,7 +99,6 @@ export default function Opportunities() {
   const [sort, setSort] = useState<Sort>('recommended')
   const [compsId, setCompsId] = useState<string | null>(null) // a row's map button: comps around that home
   const [q, setQ] = useState('')
-  const [hover, setHover] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
   const [valueOpen, setValueOpen] = useState(false)
 
@@ -247,7 +245,15 @@ export default function Opportunities() {
           )}
 
       <div className="mt-4 min-w-0 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
-        {shown.length ? <ScanTable opps={shown} onOpen={setOpenId} onComps={setCompsId} hover={hover} onHover={setHover} /> : empty}
+        {shown.length ? (
+          <ul className="@container flex flex-col gap-3">
+            {shown.map((o) => (
+              <OppRow key={o.id} o={o} check={false} onOpen={() => setOpenId(o.id)} onComps={() => setCompsId(o.id)} />
+            ))}
+          </ul>
+        ) : (
+          empty
+        )}
       </div>
         </div>
       </div>

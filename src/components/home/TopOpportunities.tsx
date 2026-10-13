@@ -1,5 +1,5 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { AlertTriangle, ArrowRight, Check, CheckCheck, Eye, FileText, Hammer, HousePlus, Mail, MailCheck, Phone, Reply, SearchCheck, Signpost, Sparkles, X } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Check, CheckCheck, Eye, FileText, Hammer, HousePlus, Mail, MailCheck, Map as MapIcon, Phone, Reply, SearchCheck, Signpost, Sparkles, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -87,6 +87,19 @@ export function ScoreCell({ o }: { o: Opportunity }) {
         <span className={cn('text-[12.5px] whitespace-nowrap tabular-nums', dom > 30 ? 'font-medium text-hot' : 'text-muted')}>{dom} days on market</span>
       </div>
     )
+  // someone else's listing that came off the market: that's the signal, not a score
+  if (o.property.source === 'market') {
+    const f = o.property.facts
+    const days = f.expiredDaysAgo ?? f.withdrawnDaysAgo
+    return (
+      <div className="flex flex-col items-start gap-1">
+        <span className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--amber-soft)] px-2 py-1 text-[12px] font-semibold text-[var(--amber)]">
+          <Signpost className="size-3.5" /> {f.expiredDaysAgo !== undefined ? 'Expired' : 'Withdrawn'}
+        </span>
+        {days !== undefined && <span className="text-[12.5px] whitespace-nowrap text-muted tabular-nums">{days} days ago</span>}
+      </div>
+    )
+  }
   const score = o.person?.sellScore
   if (score === undefined) return <span className="text-[13px] text-muted">No score yet</span>
   // worded apart from the High / Medium / Low priority badge on the same card
@@ -484,7 +497,8 @@ export function OutreachStrip({ o, out, onReply }: { o: Opportunity; out: Outrea
   )
 }
 
-export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen: () => void; active?: boolean; onHover?: (on: boolean) => void }) {
+/** One opportunity as a card row. The dashboard's has a done checkbox; the Opportunities page drops it and adds a comps map button. */
+export function OppRow({ o, onOpen, active, onHover, check = true, onComps }: { o: Opportunity; onOpen: () => void; active?: boolean; onHover?: (on: boolean) => void; check?: boolean; onComps?: () => void }) {
   const done = !!useDemo((s) => s.checked[o.id])
   const toggle = useDemo((s) => s.toggleChecked)
   const [msg, setMsg] = useState(false)
@@ -503,13 +517,16 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
         onMouseEnter={() => onHover?.(true)}
         onMouseLeave={() => onHover?.(false)}
         className={cn(
-          'group grid cursor-pointer grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md',
-          '@[600px]:grid-cols-[auto_56px_minmax(0,1.35fr)_minmax(124px,0.95fr)_minmax(76px,0.7fr)_minmax(118px,1fr)_44px] @[600px]:gap-x-3.5',
+          'group grid cursor-pointer items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-3 pr-4 shadow-card transition-shadow hover:shadow-md @[600px]:gap-x-3.5',
+          check
+            ? 'grid-cols-[auto_56px_minmax(0,1fr)_auto] @[600px]:grid-cols-[auto_56px_minmax(0,1.35fr)_minmax(124px,0.95fr)_minmax(76px,0.7fr)_minmax(118px,1fr)_44px]'
+            : 'grid-cols-[56px_minmax(0,1fr)_auto] @[600px]:grid-cols-[56px_minmax(0,1.35fr)_minmax(124px,0.95fr)_minmax(76px,0.7fr)_minmax(118px,1fr)_96px]',
           attention === 'reply' && 'border-[var(--brand-primary-border)] ring-1 ring-[var(--brand-primary-border)]',
           done && 'bg-head shadow-none',
           active && 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]',
         )}
       >
+        {check && (
         <button
           role="checkbox"
           aria-checked={done}
@@ -525,6 +542,7 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
         >
           {done && <Check className="size-3" strokeWidth={3} />}
         </button>
+        )}
         <span className="size-14 overflow-hidden rounded-xl bg-line-soft">{img(o) && <img src={img(o)} alt="" className="size-full object-cover" />}</span>
         <div className="min-w-0">
           <p className="truncate text-[14.5px] font-semibold text-ink">{o.property.address}</p>
@@ -534,7 +552,23 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
             <Priority o={o} />
           </div>
         </div>
-        {o.person ? (
+        <span className="flex items-center gap-2 justify-self-end @[600px]:order-last">
+        {onComps && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onComps()
+            }}
+            onKeyDown={(e) => e.stopPropagation()}
+            aria-label={`Comps near ${o.property.address}`}
+            title="Comps on a map"
+            className="grid size-11 place-items-center rounded-xl border border-line bg-white text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)]"
+          >
+            <MapIcon className="size-[18px]" />
+          </button>
+        )}
+        {o.person && (
           <button
             type="button"
             onClick={(e) => {
@@ -544,16 +578,15 @@ export function OppRow({ o, onOpen, active, onHover }: { o: Opportunity; onOpen:
             onKeyDown={(e) => e.stopPropagation()}
             aria-label={`Message ${o.person.name}`}
             title={`Message ${firstName(o.person.name)}`}
-            className="relative grid size-11 place-items-center justify-self-end rounded-xl border border-line bg-white text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)] @[600px]:order-last"
+            className="relative grid size-11 place-items-center rounded-xl border border-line bg-white text-brand transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)]"
           >
             {out ? <MailCheck className="size-[18px]" /> : <Mail className="size-[18px]" />}
             {waiting && <span className="absolute -top-1 -right-1 size-3 rounded-full border-2 border-white bg-[var(--brand-primary)]" aria-label="New reply" />}
           </button>
-        ) : (
-          <span className="@[600px]:order-last" />
         )}
+        </span>
         {/* below lg the numbers wrap to a second row under the home */}
-        <div className="col-span-4 flex flex-wrap items-center gap-x-6 gap-y-3 @[600px]:contents">
+        <div className={cn(check ? 'col-span-4' : 'col-span-3', 'flex flex-wrap items-center gap-x-6 gap-y-3 @[600px]:contents')}>
           <ScoreCell o={o} />
           <div className="min-w-0">
             <p className="text-[16px] font-bold text-ink tabular-nums">{money(o.property.valueNow)}</p>
