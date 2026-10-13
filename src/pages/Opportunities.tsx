@@ -1,7 +1,7 @@
-import { ArrowRight, LayoutGrid, MapPin, PhoneCall, Plus, Search, Users } from 'lucide-react'
+import { ArrowRight, Clock, DollarSign, LayoutGrid, MapPin, PhoneCall, Plus, Search, Signpost, SquareDashed, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import { attentionRank, OppDrawer, OppRow } from '@/components/home/TopOpportunities'
+import { useSearchParams } from 'react-router-dom'
+import { attentionRank, img, OppDrawer, OppRow } from '@/components/home/TopOpportunities'
 import { CompsPanel } from '@/components/opportunity/CompsPanel'
 import { ValueDrawer } from '@/components/opportunity/ValueDrawer'
 import { Button } from '@/components/ui/button'
@@ -12,21 +12,22 @@ import { YourBook } from '@/components/home/YourBook'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 
-// Prospecting: homes the agent could win, not ones they already work on. Two sources, as tabs: their own
-// contacts (CRM and lead form), and the nearby market (other agents' listings that expired or were
-// withdrawn, so the owner is free to talk). Their own listings, reports and projects live in Homes; Revive
-// referrals in Lead tracking. A side nav like Homes (views, then sources), status tabs per source, list and map.
+// Prospecting: homes the agent could win more on. Three sources: their own contacts (CRM and lead form),
+// their MLS listings (where Revive could add value), and the nearby market (other agents' listings that
+// expired or were withdrawn, so the owner is free to talk). Reports and projects live in Homes; Revive
+// referrals in Lead tracking. A side nav like Homes (views, then sources, then the numbers), status tabs per source.
 
 const COMMISSION = 0.025 // listing side
 const LIKELY = 80
 
-type Tab = 'contacts' | 'market'
+type Tab = 'contacts' | 'listings' | 'market'
 type View = 'go' | 'all' | Tab
 const TABS: { k: Tab; label: string; hint: string }[] = [
   { k: 'contacts', label: 'Your contacts', hint: 'Homeowners in your CRM and lead form, ranked by who to call first.' },
+  { k: 'listings', label: 'Your MLS listings', hint: 'Your active listings, and what Revive could add to each before it sells.' },
   { k: 'market', label: 'Nearby market', hint: 'Listings near you that expired or were withdrawn. The owner is free to talk, and Revive gives you a reason to call.' },
 ]
-const inTab = (o: Opportunity, t: Tab) => (t === 'market' ? o.property.source === 'market' : o.property.source === 'contacts' || o.property.source === 'leadform')
+const inTab = (o: Opportunity, t: Tab) => (t === 'market' ? o.property.source === 'market' : t === 'listings' ? o.property.source === 'listings' : o.property.source === 'contacts' || o.property.source === 'leadform')
 
 type Filter = 'all' | 'go' | 'seller' | 'reno' | 'adu' | 'expired' | 'withdrawn'
 const FILTERS: Record<Tab, { k: Filter; label: string }[]> = {
@@ -34,6 +35,11 @@ const FILTERS: Record<Tab, { k: Filter; label: string }[]> = {
     { k: 'all', label: 'All' },
     { k: 'go', label: 'Worth a call' },
     { k: 'seller', label: 'Likely seller' },
+    { k: 'reno', label: 'Renovation' },
+    { k: 'adu', label: 'ADU room' },
+  ],
+  listings: [
+    { k: 'all', label: 'All' },
     { k: 'reno', label: 'Renovation' },
     { k: 'adu', label: 'ADU room' },
   ],
@@ -61,9 +67,27 @@ const SORTS: { k: Sort; label: string }[] = [
   { k: 'value', label: 'Value' },
 ]
 
+const acres = (sqft: number) => (sqft >= 43_560 ? `${(sqft / 43_560).toFixed(2)} acres` : `${Math.round(sqft / 100) * 100} sq ft`)
 const landOf = (o: Opportunity) => (o.tags.includes('ADU room') && o.property.lot ? o.property.lot - o.property.sqft : 0)
 
 
+
+/** A compact stat card in the side nav; clicking it opens that slice of the list. */
+function Stat({ label, icon: Icon, value, sub, hot, green, onClick, children }: { label: string; icon: typeof Users; value: string; sub: string; hot?: boolean; green?: boolean; onClick: () => void; children?: React.ReactNode }) {
+  return (
+    <button onClick={onClick} className={cn('group flex w-full flex-col rounded-xl border p-3 text-left transition-colors', hot ? 'border-[var(--brand-primary-border)] bg-[var(--brand-primary-subtle)]' : 'border-line bg-white hover:border-[var(--brand-primary-border)]')}>
+      <span className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold tracking-wide text-brand uppercase">{label}</span>
+        <Icon className="size-3.5 text-brand" />
+      </span>
+      <span className={cn('mt-1 text-[20px] leading-7 font-semibold tabular-nums', green ? 'text-[var(--green)]' : 'text-ink')}>{value}</span>
+      <span className="flex items-center gap-1 text-[12px] text-ink-2">
+        {sub} <ArrowRight className="size-3 shrink-0 text-brand opacity-0 transition-opacity group-hover:opacity-100" />
+      </span>
+      {children}
+    </button>
+  )
+}
 
 function NavItem({ on, onClick, icon: Icon, label, n, blue }: { on: boolean; onClick: () => void; icon: typeof Users; label: string; n: number; blue?: boolean }) {
   return (
@@ -91,7 +115,7 @@ export default function Opportunities() {
   // the side nav, as on Homes: two views across everything, then one item per source
   const [view, setViewState] = useState<View>(() => (params.get('tab') === 'market' ? 'market' : 'go'))
   const [filter, setFilter] = useState<Filter>(() => (params.get('tab') === 'market' ? 'all' : 'go'))
-  const tab: Tab | null = view === 'contacts' || view === 'market' ? view : null
+  const tab: Tab | null = view === 'contacts' || view === 'listings' || view === 'market' ? view : null
   const setView = (v: View) => {
     setViewState(v)
     setFilter(v === 'go' ? 'go' : 'all')
@@ -104,8 +128,7 @@ export default function Opportunities() {
 
   // homes with a project are tracked under Properties
   const inProject = (o: Opportunity) => o.stage === 'project' || !!projects[o.id] || !!o.property.project
-  const book = all.filter((o) => !inProject(o) && (inTab(o, 'contacts') || inTab(o, 'market')))
-  const ownListings = all.filter((o) => o.property.source === 'listings').length
+  const book = all.filter((o) => !inProject(o) && TABS.some((t) => inTab(o, t.k)))
   const tabBook = tab ? book.filter((o) => inTab(o, tab)) : book
 
   const stats = useMemo(() => {
@@ -146,7 +169,7 @@ export default function Opportunities() {
       <div className={PAGE}>
         <header className="border-b border-line pb-6">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
-          <p className="mt-1 text-[15px] text-ink-2">Homes you could win: your contacts, and listings near you that came off the market.</p>
+          <p className="mt-1 text-[15px] text-ink-2">Homes you could win more on: your contacts, your listings, and listings near you that came off the market.</p>
         </header>
         <div className="mt-8">
           <YourBook opps={all} />
@@ -161,7 +184,7 @@ export default function Opportunities() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
-          <p className="mt-1 text-[15px] text-ink-2">Homes you could win: your contacts, and listings near you that came off the market.</p>
+          <p className="mt-1 text-[15px] text-ink-2">Homes you could win more on: your contacts, your listings, and listings near you that came off the market.</p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <label className="relative flex-1 sm:w-64 sm:flex-none">
@@ -187,20 +210,23 @@ export default function Opportunities() {
           <NavItem on={view === 'all'} onClick={() => setView('all')} icon={LayoutGrid} label="All opportunities" n={book.length} />
           <p className="mt-5 px-3 pb-1.5 text-[11.5px] font-semibold tracking-wide text-faint uppercase">By source</p>
           {TABS.map((t) => (
-            <NavItem key={t.k} on={view === t.k} onClick={() => setView(t.k)} icon={t.k === 'contacts' ? Users : MapPin} label={t.label} n={book.filter((o) => inTab(o, t.k)).length} />
+            <NavItem key={t.k} on={view === t.k} onClick={() => setView(t.k)} icon={t.k === 'contacts' ? Users : t.k === 'listings' ? Signpost : MapPin} label={t.label} n={book.filter((o) => inTab(o, t.k)).length} />
           ))}
-          <div className="mt-5 border-t border-line pt-4">
-            <button onClick={() => setValueOpen(true)} className="w-full rounded-lg px-3 py-2 text-left hover:bg-line-soft">
-              <span className="block text-[18px] font-semibold text-[var(--green)] tabular-nums">{money(stats.lift + marketLift)}</span>
-              <span className="flex items-center gap-1 text-[12.5px] text-muted">
-                Value to unlock <ArrowRight className="size-3 text-brand" />
-              </span>
-            </button>
-            {ownListings > 0 && (
-              <Link to="/properties" className="mt-1 flex items-center gap-1 px-3 py-1 text-[12.5px] font-medium text-brand hover:underline">
-                Your {plural(ownListings, 'listing')} are in Homes <ArrowRight className="size-3" />
-              </Link>
-            )}
+          {/* the numbers, each a way into the list */}
+          <p className="mt-6 px-3 pb-2 text-[11.5px] font-semibold tracking-wide text-faint uppercase">This week</p>
+          <div className="flex flex-col gap-2">
+            <Stat label="Call this week" icon={Clock} hot onClick={() => setView('go')} value={String(stats.now.length)} sub={`${stats.now.length === 1 ? 'person' : 'people'} to reach first`}>
+              {stats.now.length > 0 && (
+                <span className="mt-2 flex -space-x-2">
+                  {stats.now.slice(0, 5).map((o) => (
+                    <img key={o.id} src={img(o)} alt="" title={o.person?.name} className="size-6 rounded-full border-2 border-white object-cover" />
+                  ))}
+                </span>
+              )}
+            </Stat>
+            <Stat label="Likely sellers" icon={Users} onClick={() => (setViewState('contacts'), setFilter('seller'))} value={String(stats.sellers)} sub={`of ${plural(stats.contacts, 'contact')}`} />
+            <Stat label="Value to unlock" icon={DollarSign} onClick={() => setValueOpen(true)} value={money(stats.lift + marketLift)} green sub={`+${money(Math.round((stats.lift + marketLift) * COMMISSION))} your commission`} />
+            <Stat label="Unused land" icon={SquareDashed} onClick={() => (setViewState('contacts'), setFilter('adu'))} value={acres(stats.land)} sub={`across ${plural(stats.lots, 'lot')}, room for an ADU`} />
           </div>
         </nav>
 
@@ -210,9 +236,9 @@ export default function Opportunities() {
               <h2 className="text-xl font-semibold text-ink">{view === 'go' ? 'Worth a call' : view === 'all' ? 'All opportunities' : TABS.find((t) => t.k === view)!.label}</h2>
               <p className="mt-0.5 text-[13.5px] text-muted">
                 {view === 'go'
-                  ? 'Who to reach out to this week, across your contacts and the nearby market.'
+                  ? 'Who to reach out to this week, across your contacts, your listings and the nearby market.'
                   : view === 'all'
-                    ? 'Your contacts and the nearby market, ranked by who to call first.'
+                    ? 'Your contacts, your listings and the nearby market, ranked by who to call first.'
                     : TABS.find((t) => t.k === view)!.hint}
               </p>
             </div>
