@@ -1,10 +1,52 @@
-import { ArrowRight, Bell, Check, FileText, Hammer, ImageIcon, LayoutGrid, Plus, Sparkles, Tag, TrendingUp } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowRight, Bell, Check, FileText, Hammer, ImageIcon, LayoutGrid, Plus, Tag, TrendingUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import { HomesList, ProjectCards, type Home, type HomeSort } from './HomesList'
+import { ProjectCards, type Home, type HomeSort } from './HomesList'
+import { OwnListings } from './OwnListings'
+import { REPORT_STYLES, ReportCard, type ReportStyle } from './ReportVariants'
+
+// the report card design to compare, shared across the page and remembered per browser
+let reportStyle: ReportStyle = (() => {
+  try {
+    return (localStorage.getItem('rv-report-style') as ReportStyle) || 'row'
+  } catch {
+    return 'row'
+  }
+})()
+const styleSubs = new Set<() => void>()
+function setReportStyle(k: ReportStyle) {
+  reportStyle = k
+  try {
+    localStorage.setItem('rv-report-style', k)
+  } catch {
+    /* private window */
+  }
+  styleSubs.forEach((f) => f())
+}
+function useReportStyle() {
+  const [, force] = useState(0)
+  useEffect(() => {
+    const f = () => force((n) => n + 1)
+    styleSubs.add(f)
+    return () => void styleSubs.delete(f)
+  }, [])
+  return reportStyle
+}
+export function ReportStyleSwitch() {
+  const style = useReportStyle()
+  return (
+    <div className="inline-flex items-center gap-0.5 rounded-lg bg-line-soft p-0.5" role="radiogroup" aria-label="Report card design">
+      {REPORT_STYLES.map((r) => (
+        <button key={r.k} role="radio" aria-checked={style === r.k} onClick={() => setReportStyle(r.k)} className={cn('h-6 rounded-md px-2 text-[11.5px] font-medium', style === r.k ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}>
+          {r.label}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 // Three page layouts for Homes, to compare. They share the same three section views (each with its own
 // filters) and the same section labels; what changes is how you move between sections. An empty section
@@ -76,50 +118,15 @@ const sortHomes = (homes: Home[], sort: HomeSort) =>
  */
 export function ReportCards({ homes, sort, grid = 'sm:grid-cols-2 xl:grid-cols-3', limit = 9 }: { homes: Home[]; sort: HomeSort; grid?: string; limit?: number }) {
   const [all, setAll] = useState(false)
+  const style = useReportStyle()
   const sorted = sortHomes(homes, sort)
   const visible = all ? sorted : sorted.slice(0, limit)
   return (
     <div>
-      <div className={cn('grid gap-3', grid)}>
-        {visible.map((h) => {
-          const n = h.needsYou
-          const sh = h.report?.share ?? { label: 'Not shared yet', tone: 'none' as const }
-          const none = sh.tone === 'none'
-          return (
-            <Link
-              key={h.id}
-              to={n?.to ?? `/property/${h.id}?tab=report`}
-              className={cn(
-                'group flex flex-col rounded-xl border bg-white p-3.5 transition-colors hover:border-[var(--brand-primary-border)]',
-                'border-line',
-              )}
-            >
-              {/* who and how much: the address and the upside carry the card */}
-              <span className="flex items-center gap-3">
-                <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px] font-semibold text-ink">{h.address}</span>
-                  <span className="block truncate text-[12.5px] text-muted">
-                    {h.city}
-                    {h.product && ` · ${h.product}`}
-                  </span>
-                </span>
-                <span className="shrink-0 text-[18px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? gain(h.upside) : '—'}</span>
-              </span>
-              {/* where it stands, and the one next step */}
-              <span className="mt-3 flex items-center justify-between gap-2 border-t border-line-soft pt-2.5">
-                <span className={cn('inline-flex min-w-0 items-center gap-1.5 truncate text-[12.5px]', n ? 'font-semibold text-brand' : 'text-muted')}>
-                  <span className={cn('size-1.5 shrink-0 rounded-full', n ? 'bg-[var(--brand-primary)]' : sh.tone === 'opened' ? 'bg-[var(--green)]' : sh.tone === 'shared' ? 'bg-[var(--brand-primary-border)]' : 'bg-[#c4cad6]')} />
-                  <span className="truncate">{n ? n.status : sh.label}</span>
-                  {!!h.report?.designs && <Sparkles className="size-3 shrink-0 text-[var(--brand-agent)]" aria-label="Has RenoVision designs" />}
-                </span>
-                <span className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-brand">
-                  {n ? n.cta.replace(/ with .*$/, '') : none ? 'Share' : 'Open'} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </span>
-            </Link>
-          )
-        })}
+      <div className={cn('grid gap-3', style === 'photo' ? 'sm:grid-cols-2 2xl:grid-cols-3' : grid)}>
+        {visible.map((h) => (
+          <ReportCard key={h.id} h={h} style={style} />
+        ))}
       </div>
       {homes.length > limit && (
         <button onClick={() => setAll((v) => !v)} className="mt-3 w-full rounded-xl border border-dashed border-line py-2.5 text-[13px] font-medium text-brand hover:bg-head">
@@ -149,8 +156,8 @@ export const FILTERS: Record<SectionKey, Filter[]> = {
   ],
   listings: [
     { k: 'all', label: 'All', test: () => true },
-    { k: 'cut', label: 'Price cut', test: (h) => (h.listing?.property.facts.priceCutDaysAgo ?? 99) <= 14 },
-    { k: 'stale', label: '30+ days', test: (h) => (h.listing?.property.facts.daysOnMarket ?? 0) >= 30 },
+    { k: 'opp', label: 'Revive opportunity', test: (h) => (h.upside ?? 0) >= 15000 },
+    { k: 'track', label: 'Selling on track', test: (h) => (h.upside ?? 0) < 15000 },
   ],
 }
 export const countFor = (k: SectionKey, f: string, homes: Home[]) => homes.filter(FILTERS[k].find((x) => x.k === f)!.test).length
@@ -273,7 +280,7 @@ export function ListingsView({ homes, filter, onFilter, chips = true }: { homes:
     <div>
       {chips && <Chips k="listings" homes={homes} value={filter} onChange={onFilter} />}
       <div className={chips ? 'mt-4' : undefined}>
-        <HomesList homes={homes.filter(f.test)} sort="recent" kind="listing" />
+        <OwnListings homes={homes.filter(f.test)} />
       </div>
     </div>
   )
@@ -407,6 +414,7 @@ function GroupHead({ k, n, onAll }: { k: SectionKey; n: number; total?: number; 
         <Icon className="size-4 text-brand" /> {SECTIONS[k].title}
         <span className="text-[13px] font-normal text-muted tabular-nums">{n}</span>
       </h3>
+      {k === 'reports' && <span className="ml-auto mr-2 hidden md:block"><ReportStyleSwitch /></span>}
       <button onClick={onAll} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
         See all {n} <ArrowRight className="size-3.5" />
       </button>

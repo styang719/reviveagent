@@ -6,7 +6,8 @@ import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
 import { SideNavLayout } from '@/components/property/HomesLayouts'
 import { needsYouOf, type Home, type HomeSort } from '@/components/property/HomesList'
-import type { ReportRow } from '@/components/property/homeRows'
+import { gradeOf, initialsOf, type ReportRow } from '@/components/property/homeRows'
+import { AGENT } from '@/data/tiers'
 import { money } from '@/lib/format'
 import { PROJECT_STEPS } from '@/lib/flows'
 import { useConnections, useOpportunities } from '@/lib/opportunities'
@@ -123,18 +124,42 @@ export default function Properties() {
           designs: designsOn(r.id),
           at: r.createdAt,
           share: shareOf(r.id),
+          ranBy: { name: AGENT.name, initials: initialsOf(AGENT.name), you: true },
+          noPhotos: !r.photos.length,
+          potential: r.valueNow + (best?.gain ?? 0),
+          grade: gradeOf(r.valueNow, best?.gain ?? undefined),
         }
       }),
     ...opps
       .filter((o) => o.property.reportRun && !reports[o.id] && !inProject.has(o.id))
-      .map((o) => ({ id: o.id, address: o.property.address, city: o.property.city, photo: o.property.photo, valueNow: o.property.valueNow, upside: o.gain || undefined, product: o.product, designs: designsOn(o.id), at: Date.now() - (o.property.facts.leadFormDaysAgo ?? o.property.facts.reportOpenedDaysAgo ?? 30) * 86_400_000, share: shareOf(o.id) })),
+      .map((o, i) => {
+        // who ran it: the homeowner on the agent's lead form, or the agent; a couple without photos, for the prototype
+        const byOwner = o.property.source === 'leadform' && o.person
+        const noPhotos = !byOwner && i % 3 === 2
+        return {
+          id: o.id,
+          address: o.property.address,
+          city: o.property.city,
+          photo: o.property.photo,
+          valueNow: o.property.valueNow,
+          upside: noPhotos ? undefined : o.gain || undefined,
+          product: o.product,
+          designs: designsOn(o.id),
+          at: Date.now() - (o.property.facts.leadFormDaysAgo ?? o.property.facts.reportOpenedDaysAgo ?? 30) * 86_400_000,
+          share: shareOf(o.id),
+          ranBy: byOwner ? { name: o.person!.name, initials: initialsOf(o.person!.name), you: false } : { name: AGENT.name, initials: initialsOf(AGENT.name), you: true },
+          noPhotos,
+          potential: o.property.valueNow + Math.max(0, o.gain),
+          grade: gradeOf(o.property.valueNow, o.gain),
+        }
+      }),
   ]
 
   // every home once: a project wins over its report; a listing joins whichever it already is
   const byId = new Map<string, Home>()
   const put = (id: string, base: Omit<Home, 'needsYou'>) => byId.set(id, base)
   for (const p of projects) put(p.id, { id: p.id, address: p.address, city: p.city, photo: p.photo, project: p, product: p.product, upside: p.sold ? p.sold.sale - p.sold.asIs : opps.find((o) => o.id === p.id)?.gain || undefined, at: p.sold ? 0 : Date.now() })
-  for (const r of reportRows) put(r.id, { id: r.id, address: r.address, city: r.city, photo: r.photo, report: r, upside: r.upside, valueNow: r.valueNow, product: r.product, at: r.at ?? 0 })
+  for (const r of reportRows) put(r.id, { id: r.id, address: r.address, city: r.city, photo: r.photo, report: r, upside: r.upside, valueNow: r.noPhotos ? undefined : r.valueNow, product: r.product, at: r.at ?? 0 })
   for (const o of opps.filter((x) => x.property.source === 'listings')) {
     const prev = byId.get(o.id)
     if (prev) byId.set(o.id, { ...prev, listing: o })
