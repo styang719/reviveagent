@@ -355,7 +355,7 @@ export function SideNavLayout(parts: Parts) {
         {view.kind === 'all' && (
           // Overview: a fixed, short preview of each type (what needs the agent first), each ending in See all,
           // so every type stays near the top; the full lists live under each type
-          <div className="flex flex-col gap-10">
+          <div className="flex flex-col gap-14">
             {KEYS.filter((k) => map[k].length).map((k) => {
               const pool = k === 'projects' ? map[k].filter((h) => h.project?.status !== 'sold') : map[k]
               const cap = k === 'projects' ? 2 : 5
@@ -419,10 +419,10 @@ function NewButton({ start }: { start: Parts['start'][SectionKey] }) {
 function GroupHead({ k, n, onAll, start }: { k: SectionKey; n: number; total?: number; onAll: () => void; start?: Parts['start'][SectionKey] }) {
   const Icon = SECTIONS[k].icon
   return (
-    <div className="mb-3 flex items-center justify-between gap-3">
-      <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
-        <Icon className="size-4 text-brand" /> {SECTIONS[k].title}
-        <span className="text-[13px] font-normal text-muted tabular-nums">{n}</span>
+    <div className="mb-4 flex items-center justify-between gap-3">
+      <h3 className="flex items-center gap-2 text-[18px] font-semibold text-ink">
+        <Icon className="size-[18px] text-brand" /> {SECTIONS[k].title}
+        <span className="text-[14px] font-normal text-muted tabular-nums">{n}</span>
       </h3>
       <span className="flex items-center gap-3">
         {start && <NewButton start={start} />}

@@ -62,7 +62,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
     <div className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[780px] table-fixed text-left">
-          <thead className="border-b border-line bg-head text-[11.5px] font-semibold tracking-wide whitespace-nowrap text-muted uppercase">
+          <thead className="border-b border-line bg-head text-[11px] font-semibold tracking-[0.04em] whitespace-nowrap text-muted uppercase">
             <tr>
               <th className="w-[170px] px-3 py-2.5 font-semibold">Address</th>
               <th className="w-[96px] px-3 py-2.5 font-semibold"><Head k="dom">DOM</Head></th>
@@ -86,7 +86,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
                     <Link to={`/property/${h.id}`} className="flex items-center gap-3">
                       <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft shadow-sm">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
                       <span className="min-w-0">
-                        <span className="block truncate text-[14.5px] font-semibold text-ink hover:text-brand">{p.address}</span>
+                        <span className="block truncate text-[15px] font-semibold text-ink hover:text-brand">{p.address}</span>
                         <span className="block truncate text-[12.5px] text-muted">{p.city}</span>
                       </span>
                     </Link>
