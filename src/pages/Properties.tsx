@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
-import { SideNavLayout } from '@/components/property/HomesLayouts'
+import { AddStyleSwitch, NewMenu, SideNavLayout, useAddStyle } from '@/components/property/HomesLayouts'
 import { needsYouOf, type Home, type HomeSort } from '@/components/property/HomesList'
 import { gradeOf, initialsOf, type ReportRow } from '@/components/property/homeRows'
 import { AGENT } from '@/data/tiers'
@@ -63,6 +63,7 @@ export default function Properties() {
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<HomeSort>('recent')
   const requestAi = useUi((s) => s.requestAi)
+  const addMode = useAddStyle()
   const openStep = useUi((s) => s.openStep)
   const navigate = useNavigate()
   const needle = q.trim().toLowerCase()
@@ -191,13 +192,24 @@ export default function Properties() {
     </div>
   )
 
+  const start = {
+            projects: { label: 'Start project', onClick: () => requestAi('/ai?flow=project') },
+            reports: { label: 'New report', onClick: () => requestAi('/ai?flow=report') },
+            listings: { label: 'Add your listings', onClick: () => (openStep('license'), navigate('/')) },
+          }
+
   return (
     <div className={PAGE}>
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Homes</h1>
           <p className="mt-1 text-[15px] text-ink-2">Every home you’re working on, with Revive and on your own. Each one has its own page.</p>
+          <div className="mt-3">
+            <AddStyleSwitch />
+          </div>
         </div>
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+        {addMode === 'menu' && <NewMenu start={start} />}
         <label className="relative w-full sm:w-72">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
           <input
@@ -208,6 +220,7 @@ export default function Properties() {
             className="h-10 w-full rounded-lg border border-line bg-white pr-3 pl-9 text-[14px] outline-none focus:border-[var(--brand-primary-border)] focus:ring-2 focus:ring-[var(--brand-primary-subtle)]"
           />
         </label>
+        </div>
       </div>
 
       {firstVisit ? (
@@ -233,11 +246,7 @@ export default function Properties() {
             reports: needle ? noMatch : <ReportsEmpty />,
             listings: needle ? noMatch : conn.mls ? <p className="rounded-xl border border-dashed border-line bg-white px-5 py-4 text-[13.5px] text-muted">No active listings on the MLS right now.</p> : connectMls,
           }}
-          start={{
-            projects: { label: 'Start project', onClick: () => requestAi('/ai?flow=project') },
-            reports: { label: 'New report', onClick: () => requestAi('/ai?flow=report') },
-            listings: { label: 'Add your listings', onClick: () => (openStep('license'), navigate('/')) },
-          }}
+          start={start}
         />
       )}
     </div>

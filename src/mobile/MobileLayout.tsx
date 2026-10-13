@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 import { CrmDialog } from '@/components/home/ConnectBook'
 import wordmark from '@/assets/revive-wordmark.svg'
 import { DEMO_BAR_HEIGHT, DemoBar } from '@/components/shell/DemoBar'
+import { useTrackBackNav } from '@/lib/backNav'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
@@ -105,6 +106,7 @@ function PhoneShell() {
 }
 
 export function MobileLayout() {
+  useTrackBackNav()
   const { pathname } = useLocation()
   const [wide] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 640 && !inPhoneFrame())
   useEffect(() => setMobileApp(true), [])

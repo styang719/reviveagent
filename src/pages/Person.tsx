@@ -1,6 +1,6 @@
-import { ArrowLeft } from 'lucide-react'
 import { PAGE } from '@/lib/utils'
 import { Link, useParams } from 'react-router-dom'
+import { BackLink } from '@/components/shell/BackLink'
 import { people } from '@/data/people'
 import { gain } from '@/lib/format'
 import { STAGE_LABEL, useOpportunities } from '@/lib/opportunities'
@@ -15,9 +15,7 @@ export default function Person() {
   }
   return (
     <div className={PAGE}>
-      <Link to="/" className="inline-flex items-center gap-1 text-[13px] text-muted hover:text-brand">
-        <ArrowLeft className="size-3.5" /> Back
-      </Link>
+      <BackLink to="/opportunities" label="Opportunities" />
       <h1 className="mt-3 text-2xl font-semibold text-ink">{person.name}</h1>
       <p className="text-sm text-muted">
         {person.relationship} · {person.source} · {person.since}

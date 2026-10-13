@@ -1,6 +1,7 @@
-import { ArrowLeft, Bath, BedDouble, Check, ChartColumn, CircleAlert, CircleX, House, Mail, Megaphone, Paperclip, Phone, Ruler, Send, Signature, Signpost, UserRound } from 'lucide-react'
+import { Bath, BedDouble, Check, ChartColumn, CircleAlert, CircleX, House, Mail, Megaphone, Paperclip, Phone, Ruler, Send, Signature, Signpost, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { BackLink } from '@/components/shell/BackLink'
 import { toast } from 'sonner'
 import michelle from '@/assets/avatar-michelle.jpg'
 import mark from '@/assets/revive-mark.svg'
@@ -97,9 +98,7 @@ export default function ReferralDetail() {
 
   return (
     <div className={PAGE}>
-      <Link to="/leads/referrals" className="inline-flex items-center gap-1.5 text-[13px] text-ink hover:text-brand">
-        <ArrowLeft className="size-3.5" /> Your seller referrals
-      </Link>
+      <BackLink to="/leads/referrals" label="Your seller referrals" />
       <header className="mt-4 flex flex-wrap items-center gap-6 border-b border-line pb-8">
         <span className="grid size-16 shrink-0 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-[22px] text-ink">{initials(name)}</span>
         <div className="min-w-[220px] flex-1">

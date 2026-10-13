@@ -1,6 +1,5 @@
-import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { BackLink } from '@/components/shell/BackLink'
 import { CaseStudy } from '@/components/home/NewAgentIntro'
 import { projectGain, reviveProjects } from '@/data/reviveProjects'
 import { gain } from '@/lib/format'
@@ -24,9 +23,7 @@ export default function CaseStudies() {
   ]
   return (
     <div className={PAGE}>
-      <Link to="/" className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
-        <ArrowLeft className="size-3.5" /> Home
-      </Link>
+      <BackLink to="/" label="Dashboard" />
       <h1 className="mt-3 text-2xl font-semibold text-ink sm:text-[28px]">What Revive has done near you</h1>
       <p className="mt-1 text-[15px] text-ink-2">Recent Revive projects around Pasadena. Revive covers the work until the home sells.</p>
 

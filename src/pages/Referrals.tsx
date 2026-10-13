@@ -1,6 +1,7 @@
-import { ArrowLeft, Calendar, House, List, Phone, Search, Signpost, Users } from 'lucide-react'
+import { Calendar, House, List, Phone, Search, Signpost, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { BackLink } from '@/components/shell/BackLink'
 import { toast } from 'sonner'
 import advisor from '@/assets/avatars/advisor-philip.svg'
 import mark from '@/assets/revive-mark.svg'
@@ -48,9 +49,7 @@ export default function Referrals() {
 
   return (
     <div className={PAGE}>
-      <Link to="/leads" className="inline-flex items-center gap-1 text-[13px] text-muted hover:text-brand">
-        <ArrowLeft className="size-3.5" /> Lead tracking
-      </Link>
+      <BackLink to="/leads" label="Lead tracking" />
       <header className="mt-3 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
         <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Your seller referrals</h1>
         <label className="relative w-full sm:w-72">

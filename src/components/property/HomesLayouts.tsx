@@ -1,5 +1,5 @@
-import { ArrowRight, Bell, Check, FileText, Hammer, ImageIcon, LayoutGrid, Plus, Tag, TrendingUp } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ArrowRight, Bell, Check, ChevronDown, FileText, Hammer, ImageIcon, LayoutGrid, Plus, Tag, TrendingUp } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
@@ -35,6 +35,115 @@ function useReportStyle() {
   }, [])
   return reportStyle
 }
+// how the agent adds a new report or project: three versions to compare, shared across the page
+export type AddStyle = 'menu' | 'tile' | 'nav'
+export const ADD_STYLES: { k: AddStyle; label: string }[] = [
+  { k: 'menu', label: 'A · New menu' },
+  { k: 'tile', label: 'B · Add tiles' },
+  { k: 'nav', label: 'C · Nav button' },
+]
+let addStyle: AddStyle = (() => {
+  try {
+    return (localStorage.getItem('rv-add-style') as AddStyle) || 'menu'
+  } catch {
+    return 'menu'
+  }
+})()
+const addSubs = new Set<() => void>()
+export function setAddStyle(k: AddStyle) {
+  addStyle = k
+  try {
+    localStorage.setItem('rv-add-style', k)
+  } catch {
+    /* private window */
+  }
+  addSubs.forEach((f) => f())
+}
+export function useAddStyle() {
+  const [, force] = useState(0)
+  useEffect(() => {
+    const f = () => force((n) => n + 1)
+    addSubs.add(f)
+    return () => void addSubs.delete(f)
+  }, [])
+  return addStyle
+}
+export function AddStyleSwitch() {
+  const style = useAddStyle()
+  return (
+    <div className="inline-flex items-center gap-0.5 rounded-lg bg-line-soft p-0.5" role="radiogroup" aria-label="How to add new">
+      {ADD_STYLES.map((r) => (
+        <button key={r.k} role="radio" aria-checked={style === r.k} onClick={() => setAddStyle(r.k)} className={cn('h-6 rounded-md px-2 text-[11.5px] font-medium', style === r.k ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink')}>
+          {r.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** A and C: one "+ New" button that opens a short menu (a new report, or a project). */
+export function NewMenu({ start, block }: { start: Parts['start']; block?: boolean }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false)
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+  const items = [
+    { k: 'reports' as const, icon: FileText, title: 'New AI report', sub: 'Any address. See what it could sell for.' },
+    { k: 'projects' as const, icon: Hammer, title: 'Start a project', sub: 'Send a home to Revive for review.' },
+  ]
+  return (
+    <div ref={ref} className={cn('relative', block && 'w-full')}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className={cn('inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-primary)] px-4 text-[14px] font-medium text-white shadow-sm hover:opacity-90', block && 'w-full')}
+      >
+        <Plus className="size-4" /> New <ChevronDown className="size-4 opacity-80" />
+      </button>
+      {open && (
+        <div className={cn('absolute z-30 mt-1.5 w-72 rounded-xl border border-line bg-white p-1.5 shadow-[0_16px_40px_rgba(28,46,88,0.16)]', block ? 'left-0' : 'right-0')}>
+          {items.map((it) => (
+            <button key={it.k} onClick={() => (setOpen(false), start[it.k].onClick?.())} className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-head">
+              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
+                <it.icon className="size-4" />
+              </span>
+              <span>
+                <span className="block text-[14px] font-semibold text-ink">{it.title}</span>
+                <span className="block text-[12.5px] text-muted">{it.sub}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** B: a dashed "add" tile at the end of a grid, or a slim dashed bar under wide cards. */
+export function AddTile({ label, sub, onClick, slim }: { label: string; sub: string; onClick?: () => void; slim?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'group flex items-center justify-center gap-3 rounded-xl border-2 border-dashed border-line bg-white/60 text-left transition-colors hover:border-[var(--brand-primary-border)] hover:bg-[var(--brand-primary-subtle)]/40',
+        slim ? 'w-full px-4 py-3' : 'min-h-[120px] flex-col p-4 text-center',
+      )}
+    >
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-brand transition-colors group-hover:bg-[var(--brand-primary)] group-hover:text-white">
+        <Plus className="size-4" />
+      </span>
+      <span>
+        <span className="block text-[14px] font-semibold text-ink">{label}</span>
+        <span className="block text-[12.5px] text-muted">{sub}</span>
+      </span>
+    </button>
+  )
+}
+
 export function ReportStyleSwitch() {
   const style = useReportStyle()
   return (
@@ -116,7 +225,7 @@ const sortHomes = (homes: Home[], sort: HomeSort) =>
  * AI reports as small report "documents", quieter than project cards: a thumbnail, the report's title line,
  * today → after Revive, where it is with the homeowner, and one text action.
  */
-export function ReportCards({ homes, sort, grid = 'sm:grid-cols-2 xl:grid-cols-3', limit = 9 }: { homes: Home[]; sort: HomeSort; grid?: string; limit?: number }) {
+export function ReportCards({ homes, sort, grid = 'sm:grid-cols-2 xl:grid-cols-3', limit = 9, add }: { homes: Home[]; sort: HomeSort; grid?: string; limit?: number; add?: React.ReactNode }) {
   const [all, setAll] = useState(false)
   const style = useReportStyle()
   const sorted = sortHomes(homes, sort)
@@ -127,6 +236,7 @@ export function ReportCards({ homes, sort, grid = 'sm:grid-cols-2 xl:grid-cols-3
         {visible.map((h) => (
           <ReportCard key={h.id} h={h} style={style} />
         ))}
+        {add}
       </div>
       {homes.length > limit && (
         <button onClick={() => setAll((v) => !v)} className="mt-3 w-full rounded-xl border border-dashed border-line py-2.5 text-[13px] font-medium text-brand hover:bg-head">
@@ -232,7 +342,7 @@ function SoldCard({ h }: { h: Home }) {
 
 // ---------- the three section views, each with its filters ----------
 
-export function ProjectsView({ homes, filter, onFilter, chips = true, narrow }: { homes: Home[]; filter: string; onFilter: (f: string) => void; chips?: boolean; narrow?: boolean }) {
+export function ProjectsView({ homes, filter, onFilter, chips = true, narrow, add }: { homes: Home[]; filter: string; onFilter: (f: string) => void; chips?: boolean; narrow?: boolean; add?: React.ReactNode }) {
   const f = FILTERS.projects.find((x) => x.k === filter) ?? FILTERS.projects[0]
   const shown = homes.filter(f.test)
   const open = shown.filter((h) => h.project?.status !== 'sold')
@@ -242,6 +352,7 @@ export function ProjectsView({ homes, filter, onFilter, chips = true, narrow }: 
       {chips && <Chips k="projects" homes={homes} value={filter} onChange={onFilter} />}
       <div className={cn('flex flex-col gap-6', chips && 'mt-4')}>
         {open.length > 0 && <ProjectCards homes={open} grid={narrow ? '2xl:grid-cols-2' : undefined} />}
+        {add}
         {done.length > 0 && (
           <div>
             {filter === 'all' && open.length > 0 && <h3 className="mb-3 text-[13px] font-semibold tracking-wide text-muted uppercase">Completed</h3>}
@@ -257,7 +368,7 @@ export function ProjectsView({ homes, filter, onFilter, chips = true, narrow }: 
   )
 }
 
-export function ReportsView({ homes, filter, onFilter, sort, setSort, chips = true, grid }: { homes: Home[]; filter: string; onFilter: (f: string) => void; sort: HomeSort; setSort: (s: HomeSort) => void; chips?: boolean; grid?: string }) {
+export function ReportsView({ homes, filter, onFilter, sort, setSort, chips = true, grid, add }: { homes: Home[]; filter: string; onFilter: (f: string) => void; sort: HomeSort; setSort: (s: HomeSort) => void; chips?: boolean; grid?: string; add?: React.ReactNode }) {
   const f = FILTERS.reports.find((x) => x.k === filter) ?? FILTERS.reports[0]
   return (
     <div>
@@ -268,7 +379,7 @@ export function ReportsView({ homes, filter, onFilter, sort, setSort, chips = tr
         </div>
       )}
       <div className={chips ? 'mt-4' : undefined}>
-        <ReportCards key={filter} homes={homes.filter(f.test)} sort={sort} grid={grid} />
+        <ReportCards key={filter} homes={homes.filter(f.test)} sort={sort} grid={grid} add={add} />
       </div>
     </div>
   )
@@ -287,8 +398,9 @@ export function ListingsView({ homes, filter, onFilter, chips = true }: { homes:
 }
 
 function SectionBody({ k, parts, filter, onFilter, chips = true, narrow }: { k: SectionKey; parts: Parts; filter: string; onFilter: (f: string) => void; chips?: boolean; narrow?: boolean }) {
-  if (k === 'projects') return <ProjectsView homes={parts.projects} filter={filter} onFilter={onFilter} chips={chips} narrow={narrow} />
-  if (k === 'reports') return <ReportsView homes={parts.reports} filter={filter} onFilter={onFilter} sort={parts.sort} setSort={parts.setSort} chips={chips} grid={narrow ? 'sm:grid-cols-2 2xl:grid-cols-3' : undefined} />
+  const tiles = useAddStyle() === 'tile'
+  if (k === 'projects') return <ProjectsView homes={parts.projects} filter={filter} onFilter={onFilter} chips={chips} narrow={narrow} add={tiles ? <AddTile slim label="Start a project" sub="Send a home to Revive for review" onClick={parts.start.projects.onClick} /> : undefined} />
+  if (k === 'reports') return <ReportsView homes={parts.reports} filter={filter} onFilter={onFilter} sort={parts.sort} setSort={parts.setSort} chips={chips} add={tiles ? <AddTile label="New AI report" sub="Any address" onClick={parts.start.reports.onClick} /> : undefined} grid={narrow ? 'sm:grid-cols-2 2xl:grid-cols-3' : undefined} />
   return <ListingsView homes={parts.listings} filter={filter} onFilter={onFilter} chips={chips} />
 }
 
@@ -304,6 +416,7 @@ type View = { kind: 'all' } | { kind: 'section'; k: SectionKey; f: string }
  * blue and has the blue action; each group's "N need you" chip filters that group in place.
  */
 export function SideNavLayout(parts: Parts) {
+  const addMode = useAddStyle()
   const map = { projects: parts.projects, reports: parts.reports, listings: parts.listings }
   const [view, setView] = useState<View>({ kind: 'all' })
   const isOn = (v: View) => v.kind === view.kind && (v.kind !== 'section' || (view.kind === 'section' && view.k === v.k))
@@ -318,6 +431,11 @@ export function SideNavLayout(parts: Parts) {
   return (
     <div className="mt-6 grid items-start gap-8 lg:grid-cols-[232px_minmax(0,1fr)]">
       <nav aria-label="Homes" className="lg:sticky lg:top-4">
+        {addMode === 'nav' && (
+          <div className="mb-4">
+            <NewMenu start={parts.start} block />
+          </div>
+        )}
         <button onClick={() => setView({ kind: 'all' })} className={item(isOn({ kind: 'all' }))} aria-current={isOn({ kind: 'all' }) || undefined}>
           {bar(isOn({ kind: 'all' }))}
           <LayoutGrid className="size-4 text-brand" /> Overview
@@ -362,7 +480,7 @@ export function SideNavLayout(parts: Parts) {
               const items = topOf(pool.length ? pool : map[k]).slice(0, cap)
               return (
                 <section key={k}>
-                  <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} start={k !== 'listings' ? parts.start[k] : undefined} />
+                  <GroupHead k={k} n={map[k].length} onAll={() => setView({ kind: 'section', k, f: 'all' })} />
                   <SectionBody k={k} parts={{ ...parts, [k]: items }} filter="all" onFilter={() => {}} chips={false} narrow />
                 </section>
               )
@@ -375,7 +493,6 @@ export function SideNavLayout(parts: Parts) {
               title={SECTIONS[view.k].title}
               icon={SECTIONS[view.k].icon}
               sub={SECTIONS[view.k].hint}
-              right={view.k !== 'listings' ? <NewButton start={parts.start[view.k]} /> : undefined}
             />
             <SectionBody k={view.k} parts={{ ...parts, [view.k]: topOf(map[view.k]) }} filter={view.f} onFilter={(f) => setView({ kind: 'section', k: (view as { k: SectionKey }).k, f })} narrow />
           </>
@@ -407,16 +524,7 @@ function ViewHead({ title, icon: Icon, sub, right }: { title: string; icon: type
 }
 
 /** A group in the Overview: the type, its count, and a link to see that type on its own. */
-/** "+ New report" / "+ Start project": start one right where the list is. */
-function NewButton({ start }: { start: Parts['start'][SectionKey] }) {
-  return (
-    <button onClick={start.onClick} className="inline-flex h-8 items-center gap-1 rounded-lg border border-line bg-white px-2.5 text-[13px] font-medium text-ink hover:border-[var(--brand-primary-border)] hover:text-brand">
-      <Plus className="size-3.5" /> {start.label}
-    </button>
-  )
-}
-
-function GroupHead({ k, n, onAll, start }: { k: SectionKey; n: number; total?: number; onAll: () => void; start?: Parts['start'][SectionKey] }) {
+function GroupHead({ k, n, onAll }: { k: SectionKey; n: number; total?: number; onAll: () => void }) {
   const Icon = SECTIONS[k].icon
   return (
     <div className="mb-4 flex items-center justify-between gap-3">
@@ -425,7 +533,6 @@ function GroupHead({ k, n, onAll, start }: { k: SectionKey; n: number; total?: n
         <span className="text-[14px] font-normal text-muted tabular-nums">{n}</span>
       </h3>
       <span className="flex items-center gap-3">
-        {start && <NewButton start={start} />}
         <button onClick={onAll} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
           See all {n} <ArrowRight className="size-3.5" />
         </button>

@@ -2,6 +2,7 @@ import { ArrowLeft, Sparkles } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { PropertyView, usePropertyModel, type PropertyTab } from '@/components/property/PropertyView'
+import { BackLink } from '@/components/shell/BackLink'
 import { PAGE } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
@@ -43,9 +44,7 @@ export default function Property() {
           <ArrowLeft className="size-3.5" /> <Sparkles className="size-3.5" /> Back to your Revive AI conversation
         </Link>
       ) : (
-        <Link to="/properties" className="inline-flex items-center gap-1 text-[13px] text-muted hover:text-brand">
-          <ArrowLeft className="size-3.5" /> Homes
-        </Link>
+        <BackLink to="/properties" label="Homes" />
       )}
       <div className="mt-4">
         <PropertyView

@@ -8,6 +8,7 @@ import { Sidebar } from '@/components/shell/Sidebar'
 import { TopBar } from '@/components/shell/TopBar'
 import type { Tier } from '@/data/types'
 import { isMobileApp } from '@/mobile/mode'
+import { useTrackBackNav } from '@/lib/backNav'
 import { useDemo } from '@/store/demo'
 
 const TIERS: Tier[] = ['new', 'active', 'partner']
@@ -36,6 +37,7 @@ export function AppLayout() {
   const { pathname } = useLocation()
   const setTier = useDemo((s) => s.setTier)
   const showDemo = useDemoVisible()
+  useTrackBackNav()
   const [collapsed, setCollapsed] = useState(false)
 
   // Deep links can pin a tier: /?tier=partner
