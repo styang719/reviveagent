@@ -63,7 +63,11 @@ function Footer({ h }: { h: Home }) {
   )
 }
 
-/** A · Compact: thumbnail, address, who ran it; upside on the right (or the potential value without photos). */
+/**
+ * A · Compact: thumbnail and address on the left; on the right, always the same value block: the potential
+ * value with its grade, and under it the gain from today (or "No current value" without photos). Who ran
+ * it sits with the status at the bottom.
+ */
 function Row({ h }: { h: Home }) {
   const b = useBits(h)
   const r = h.report!
@@ -79,18 +83,28 @@ function Row({ h }: { h: Home }) {
           </span>
         </span>
         <span className="shrink-0 text-right">
+          <span className="flex items-center justify-end gap-1.5 text-[16px] leading-6 font-semibold text-ink tabular-nums">
+            {money(r.potential ?? r.valueNow)} <Grade g={r.grade} />
+          </span>
           {b.noPhotos ? (
-            <span className="flex items-center gap-1.5 text-[16px] font-semibold text-ink tabular-nums">
-              {money(r.potential ?? 0)} <Grade g={r.grade} />
-            </span>
+            <span className="block text-[11.5px] text-muted">No current value</span>
           ) : (
-            <span className="block text-[18px] leading-6 font-semibold text-[var(--green)] tabular-nums">{h.upside ? gain(h.upside) : '—'}</span>
+            <span className="block text-[11.5px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? `${gain(h.upside)} from ${money(r.valueNow)}` : `from ${money(r.valueNow)}`}</span>
           )}
-          <span className="block text-[11px] text-muted">{b.noPhotos ? 'Potential value' : 'With Revive'}</span>
         </span>
-        <RanBy h={h} />
       </span>
-      <Footer h={h} />
+      <span className="flex items-center justify-between gap-2 border-t border-line-soft pt-2.5">
+        <span className="inline-flex min-w-0 items-center gap-2">
+          <RanBy h={h} />
+          <span className={cn('inline-flex min-w-0 items-center gap-1.5 truncate text-[12.5px]', b.hot ? 'font-semibold text-brand' : 'text-muted')}>
+            {b.noPhotos && <Camera className="size-3.5 shrink-0" />}
+            <span className="truncate">{b.status}</span>
+          </span>
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-brand">
+          {b.cta} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+        </span>
+      </span>
     </Link>
   )
 }

@@ -11,7 +11,7 @@ import { REPORT_STYLES, ReportCard, type ReportStyle } from './ReportVariants'
 // the report card design to compare, shared across the page and remembered per browser
 let reportStyle: ReportStyle = (() => {
   try {
-    return (localStorage.getItem('rv-report-style') as ReportStyle) || 'row'
+    return 'row' as ReportStyle // compact chosen; the other two stay in ReportVariants for reference
   } catch {
     return 'row'
   }
@@ -414,7 +414,6 @@ function GroupHead({ k, n, onAll }: { k: SectionKey; n: number; total?: number; 
         <Icon className="size-4 text-brand" /> {SECTIONS[k].title}
         <span className="text-[13px] font-normal text-muted tabular-nums">{n}</span>
       </h3>
-      {k === 'reports' && <span className="ml-auto mr-2 hidden md:block"><ReportStyleSwitch /></span>}
       <button onClick={onAll} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline">
         See all {n} <ArrowRight className="size-3.5" />
       </button>
