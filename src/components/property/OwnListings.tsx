@@ -18,7 +18,7 @@ const AREA_DOM = 27 // average days on market nearby
 const COMMISSION = 0.03
 const img = (key?: string) => (key?.startsWith('data:') ? key : photoUrl(key))
 const usd = (n: number) => `$${n.toLocaleString('en-US')}`
-const COLS = 'grid grid-cols-[minmax(140px,1fr)_96px_minmax(130px,1fr)_minmax(130px,1fr)_minmax(230px,1.3fr)] gap-x-4 2xl:gap-x-10' // fits a laptop beside the Homes nav; roomier on wide screens
+const COLS = 'grid grid-cols-[minmax(150px,1.2fr)_124px_minmax(120px,1fr)_minmax(120px,1fr)_minmax(190px,1.1fr)] gap-x-4 2xl:gap-x-10' // fits a laptop beside the Homes nav; roomier on wide screens
 
 function conditionLabel(n: number) {
   return n < 40 ? 'Poor' : n < 50 ? 'Fair' : n < 70 ? 'Great' : 'Excellent'
@@ -101,7 +101,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
     <div className="flex flex-col gap-3">
       <div className="overflow-x-auto">
         <div className="flex min-w-[780px] flex-col gap-3 p-px pb-1">
-          <div className={cn(COLS, 'items-center px-4 2xl:px-6 text-[11.5px] leading-4 font-semibold tracking-[0.04em] whitespace-nowrap text-[#5b5f6e] uppercase')}>
+          <div className={cn(COLS, 'items-center rounded-xl border border-line-soft bg-[#f7f8f8] px-4 py-3 2xl:px-6 text-[11.5px] leading-4 font-semibold tracking-[0.04em] whitespace-nowrap text-[#5b5f6e] uppercase')}>
             <span className="pl-[52px]">Address</span>
             <Head k="dom" sort={sort} setSort={setSort}>DOM</Head>
             <Head k="price" sort={sort} setSort={setSort}>List price</Head>
@@ -124,7 +124,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
                 </Link>
                 <span className="flex flex-col gap-1 self-start">
                   <span className="text-[16px] leading-6 font-medium whitespace-nowrap text-[#1b1c1e] tabular-nums">{dom} days</span>
-                  <span className={cn('text-[12px] leading-[18px]', !coming && vs > 0 ? 'text-[#dc2626]' : 'text-[#5b5f6e]')}>
+                  <span className={cn('text-[12px] leading-[18px] whitespace-nowrap', !coming && vs > 0 ? 'text-[#dc2626]' : 'text-[#5b5f6e]')}>
                     {coming ? 'Coming soon' : f.priceCutDaysAgo !== undefined ? `Price cut ${f.priceCutDaysAgo} ${f.priceCutDaysAgo === 1 ? 'day' : 'days'} ago` : vs > 0 ? `+${vs} over avg` : `${-vs} under avg`}
                   </span>
                 </span>
@@ -171,8 +171,8 @@ export function OwnListings({ homes }: { homes: Home[] }) {
                       <Badge tone="agent">+{money(Math.max(1000, Math.round((upside * COMMISSION) / 1000) * 1000))} Commission</Badge>
                     </span>
                   )}
-                  <Link to={h.needsYou?.to ?? `/property/${h.id}`} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg px-2 text-[14px] 2xl:px-4 leading-5 font-medium text-[#5b5f6e] hover:bg-line-soft hover:text-ink">
-                    Details <ChevronRight className="size-4" />
+                  <Link to={h.needsYou?.to ?? `/property/${h.id}`} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[14px] 2xl:px-4 leading-5 font-medium text-[#5b5f6e] hover:bg-line-soft hover:text-ink">
+                    <span className="hidden 2xl:inline">Details</span> <ChevronRight className="size-4" />
                   </Link>
                 </span>
               </div>

@@ -204,9 +204,8 @@ export default function Properties() {
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Homes</h1>
           <p className="mt-1 text-[15px] text-ink-2">Every home you’re working on, with Revive and on your own. Each one has its own page.</p>
         </div>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-        <NewMenu start={start} />
-        <label className="relative w-full sm:w-72">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+        <label className="relative min-w-0 flex-1 sm:w-72 sm:flex-none">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
           <input
             value={q}
@@ -216,6 +215,7 @@ export default function Properties() {
             className="h-10 w-full rounded-lg border border-line bg-white pr-3 pl-9 text-[14px] outline-none focus:border-[var(--brand-primary-border)] focus:ring-2 focus:ring-[var(--brand-primary-subtle)]"
           />
         </label>
+        <NewMenu start={start} />
         </div>
       </div>
 
