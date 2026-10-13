@@ -1,5 +1,6 @@
 import { ArrowRight, Camera, MapPin } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import avatar from '@/assets/avatar-michelle.jpg'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -21,13 +22,16 @@ export const REPORT_STYLES: { k: ReportStyle; label: string }[] = [
 const GRADE: Record<string, string> = { A: 'bg-[#16a34a]', B: 'bg-[#84cc16]', C: 'bg-[#f59e0b]', D: 'bg-[#9aa3b4]' }
 function Grade({ g }: { g?: string }) {
   if (!g) return null
-  return <span title={`Revive grade ${g}`} className={cn('inline-grid size-5 place-items-center rounded-md text-[11px] font-bold text-white', GRADE[g])}>{g}</span>
+  return <span title={`Revive grade ${g}`} className={cn('inline-flex size-5 shrink-0 items-center justify-center rounded-md text-[11px] leading-none font-bold text-white', GRADE[g])}>{g}</span>
 }
 
 /** Who ran it: initials, blue for the agent, purple for a homeowner. */
 export function RanBy({ h, size = 'sm' }: { h: Home; size?: 'sm' | 'md' }) {
   const r = h.report?.ranBy
   if (!r) return null
+  // the agent's own reports show her photo; a homeowner's shows their initials
+  if (r.you)
+    return <img src={avatar} alt="" title="You ran this report" className={cn('shrink-0 rounded-full object-cover', size === 'md' ? 'size-9' : 'size-6')} />
   return (
     <span
       title={r.you ? 'You ran this report' : `${r.name} ran this on your lead form`}
@@ -42,7 +46,7 @@ function useBits(h: Home) {
   const n = h.needsYou
   const sh = h.report?.share ?? { label: 'Not shared yet', tone: 'none' as const }
   const noPhotos = !!h.report?.noPhotos
-  const status = noPhotos ? 'Add photos for the current value' : n ? n.status : sh.label
+  const status = n && !noPhotos ? n.status : sh.label // the CTA says Add photos; the status stays where it is with the homeowner
   const cta = noPhotos ? 'Add photos' : n ? n.cta.replace(/ with .*$/, '') : sh.tone === 'none' ? 'Share' : 'Open'
   const to = n?.to ?? `/property/${h.id}?tab=report`
   return { n, noPhotos, status, cta, to, hot: !!n && !noPhotos }
@@ -77,27 +81,19 @@ function Row({ h }: { h: Home }) {
         <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15px] font-semibold text-ink">{h.address}</span>
-          <span className="block truncate text-[12.5px] text-muted">
-            {h.city}
-            {h.product && ` · ${h.product}`}
-          </span>
+          <span className="block truncate text-[12.5px] text-muted">{h.city}</span>
         </span>
         <span className="shrink-0 text-right">
           <span className="flex items-center justify-end gap-1.5 text-[16px] leading-6 font-semibold text-ink tabular-nums">
             {money(r.potential ?? r.valueNow)} <Grade g={r.grade} />
           </span>
-          {b.noPhotos ? (
-            <span className="block text-[11.5px] text-muted">No current value</span>
-          ) : (
-            <span className="block text-[11.5px] font-semibold text-[var(--green)] tabular-nums">{h.upside ? `${gain(h.upside)} from ${money(r.valueNow)}` : `from ${money(r.valueNow)}`}</span>
-          )}
+          <span className={cn('block text-[12px] tabular-nums', b.noPhotos ? 'text-muted' : 'font-semibold text-[var(--green)]')}>{b.noPhotos ? 'No photos' : h.upside ? gain(h.upside) : ''}</span>
         </span>
       </span>
       <span className="flex items-center justify-between gap-2 border-t border-line-soft pt-2.5">
         <span className="inline-flex min-w-0 items-center gap-2">
           <RanBy h={h} />
           <span className={cn('inline-flex min-w-0 items-center gap-1.5 truncate text-[12.5px]', b.hot ? 'font-semibold text-brand' : 'text-muted')}>
-            {b.noPhotos && <Camera className="size-3.5 shrink-0" />}
             <span className="truncate">{b.status}</span>
           </span>
         </span>
