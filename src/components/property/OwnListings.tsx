@@ -1,4 +1,4 @@
-import { ArrowUpDown, ChevronRight, Home as HomeIcon, Sparkles } from 'lucide-react'
+import { ArrowUpDown, Check, ChevronRight, Home as HomeIcon, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { photoUrl } from '@/lib/assets'
@@ -8,34 +8,63 @@ import { cn } from '@/lib/utils'
 import { useUi } from '@/store/ui'
 import type { Home } from './HomesList'
 
-// Your listings, as in today's design: days on market against the area average, list price with the home's
-// condition today, potential value after a Revive project, and the Revive products that fit with the extra
-// commission. A listing selling well says so ("Selling on track"). The listing that needs the agent most is
-// highlighted with a blue edge and a filled Details button. Condition scores are illustrative.
+// Your other listings, as in the Dashboard design: days on market against the area average, list price and
+// potential value, and the Revive opportunities with the extra commission. What sits under the prices follows
+// the opportunity: a renovation shows the condition now and after; an ADU alone shows the square feet it adds;
+// a listing selling well says so ("Selling on track"). Sitting longer than the area average surfaces Sell 360;
+// just or newly listed surfaces Renovate to Sell. Condition scores are illustrative.
 
 const AREA_DOM = 27 // average days on market nearby
 const COMMISSION = 0.03
 const img = (key?: string) => (key?.startsWith('data:') ? key : photoUrl(key))
+const usd = (n: number) => `$${n.toLocaleString('en-US')}`
+const COLS = 'grid grid-cols-[200px_80px_180px_180px_minmax(0,1fr)] gap-x-8 xl:gap-x-[49px]'
 
 function conditionLabel(n: number) {
   return n < 40 ? 'Poor' : n < 50 ? 'Fair' : n < 70 ? 'Great' : 'Excellent'
 }
+
+// five segments, the one the score falls in colored with the score on it
 function Meter({ n }: { n: number }) {
-  const color = n < 40 ? 'bg-[#f97316]' : n < 70 ? 'bg-[#eab308]' : 'bg-[#22c55e]'
+  const color = n < 40 ? 'bg-[#f97316]' : n < 70 ? 'bg-[#fbbf24]' : 'bg-[#22c55e]'
   const seg = Math.min(4, Math.floor(n / 20))
   return (
-    <span className="relative mt-1.5 flex h-5 items-center gap-1">
+    <span className="relative flex h-[6px] items-center gap-1">
       {[0, 1, 2, 3, 4].map((i) => (
-        <span key={i} className={cn('h-1.5 flex-1 rounded-full', i === seg ? 'opacity-0' : 'bg-line-soft')} />
+        <span key={i} className={cn('h-[6px] flex-1 first:rounded-l-lg last:rounded-r-lg', i === seg ? color : 'bg-[#b1b3b5]/30')} />
       ))}
-      <span className={cn('absolute grid size-5 -translate-x-1/2 place-items-center rounded-full text-[10px] font-bold text-white ring-2 ring-white', color)} style={{ left: `${seg * 20 + 10}%` }}>
+      <span
+        className={cn('absolute top-1/2 grid size-[22px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-white text-[12px] leading-4 font-semibold text-white shadow-[0_1.3px_2.6px_1px_rgba(103,106,167,0.12),0_0.3px_1.3px_0_rgba(103,106,167,0.1)]', color)}
+        style={{ left: `${seg * 20 + 10}%` }}
+      >
         {n}
       </span>
     </span>
   )
 }
 
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="flex justify-between gap-2 text-[12px] leading-[18px] whitespace-nowrap text-[#5b5f6e]">
+      {label} <b className="font-semibold">{value}</b>
+    </span>
+  )
+}
+
+function Badge({ tone, children }: { tone: 'primary' | 'accent' | 'agent' | 'secondary'; children: React.ReactNode }) {
+  const bg = { primary: 'bg-[var(--brand-primary-subtle)]', accent: 'bg-[#effefa]', agent: 'bg-[var(--brand-agent-subtle)]', secondary: 'bg-[#f7f8f8]' }[tone]
+  return <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] leading-[18px] font-medium whitespace-nowrap text-ink', bg)}>{children}</span>
+}
+
 type Sort = 'dom' | 'price' | 'potential'
+
+function Head({ k, sort, setSort, children }: { k: Sort; sort: Sort | null; setSort: (s: Sort | null) => void; children: React.ReactNode }) {
+  return (
+    <button onClick={() => setSort(sort === k ? null : k)} className={cn('inline-flex items-center gap-1 uppercase', sort === k && 'text-ink')}>
+      {children} <ArrowUpDown className="size-2.5" strokeWidth={2.5} />
+    </button>
+  )
+}
 
 export function OwnListings({ homes }: { homes: Home[] }) {
   const [sort, setSort] = useState<Sort | null>(null)
@@ -47,125 +76,118 @@ export function OwnListings({ homes }: { homes: Home[] }) {
     const k = hash(p.address)
     const dom = f.daysOnMarket ?? 0
     const upside = Math.max(0, h.upside ?? 0)
+    const reno = p.scenarios.some((s) => /renovate|360/i.test(s.product) && !/adu/i.test(s.product) && (s.gain ?? 0) > 0)
+    const adu = p.scenarios.find((s) => /adu/i.test(s.product) && (s.gain ?? 0) > 0)
+    const onTrack = upside < 15000 || (!reno && !adu)
     const now = 30 + (k % 35)
     const after = Math.min(92, now + 22 + (k % 12))
-    const products = (h.listing!.product ?? 'Renovate to Sell').split(' + ')
-    return { h, p, f, dom, upside, now, after, products, onTrack: upside < 15000 }
+    const aduSqft = Math.round((450 + (k % 5) * 60) / 2) * 2
+    const products = onTrack ? [] : [...(reno ? [dom > AREA_DOM ? 'Sell 360' : 'Renovate to Sell'] : []), ...(adu ? ['ADU'] : [])]
+    return { h, p, f, dom, upside, now, after, reno, aduSqft, products, onTrack }
   })
-  const sorted = sort ? [...rows].sort((a, b) => (sort === 'dom' ? b.dom - a.dom : sort === 'price' ? b.p.valueNow - a.p.valueNow : b.p.valueNow + b.upside - (a.p.valueNow + a.upside))) : [...rows].sort((a, b) => Number(!!b.h.needsYou) - Number(!!a.h.needsYou))
-  const Head = ({ k, children }: { k: Sort; children: React.ReactNode }) => (
-    <button onClick={() => setSort(sort === k ? null : k)} className={cn('inline-flex items-center gap-1 uppercase', sort === k && 'text-ink')}>
-      {children} <ArrowUpDown className="size-3" />
-    </button>
-  )
+  const sorted = sort
+    ? [...rows].sort((a, b) => (sort === 'dom' ? b.dom - a.dom : sort === 'price' ? b.p.valueNow - a.p.valueNow : b.p.valueNow + b.upside - (a.p.valueNow + a.upside)))
+    : [...rows].sort((a, b) => Number(!!b.h.needsYou) - Number(!!a.h.needsYou))
   return (
-    <div className="overflow-hidden rounded-xl border border-line bg-white shadow-card">
+    <div className="overflow-hidden rounded-2xl border border-[#eeeef0] bg-white">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[780px] table-fixed text-left">
-          <thead className="border-b border-line bg-head text-[11px] font-semibold tracking-[0.04em] whitespace-nowrap text-muted uppercase">
-            <tr>
-              <th className="w-[170px] px-3 py-2.5 font-semibold">Address</th>
-              <th className="w-[96px] px-3 py-2.5 font-semibold"><Head k="dom">DOM</Head></th>
-              <th className="w-[128px] px-3 py-2.5 font-semibold"><Head k="price">List price</Head></th>
-              <th className="w-[128px] px-3 py-2.5 font-semibold"><Head k="potential">Potential</Head></th>
-              <th className="px-3 py-2.5 font-semibold">
-                <span className="inline-flex items-center gap-1"><Sparkles className="size-3.5" /> Revive</span>
-              </th>
-              <th className="w-[104px] px-3 py-2.5" />
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map(({ h, p, f, dom, upside, now, after, products, onTrack }) => {
-              const hot = !!h.needsYou
-              const vs = dom - AREA_DOM
-              const coming = dom === 0 && !f.priceCutDaysAgo
-              return (
-                <tr key={h.id} className={cn('relative border-t border-line-soft first:border-t-0 align-top', hot && 'bg-[var(--brand-primary-subtle)]/50')}>
-                  <td className="relative px-3 py-4">
-                    {hot && <span className="absolute inset-y-0 left-0 w-[3px] bg-[var(--brand-primary)]" aria-hidden="true" />}
-                    <Link to={`/property/${h.id}`} className="flex items-center gap-3">
-                      <span className="block size-11 shrink-0 overflow-hidden rounded-lg bg-line-soft shadow-sm">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
-                      <span className="min-w-0">
-                        <span className="block truncate text-[15px] font-semibold text-ink hover:text-brand">{p.address}</span>
-                        <span className="block truncate text-[12.5px] text-muted">{p.city}</span>
-                      </span>
-                    </Link>
-                  </td>
-                  <td className="px-3 py-4 whitespace-nowrap">
-                    <span className="block text-[14.5px] font-semibold text-ink tabular-nums">{dom} days</span>
-                    <span className={cn('block text-[12.5px]', coming ? 'text-muted' : vs > 0 ? 'font-medium text-[#dc2626]' : 'text-muted')}>
-                      {coming ? 'Coming soon' : vs > 0 ? `+${vs} over avg` : `${-vs} under avg`}
+        <div className="min-w-[960px]">
+          <div className={cn(COLS, 'items-center border-b border-[#eeeef0] bg-[#f7f8f8] py-3 pr-6 pl-6 text-[11.5px] leading-4 font-semibold tracking-[0.04em] whitespace-nowrap text-[#5b5f6e] uppercase')}>
+            <span className="pl-[52px]">Address</span>
+            <Head k="dom" sort={sort} setSort={setSort}>DOM</Head>
+            <Head k="price" sort={sort} setSort={setSort}>List price</Head>
+            <Head k="potential" sort={sort} setSort={setSort}>Potential value</Head>
+            <span className="inline-flex items-center gap-1">
+              <Sparkles className="size-3" /> Revive opportunities
+            </span>
+          </div>
+          {sorted.map(({ h, p, f, dom, upside, now, after, reno, aduSqft, products, onTrack }) => {
+            const vs = dom - AREA_DOM
+            const coming = dom === 0 && !f.priceCutDaysAgo
+            return (
+              <div key={h.id} className={cn(COLS, 'min-h-[114px] items-center border-b border-[#eeeef0] p-6')}>
+                <Link to={`/property/${h.id}`} className="group flex min-w-0 items-start gap-3 self-start">
+                  <span className="block size-10 shrink-0 overflow-hidden rounded-lg border-2 border-white bg-line-soft shadow-[0_2px_8px_rgba(27,31,79,0.1)]">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
+                  <span className="flex min-w-0 flex-col gap-1">
+                    <span className="truncate text-[15px] leading-6 font-semibold text-[#1b2b4b] group-hover:text-brand">{p.address}</span>
+                    <span className="truncate text-[12px] leading-[18px] text-[#5b5f6e]">{p.city}</span>
+                  </span>
+                </Link>
+                <span className="flex flex-col gap-1 self-start">
+                  <span className="text-[16px] leading-6 font-medium whitespace-nowrap text-[#1b1c1e] tabular-nums">{dom} days</span>
+                  <span className={cn('text-[12px] leading-[18px]', !coming && vs > 0 ? 'text-[#dc2626]' : 'text-[#5b5f6e]')}>
+                    {coming ? 'Coming soon' : f.priceCutDaysAgo !== undefined ? `Price cut ${f.priceCutDaysAgo} ${f.priceCutDaysAgo === 1 ? 'day' : 'days'} ago` : vs > 0 ? `+${vs} over avg` : `${-vs} under avg`}
+                  </span>
+                </span>
+                <span className="flex flex-col gap-2 self-start">
+                  <span className="text-[16px] leading-6 font-medium text-ink tabular-nums">{usd(p.valueNow)}</span>
+                  {onTrack ? (
+                    <span className="-mt-1 text-[12px] leading-[18px] text-[#5b5f6e]">Optimally priced</span>
+                  ) : reno ? (
+                    <span className="flex flex-col gap-3 pt-1">
+                      <Meter n={now} />
+                      <Detail label="Current condition:" value={conditionLabel(now)} />
                     </span>
-                  </td>
-                  <td className="px-3 py-4">
-                    <span className="block text-[14.5px] font-semibold text-ink tabular-nums">{money(p.valueNow)}</span>
-                    {onTrack ? (
-                      <span className="block text-[12.5px] text-muted">Optimally priced</span>
-                    ) : (
-                      <>
-                        <Meter n={now} />
-                        <span className="mt-1 flex justify-between text-[11.5px] text-muted">
-                          Now <b className="font-semibold text-ink-2">{conditionLabel(now)}</b>
-                        </span>
-                      </>
-                    )}
-                  </td>
-                  <td className="px-3 py-4">
-                    <span className="block text-[14.5px] font-semibold text-ink tabular-nums">{money(p.valueNow + upside)}</span>
-                    {onTrack ? (
-                      <span className="block text-[12.5px] text-muted">No action needed</span>
-                    ) : (
-                      <>
-                        <Meter n={after} />
-                        <span className="mt-1 flex justify-between text-[11.5px] text-muted">
-                          After <b className="font-semibold text-ink-2">{conditionLabel(after)}</b>
-                        </span>
-                      </>
-                    )}
-                  </td>
-                  <td className="px-3 py-4">
-                    {onTrack ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-line-soft px-3 py-1 text-[12.5px] font-medium text-ink-2">✓ Selling on track</span>
-                    ) : (
-                      <span className="flex flex-wrap gap-1.5">
+                  ) : (
+                    <Detail label="Current sqft:" value={`${p.sqft.toLocaleString()} sqft`} />
+                  )}
+                </span>
+                <span className="flex flex-col gap-2 self-start">
+                  <span className="text-[16px] leading-6 font-medium text-ink tabular-nums">{usd(p.valueNow + upside)}</span>
+                  {onTrack ? (
+                    <span className="-mt-1 text-[12px] leading-[18px] text-[#5b5f6e]">No action needed</span>
+                  ) : reno ? (
+                    <span className="flex flex-col gap-3 pt-1">
+                      <Meter n={after} />
+                      <Detail label="After renovation:" value={`${conditionLabel(after)} ${after}`} />
+                    </span>
+                  ) : (
+                    <Detail label="Additional sqft:" value={`+${aduSqft.toLocaleString()} sqft`} />
+                  )}
+                </span>
+                <span className="flex items-center justify-between gap-4">
+                  {onTrack ? (
+                    <Badge tone="secondary">
+                      <Check className="size-3.5" /> Selling on track
+                    </Badge>
+                  ) : (
+                    <span className="flex flex-col items-start gap-2">
+                      <span className="flex flex-wrap gap-2">
                         {products.map((x) => (
-                          <span key={x} className="rounded-full bg-head px-2.5 py-1 text-[12px] font-medium whitespace-nowrap text-ink-2">{x}</span>
+                          <Badge key={x} tone={x === 'ADU' ? 'accent' : 'primary'}>
+                            {x}
+                          </Badge>
                         ))}
-                        <span className="rounded-full bg-[var(--brand-agent-subtle)] px-2.5 py-1 text-[12px] font-semibold whitespace-nowrap text-[var(--brand-agent)]">+{money(Math.max(1000, Math.round((upside * COMMISSION) / 1000) * 1000))} commission</span>
                       </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-4 text-right">
-                    <Link
-                      to={h.needsYou?.to ?? `/property/${h.id}`}
-                      className={cn('inline-flex h-9 items-center gap-0.5 rounded-lg px-2.5 text-[13px] font-medium whitespace-nowrap', hot ? 'bg-[var(--brand-primary)] text-white hover:opacity-90' : 'text-ink-2 hover:bg-line-soft hover:text-ink')}
-                    >
-                      Details <ChevronRight className="size-4" />
-                    </Link>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                      <Badge tone="agent">+{money(Math.max(1000, Math.round((upside * COMMISSION) / 1000) * 1000))} Commission</Badge>
+                    </span>
+                  )}
+                  <Link to={h.needsYou?.to ?? `/property/${h.id}`} className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-4 text-[14px] leading-5 font-medium text-[#5b5f6e] hover:bg-line-soft hover:text-ink">
+                    Details <ChevronRight className="size-4" />
+                  </Link>
+                </span>
+              </div>
+            )
+          })}
+        </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-head px-4 py-3.5">
-        <div>
-          <p className="text-[14px] font-semibold text-ink">Not listed yet?</p>
-          <p className="text-[13px] text-ink-2">Run a report on any address to see its potential before it hits the MLS.</p>
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-[#f7f8f8] px-6 py-5">
+        <div className="flex flex-col gap-[5px]">
+          <p className="text-[16px] leading-6 font-semibold text-ink">Not listed yet?</p>
+          <p className="text-[14px] leading-5 text-[#5b5f6e]">Run a report on any address to see its potential before it hits the MLS.</p>
         </div>
         <form
           onSubmit={(e) => {
             e.preventDefault()
             if (addr.trim()) requestAi(`/ai?flow=report&address=${encodeURIComponent(addr.trim())}`)
           }}
-          className="flex w-full gap-2 sm:w-auto"
+          className="flex w-full gap-3 sm:w-auto"
         >
           <label className="relative flex-1 sm:w-72">
-            <HomeIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
-            <input value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Enter a property address" className="h-9 w-full rounded-lg border border-line bg-white pr-3 pl-9 text-[13.5px] outline-none focus:border-[var(--brand-primary-border)]" />
+            <HomeIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#8f94a1]" />
+            <input value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Enter a property address" className="h-9 w-full rounded-lg border border-[#e5e7eb] bg-white pr-3 pl-9 text-[14px] outline-none placeholder:text-[#8f94a1] focus:border-[var(--brand-primary-border)]" />
           </label>
-          <button className="h-9 rounded-lg border border-line bg-white px-3.5 text-[13px] font-medium text-ink hover:border-[var(--brand-primary-border)]">Run report</button>
+          <button className="h-9 rounded-lg border border-[#b6b9c3] bg-white px-4 text-[14px] font-medium text-ink hover:border-[var(--brand-primary-border)]">Run report</button>
         </form>
       </div>
     </div>
