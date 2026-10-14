@@ -40,7 +40,9 @@ export default function MobileChat() {
   const end = useRef<HTMLDivElement>(null)
   const [menu, setMenu] = useState(false)
   const openDrawer = useChatDrawer((s) => s.setOpen)
-  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [chat.length, thinking])
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: 'end' })
+  }, [chat.length, thinking])
 
   // arriving with context (/m/ai?q=… or ?flow=report|project|home|renovision), same as the desktop page
   const [params, setParams] = useSearchParams()

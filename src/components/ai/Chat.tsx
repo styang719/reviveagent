@@ -311,7 +311,9 @@ export function useAsk() {
 export function Thread({ onAsk, thinking, compact = false }: { onAsk: (q: string) => void; thinking: boolean; compact?: boolean }) {
   const chat = useUi((s) => s.chat)
   const endRef = useRef<HTMLLIElement>(null)
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }), [chat, thinking])
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [chat, thinking])
   return (
     <ol className={cn('flex flex-col', compact ? 'gap-4' : 'gap-6')} aria-live="polite">
       {chat.map((m: ChatMessage) =>

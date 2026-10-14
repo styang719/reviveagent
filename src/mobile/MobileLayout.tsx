@@ -109,14 +109,20 @@ export function MobileLayout() {
   useTrackBackNav()
   const { pathname } = useLocation()
   const [wide] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 640 && !inPhoneFrame())
-  useEffect(() => setMobileApp(true), [])
+  useEffect(() => {
+    setMobileApp(true)
+  }, [])
   // each tab starts at the top
   const main = useRef<HTMLElement>(null)
-  useEffect(() => main.current?.scrollTo(0, 0), [pathname])
+  useEffect(() => {
+    main.current?.scrollTo(0, 0)
+  }, [pathname])
 
   const drawer = useChatDrawer((s) => s.open)
   const setDrawer = useChatDrawer((s) => s.setOpen)
-  useEffect(() => setDrawer(false), [pathname, setDrawer])
+  useEffect(() => {
+    setDrawer(false)
+  }, [pathname, setDrawer])
   const fullBleed = /^\/m(\/ai|\/map)?\/?$/.test(pathname)
   if (wide) return <PhoneShell />
   return (

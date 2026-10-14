@@ -46,7 +46,9 @@ export function AppLayout() {
     if (tierParam && TIERS.includes(tierParam)) setTier(tierParam)
   }, [tierParam, setTier])
 
-  useEffect(() => window.scrollTo(0, 0), [pathname])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   // in the mobile prototype, every desktop link lands on its mobile twin (the dashboard becomes Revive AI)
   const location = useLocation()

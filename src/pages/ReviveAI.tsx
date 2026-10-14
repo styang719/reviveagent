@@ -29,7 +29,9 @@ function SidePanel() {
   const panel = useUi((s) => s.panel)
   const setPanel = useUi((s) => s.setPanel)
   const [tab, setTab] = useState<PropertyTab>(panel?.kind ?? 'report')
-  useEffect(() => setTab(panel?.kind ?? 'report'), [panel])
+  useEffect(() => {
+    setTab(panel?.kind ?? 'report')
+  }, [panel])
   const m = usePropertyModel(panel?.id ?? '')
   if (!panel || !m) return null
   return (
