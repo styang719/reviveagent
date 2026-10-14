@@ -15,7 +15,7 @@ export function QrCode({ size = 88 }: { size?: number }) {
     </g>
   )
   return (
-    <svg viewBox={`-1 -1 ${n + 2} ${n + 2}`} width={size} height={size} className="rounded-md bg-white" role="img" aria-label="QR code to download the Revive app">
+    <svg viewBox={`-1 -1 ${n + 2} ${n + 2}`} width={size} height={size} className="aspect-square shrink-0 self-start rounded-md bg-white" style={{ width: size, height: size }} role="img" aria-label="QR code to download the Revive app">
       {cells.map(([x, y]) => <rect key={`${x}.${y}`} x={x} y={y} width={1} height={1} fill="#111" />)}
       {finder(0, 0)}
       {finder(n - 7, 0)}
