@@ -1,6 +1,6 @@
 import { ArrowUpDown, Check, ChevronRight, Home as HomeIcon, Plus, Sparkles } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { OppDrawer } from '@/components/home/TopOpportunities'
 import { photoUrl } from '@/lib/assets'
 import { hash } from '@/lib/flows'
 import { money } from '@/lib/format'
@@ -79,6 +79,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
   const [sort, setSort] = useState<Sort | null>(null)
   const [addr, setAddr] = useState('')
   const [adding, setAdding] = useState(false)
+  const [openId, setOpenId] = useState<string | null>(null)
   const rows = homes.map((h) => {
     const p = h.listing!.property
     const f = p.facts
@@ -114,14 +115,23 @@ export function OwnListings({ homes }: { homes: Home[] }) {
             const vs = dom - AREA_DOM
             const coming = dom === 0 && !f.priceCutDaysAgo
             return (
-              <div key={h.id} className={cn(COLS, 'min-h-[114px] items-center rounded-2xl border border-line bg-white px-4 py-5 transition-colors hover:border-[var(--brand-primary-border)] 2xl:p-6')}>
-                <Link to={`/property/${h.id}`} className="group flex min-w-0 items-start gap-3 self-start">
+              // the whole card opens the listing's details drawer, as on Opportunities
+              <div
+                key={h.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setOpenId(h.id)}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), setOpenId(h.id))}
+                aria-label={`Open ${p.address}`}
+                className={cn(COLS, 'group min-h-[114px] cursor-pointer items-center rounded-2xl border border-line bg-white px-4 py-5 transition-colors hover:border-[var(--brand-primary-border)] 2xl:p-6')}
+              >
+                <span className="flex min-w-0 items-start gap-3 self-start">
                   <span className="block size-10 shrink-0 overflow-hidden rounded-lg border-2 border-white bg-line-soft shadow-[0_2px_8px_rgba(27,31,79,0.1)]">{h.photo && <img src={img(h.photo)} alt="" className="size-full object-cover" />}</span>
                   <span className="flex min-w-0 flex-col gap-1">
                     <span className="truncate text-[15px] leading-6 font-semibold text-[#1b2b4b] group-hover:text-brand">{p.address}</span>
                     <span className="truncate text-[12px] leading-[18px] text-[#5b5f6e]">{p.city}</span>
                   </span>
-                </Link>
+                </span>
                 <span className="flex flex-col gap-1 self-start">
                   <span className="text-[16px] leading-6 font-medium whitespace-nowrap text-[#1b1c1e] tabular-nums">{dom} days</span>
                   <span className={cn('text-[12px] leading-[18px] whitespace-nowrap', !coming && vs > 0 ? 'text-[#dc2626]' : 'text-[#5b5f6e]')}>
@@ -171,9 +181,9 @@ export function OwnListings({ homes }: { homes: Home[] }) {
                       <Badge tone="agent">+{money(Math.max(1000, Math.round((upside * COMMISSION) / 1000) * 1000))} Commission</Badge>
                     </span>
                   )}
-                  <Link to={h.needsYou?.to ?? `/property/${h.id}`} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[14px] 2xl:px-4 leading-5 font-medium text-[#5b5f6e] hover:bg-line-soft hover:text-ink">
+                  <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[14px] 2xl:px-4 leading-5 font-medium text-[#5b5f6e] hover:bg-line-soft hover:text-ink">
                     <span className="hidden 2xl:inline">Details</span> <ChevronRight className="size-4" />
-                  </Link>
+                  </span>
                 </span>
               </div>
             )
@@ -212,6 +222,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
           </span>
         </button>
       )}
+      <OppDrawer o={homes.find((h) => h.id === openId)?.listing ?? null} onClose={() => setOpenId(null)} />
     </div>
   )
 }
