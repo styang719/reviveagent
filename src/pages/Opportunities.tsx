@@ -188,9 +188,10 @@ export default function Opportunities() {
             </label>
             </div>
           </div>
-          {tab && (
+          {/* All opportunities mixes contacts in, so it gets Likely seller too */}
+          {(tab || view === 'all') && (
             <div className="mt-3 flex gap-1 overflow-x-auto border-b border-line [scrollbar-width:none]" role="tablist" aria-label="Filter">
-              {FILTERS[tab].map((f) => {
+              {FILTERS[tab ?? 'contacts'].map((f) => {
                 const n = sorted.filter((o) => passes(o, f.k)).length
                 if (!n && f.k !== 'all') return null
                 const on = filter === f.k
