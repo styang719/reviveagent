@@ -1,11 +1,9 @@
-import { ArrowRight, Clock, DollarSign, LayoutGrid, MapPin, PhoneCall, Plus, Search, Signpost, SquareDashed, Users } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { LayoutGrid, MapPin, PhoneCall, Plus, Search, Signpost, Users } from 'lucide-react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { attentionRank, img, OppDrawer, OppRow } from '@/components/home/TopOpportunities'
+import { attentionRank, OppDrawer, OppRow } from '@/components/home/TopOpportunities'
 import { CompsPanel } from '@/components/opportunity/CompsPanel'
-import { ValueDrawer } from '@/components/opportunity/ValueDrawer'
 import { Button } from '@/components/ui/button'
-import { money, plural } from '@/lib/format'
 import { useOpportunities, type Opportunity } from '@/lib/opportunities'
 import { cn, PAGE } from '@/lib/utils'
 import { YourBook } from '@/components/home/YourBook'
@@ -17,7 +15,6 @@ import { useUi } from '@/store/ui'
 // expired or were withdrawn, so the owner is free to talk). Reports and projects live in Homes; Revive
 // referrals in Lead tracking. A side nav like Homes (views, then sources, then the numbers), status tabs per source.
 
-const COMMISSION = 0.025 // listing side
 const LIKELY = 80
 
 type Tab = 'contacts' | 'listings' | 'market'
@@ -25,29 +22,22 @@ type View = 'go' | 'all' | Tab
 const TABS: { k: Tab; label: string; hint: string }[] = [
   { k: 'contacts', label: 'Your contacts', hint: 'Homeowners in your CRM and lead form, ranked by who to call first.' },
   { k: 'listings', label: 'Your MLS listings', hint: 'Your active listings, and what Revive could add to each before it sells.' },
-  { k: 'market', label: 'Nearby market', hint: 'Listings near you that expired or were withdrawn. The owner is free to talk, and Revive gives you a reason to call.' },
+  { k: 'market', label: 'Nearby market', hint: "Other agents' listings near you that are sitting longer than average, expired or were withdrawn. Revive gives you a reason to call." },
 ]
 const inTab = (o: Opportunity, t: Tab) => (t === 'market' ? o.property.source === 'market' : t === 'listings' ? o.property.source === 'listings' : o.property.source === 'contacts' || o.property.source === 'leadform')
 
-type Filter = 'all' | 'go' | 'seller' | 'reno' | 'adu' | 'expired' | 'withdrawn'
+type Filter = 'all' | 'go' | 'seller' | 'reno' | 'adu'
+// the same tabs for every source; a selling score only means something for homes not on the market
+const BASE_FILTERS: { k: Filter; label: string }[] = [
+  { k: 'all', label: 'All' },
+  { k: 'go', label: 'Worth a call' },
+  { k: 'reno', label: 'Renovation' },
+  { k: 'adu', label: 'ADU room' },
+]
 const FILTERS: Record<Tab, { k: Filter; label: string }[]> = {
-  contacts: [
-    { k: 'all', label: 'All' },
-    { k: 'go', label: 'Worth a call' },
-    { k: 'seller', label: 'Likely seller' },
-    { k: 'reno', label: 'Renovation' },
-    { k: 'adu', label: 'ADU room' },
-  ],
-  listings: [
-    { k: 'all', label: 'All' },
-    { k: 'reno', label: 'Renovation' },
-    { k: 'adu', label: 'ADU room' },
-  ],
-  market: [
-    { k: 'all', label: 'All' },
-    { k: 'expired', label: 'Expired' },
-    { k: 'withdrawn', label: 'Withdrawn' },
-  ],
+  contacts: [...BASE_FILTERS.slice(0, 2), { k: 'seller', label: 'Likely seller' }, ...BASE_FILTERS.slice(2)],
+  listings: BASE_FILTERS,
+  market: BASE_FILTERS,
 }
 const worth = (o: Opportunity) => o.urgency === 'now' || o.urgency === 'soon'
 const passes = (o: Opportunity, f: Filter) =>
@@ -55,9 +45,7 @@ const passes = (o: Opportunity, f: Filter) =>
   (f === 'go' && worth(o)) ||
   (f === 'seller' && (o.person?.sellScore ?? 0) >= LIKELY) ||
   (f === 'reno' && o.tags.includes('Renovation')) ||
-  (f === 'adu' && o.tags.includes('ADU room')) ||
-  (f === 'expired' && o.property.facts.expiredDaysAgo !== undefined) ||
-  (f === 'withdrawn' && o.property.facts.withdrawnDaysAgo !== undefined)
+  (f === 'adu' && o.tags.includes('ADU room'))
 
 type Sort = 'recommended' | 'score' | 'value' | 'upside'
 const SORTS: { k: Sort; label: string }[] = [
@@ -67,27 +55,8 @@ const SORTS: { k: Sort; label: string }[] = [
   { k: 'value', label: 'Value' },
 ]
 
-const acres = (sqft: number) => (sqft >= 43_560 ? `${(sqft / 43_560).toFixed(2)} acres` : `${Math.round(sqft / 100) * 100} sq ft`)
-const landOf = (o: Opportunity) => (o.tags.includes('ADU room') && o.property.lot ? o.property.lot - o.property.sqft : 0)
 
 
-
-/** A compact stat card in the side nav; clicking it opens that slice of the list. */
-function Stat({ label, icon: Icon, value, sub, hot, green, onClick, children }: { label: string; icon: typeof Users; value: string; sub: string; hot?: boolean; green?: boolean; onClick: () => void; children?: React.ReactNode }) {
-  return (
-    <button onClick={onClick} className={cn('group flex w-full flex-col rounded-xl border p-3 text-left transition-colors', hot ? 'border-[var(--brand-primary-border)] bg-[var(--brand-primary-subtle)]' : 'border-line bg-white hover:border-[var(--brand-primary-border)]')}>
-      <span className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold tracking-wide text-brand uppercase">{label}</span>
-        <Icon className="size-3.5 text-brand" />
-      </span>
-      <span className={cn('mt-1 text-[20px] leading-7 font-semibold tabular-nums', green ? 'text-[var(--green)]' : 'text-ink')}>{value}</span>
-      <span className="flex items-center gap-1 text-[12px] text-ink-2">
-        {sub} <ArrowRight className="size-3 shrink-0 text-brand opacity-0 transition-opacity group-hover:opacity-100" />
-      </span>
-      {children}
-    </button>
-  )
-}
 
 function NavItem({ on, onClick, icon: Icon, label, n, blue }: { on: boolean; onClick: () => void; icon: typeof Users; label: string; n: number; blue?: boolean }) {
   return (
@@ -124,31 +93,12 @@ export default function Opportunities() {
   const [compsId, setCompsId] = useState<string | null>(null) // a row's map button: comps around that home
   const [q, setQ] = useState('')
   const [openId, setOpenId] = useState<string | null>(null)
-  const [valueOpen, setValueOpen] = useState(false)
 
   // homes with a project are tracked under Properties
   const inProject = (o: Opportunity) => o.stage === 'project' || !!projects[o.id] || !!o.property.project
   const book = all.filter((o) => !inProject(o) && TABS.some((t) => inTab(o, t.k)))
   const tabBook = tab ? book.filter((o) => inTab(o, tab)) : book
 
-  const stats = useMemo(() => {
-    const book = all.filter((o) => !inProject(o) && inTab(o, 'contacts'))
-    const now = book.filter((o) => o.urgency === 'now')
-    const contacts = book.filter((o) => o.person && o.property.source === 'contacts')
-    const lift = book.reduce((n, o) => n + (o.gain > 0 ? o.gain : 0), 0)
-    const lots = book.filter((o) => landOf(o) > 0)
-    return {
-      now,
-      worth: book.filter(worth).length,
-      sellers: book.filter((o) => (o.person?.sellScore ?? 0) >= LIKELY).length,
-      contacts: contacts.length,
-      lift,
-      liftN: book.filter((o) => o.gain > 0).length,
-      land: lots.reduce((n, o) => n + landOf(o), 0),
-      lots: lots.length,
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [all, projects])
 
   const needle = q.trim().toLowerCase()
   const searched = tabBook.filter((o) => !needle || o.property.address.toLowerCase().includes(needle) || o.person?.name.toLowerCase().includes(needle))
@@ -161,7 +111,6 @@ export default function Opportunities() {
   const shown = sorted.filter((o) => passes(o, filter))
   const open = book.find((o) => o.id === openId) ?? null
   const comps = book.find((o) => o.id === compsId) ?? null
-  const marketLift = book.filter((o) => inTab(o, 'market')).reduce((n, o) => n + Math.max(0, o.gain), 0)
 
   // nothing connected yet (or importing right now): the same connect cards as the dashboard, with examples
   if (!all.length || importing)
@@ -169,7 +118,7 @@ export default function Opportunities() {
       <div className={PAGE}>
         <header className="border-b border-line pb-6">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
-          <p className="mt-1 text-[15px] text-ink-2">Homes you could win more on: your contacts, your listings, and listings near you that came off the market.</p>
+          <p className="mt-1 text-[15px] text-ink-2">Homes you could win more on: your contacts, your listings, and struggling listings near you.</p>
         </header>
         <div className="mt-8">
           <YourBook opps={all} />
@@ -184,7 +133,7 @@ export default function Opportunities() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold text-ink sm:text-[28px]">Opportunities</h1>
-          <p className="mt-1 text-[15px] text-ink-2">Homes you could win more on: your contacts, your listings, and listings near you that came off the market.</p>
+          <p className="mt-1 text-[15px] text-ink-2">Homes you could win more on: your contacts, your listings, and struggling listings near you.</p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <label className="relative flex-1 sm:w-64 sm:flex-none">
@@ -212,22 +161,6 @@ export default function Opportunities() {
           {TABS.map((t) => (
             <NavItem key={t.k} on={view === t.k} onClick={() => setView(t.k)} icon={t.k === 'contacts' ? Users : t.k === 'listings' ? Signpost : MapPin} label={t.label} n={book.filter((o) => inTab(o, t.k)).length} />
           ))}
-          {/* the numbers, each a way into the list */}
-          <p className="mt-6 px-3 pb-2 text-[11.5px] font-semibold tracking-wide text-faint uppercase">This week</p>
-          <div className="flex flex-col gap-2">
-            <Stat label="Call this week" icon={Clock} hot onClick={() => setView('go')} value={String(stats.now.length)} sub={`${stats.now.length === 1 ? 'person' : 'people'} to reach first`}>
-              {stats.now.length > 0 && (
-                <span className="mt-2 flex -space-x-2">
-                  {stats.now.slice(0, 5).map((o) => (
-                    <img key={o.id} src={img(o)} alt="" title={o.person?.name} className="size-6 rounded-full border-2 border-white object-cover" />
-                  ))}
-                </span>
-              )}
-            </Stat>
-            <Stat label="Likely sellers" icon={Users} onClick={() => (setViewState('contacts'), setFilter('seller'))} value={String(stats.sellers)} sub={`of ${plural(stats.contacts, 'contact')}`} />
-            <Stat label="Value to unlock" icon={DollarSign} onClick={() => setValueOpen(true)} value={money(stats.lift + marketLift)} green sub={`+${money(Math.round((stats.lift + marketLift) * COMMISSION))} your commission`} />
-            <Stat label="Unused land" icon={SquareDashed} onClick={() => (setViewState('contacts'), setFilter('adu'))} value={acres(stats.land)} sub={`across ${plural(stats.lots, 'lot')}, room for an ADU`} />
-          </div>
         </nav>
 
         <div className="flex min-w-0 flex-col xl:min-h-0">
@@ -286,16 +219,6 @@ export default function Opportunities() {
 
       {comps && <CompsPanel o={comps} onClose={() => setCompsId(null)} onContact={() => (setCompsId(null), setOpenId(comps.id))} />}
 
-      <ValueDrawer
-        opps={book}
-        open={valueOpen}
-        commission={COMMISSION}
-        onClose={() => setValueOpen(false)}
-        onOpenRow={(id) => {
-          setValueOpen(false)
-          setOpenId(id)
-        }}
-      />
       <OppDrawer o={open} onClose={() => setOpenId(null)} />
     </div>
   )

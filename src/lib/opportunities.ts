@@ -71,7 +71,7 @@ function tagsFor(p: Property, score: UrgencyResult): Tag[] {
   if (p.homeType === 'Single family' && p.lot && p.lot - p.sqft >= 6000) tags.push('ADU room')
   if (p.scenarios.some((s) => s.product.startsWith('Renovate') && (s.gain ?? 0) > 0)) tags.push('Renovation')
   const f = p.facts
-  if ((p.source === 'listings' && ((f.daysOnMarket ?? 0) >= 30 || (f.priceCutDaysAgo ?? 99) <= 7)) || f.expiredDaysAgo !== undefined || f.withdrawnDaysAgo !== undefined)
+  if (((p.source === 'listings' || p.source === 'market') && ((f.daysOnMarket ?? 0) >= 30 || (f.priceCutDaysAgo ?? 99) <= 7)) || f.expiredDaysAgo !== undefined || f.withdrawnDaysAgo !== undefined)
     tags.push('Listing issue')
   if (score.urgency === 'verify') tags.push('Data check')
   return tags

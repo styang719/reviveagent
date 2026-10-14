@@ -87,16 +87,21 @@ export function ScoreCell({ o }: { o: Opportunity }) {
         <span className={cn('text-[12.5px] whitespace-nowrap tabular-nums', dom > 30 ? 'font-medium text-hot' : 'text-muted')}>{dom} days on market</span>
       </div>
     )
-  // someone else's listing that came off the market: that's the signal, not a score
+  // someone else's listing: where it stands on the market, not a selling score
   if (o.property.source === 'market') {
     const f = o.property.facts
-    const days = f.expiredDaysAgo ?? f.withdrawnDaysAgo
+    const off = f.expiredDaysAgo ?? f.withdrawnDaysAgo
+    const label = f.expiredDaysAgo !== undefined ? 'Expired' : f.withdrawnDaysAgo !== undefined ? 'Withdrawn' : 'On market'
     return (
       <div className="flex flex-col items-start gap-1">
-        <span className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--amber-soft)] px-2 py-1 text-[12px] font-semibold text-[var(--amber)]">
-          <Signpost className="size-3.5" /> {f.expiredDaysAgo !== undefined ? 'Expired' : 'Withdrawn'}
+        <span className={cn('inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] font-semibold', off !== undefined ? 'bg-[var(--amber-soft)] text-[var(--amber)]' : 'bg-[var(--brand-primary-subtle)] text-brand')}>
+          <Signpost className="size-3.5" /> {label}
         </span>
-        {days !== undefined && <span className="text-[12.5px] whitespace-nowrap text-muted tabular-nums">{days} days ago</span>}
+        {off !== undefined ? (
+          <span className="text-[12.5px] whitespace-nowrap text-muted tabular-nums">{off} days ago</span>
+        ) : (
+          dom !== undefined && <span className={cn('text-[12.5px] whitespace-nowrap tabular-nums', dom > 30 ? 'font-medium text-hot' : 'text-muted')}>{dom} days on market</span>
+        )}
       </div>
     )
   }

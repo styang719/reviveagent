@@ -1,9 +1,8 @@
 import type { Property } from './types'
 
-// Other agents' listings near the agent, from the MLS, that came off the market without selling (expired or
-// withdrawn). The owner is free to talk to a new agent, and Revive gives a reason to call: what the home
-// could sell for after a project. Active listings with another brokerage stay out (they're under contract).
-// Sample data.
+// Other agents' listings near the agent, from the MLS, that are struggling: sitting longer than the area
+// average, or off the market without selling (expired or withdrawn). Revive gives a reason to call: what the
+// home could sell for after a project. Sample data.
 
 const base = { homeType: 'Single family' as const, ownerRole: 'Owner' as const, source: 'market' as const, minTier: 'new' as const, stage: 'spotted' as const, reportRun: false, activity: [] }
 
@@ -83,5 +82,43 @@ export const marketProperties: Property[] = [
     signals: ['Withdrawn 2 months ago', 'Large flat lot with room for a detached ADU', 'ADU homes nearby sold for more'],
     facts: { withdrawnDaysAgo: 60 },
     scenarios: [{ product: 'Renovate to Sell + ADU', note: 'A detached ADU on the back of the lot.', gain: 210000 }],
+  },
+  {
+    ...base,
+    id: 'mkt-mariposa',
+    address: '1420 Mariposa St',
+    city: 'Pasadena',
+    lat: 34.157,
+    lng: -118.119,
+    beds: 3,
+    baths: 2,
+    sqft: 1720,
+    yearBuilt: 1939,
+    lot: 6900,
+    photo: 'comp-104-0',
+    valueNow: 1185000,
+    valueAfter: 1310000,
+    signals: ['On the market 68 days, 41 over the area average', 'Price cut 10 days ago', 'Dated kitchen in the listing photos'],
+    facts: { daysOnMarket: 68, priceCutDaysAgo: 10, yearsOwned: 18 },
+    scenarios: [{ product: 'Sell 360', note: 'Prep and stage now, paid at closing.', gain: 125000 }],
+  },
+  {
+    ...base,
+    id: 'mkt-hill',
+    address: '890 N Hill Ave',
+    city: 'Pasadena',
+    lat: 34.161,
+    lng: -118.123,
+    beds: 4,
+    baths: 2,
+    sqft: 2050,
+    yearBuilt: 1956,
+    lot: 11200,
+    photo: 'comp-105-1',
+    valueNow: 1460000,
+    valueAfter: 1640000,
+    signals: ['On the market 52 days, 25 over the area average', 'Big lot with room for a detached ADU', 'ADU homes nearby sold for more'],
+    facts: { daysOnMarket: 52, yearsOwned: 26 },
+    scenarios: [{ product: 'Renovate to Sell + ADU', note: 'A detached ADU on the back of the lot.', gain: 180000 }],
   },
 ]
