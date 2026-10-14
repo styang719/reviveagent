@@ -10,6 +10,7 @@ await build({
     emptyOutDir: true,
     assetsInlineLimit: 100_000_000,
     cssCodeSplit: false,
+    minify: false, // readable names, so a crash on the hosted preview says which function failed
     rolldownOptions: { output: { codeSplitting: false } },
   },
 })

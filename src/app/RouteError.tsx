@@ -24,6 +24,10 @@ export function RouteError() {
           <RotateCcw /> Reset demo
         </Button>
         <p className="mt-4 text-[12px] break-words text-faint">{error instanceof Error ? error.message : String(error)}</p>
+        {/* where it failed, so a screenshot is enough to find it */}
+        {error instanceof Error && error.stack && (
+          <pre className="mt-2 max-h-40 overflow-auto rounded-md bg-head p-2 text-left text-[10.5px] whitespace-pre-wrap text-faint">{error.stack.split('\n').slice(0, 6).join('\n')}</pre>
+        )}
       </div>
     </div>
   )
