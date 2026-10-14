@@ -111,8 +111,12 @@ function ShareButton({ m }: { m: Model }) {
   )
 }
 
-export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab: PropertyTab; onTab: (t: PropertyTab) => void; compact?: boolean }) {
+export function PropertyView({ m, tab: asked, onTab, compact = false }: { m: Model; tab: PropertyTab; onTab: (t: PropertyTab) => void; compact?: boolean }) {
   const hasProject = !!m.created || !!m.builtIn
+  // the project tab is named for its product (Renovate to Sell, Sell 360…) and only shows once there is one
+  const productName = m.created?.product ?? m.builtIn?.product ?? 'Project'
+  const tabs = TABS.filter((t) => t.id !== 'project' || hasProject).map((t) => (t.id === 'project' ? { ...t, label: productName } : t))
+  const tab: PropertyTab = asked === 'project' && !hasProject ? 'report' : asked
   return (
     <div className="flex flex-col gap-5">
       <header className={cn('flex flex-col gap-4', !compact && 'sm:flex-row')}>
@@ -155,7 +159,7 @@ export function PropertyView({ m, tab, onTab, compact = false }: { m: Model; tab
       </header>
 
       <div role="tablist" aria-label="Property sections" className="flex gap-1 overflow-x-auto border-b border-line [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.id}
             role="tab"
