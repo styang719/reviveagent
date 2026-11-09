@@ -4,6 +4,7 @@ import { OppDrawer } from '@/components/home/TopOpportunities'
 import { photoUrl } from '@/lib/assets'
 import { hash } from '@/lib/flows'
 import { money } from '@/lib/format'
+import { planForProperty } from '@/lib/plan'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Home } from './HomesList'
@@ -92,7 +93,9 @@ export function OwnListings({ homes }: { homes: Home[] }) {
     const now = 30 + (k % 35)
     const after = Math.min(92, now + 22 + (k % 12))
     const aduSqft = Math.round((450 + (k % 5) * 60) / 2) * 2
-    const products = onTrack ? [] : [...(reno ? [dom > AREA_DOM ? 'Sell 360' : 'Renovate to Sell'] : []), ...(adu ? ['ADU'] : [])]
+    // the same plan as the report: Renovate to Sell, or Sell 360 past the area average; ADU and Build 360 only where the lot has room
+    const plan = planForProperty(p)
+    const products = onTrack ? [] : [plan.primary.name, ...plan.addons.map((x) => x.name)]
     return { h, p, f, dom, upside, now, after, reno, aduSqft, products, onTrack }
   })
   const sorted = sort
@@ -173,7 +176,7 @@ export function OwnListings({ homes }: { homes: Home[] }) {
                     <span className="flex flex-col items-start gap-2">
                       <span className="flex flex-wrap gap-2">
                         {products.map((x) => (
-                          <Badge key={x} tone={x === 'ADU' ? 'accent' : 'primary'}>
+                          <Badge key={x} tone={x === 'ADU' || x === 'Build 360' ? 'accent' : 'primary'}>
                             {x}
                           </Badge>
                         ))}

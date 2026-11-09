@@ -13,6 +13,7 @@ import { photoUrl } from '@/lib/assets'
 import { ago, firstName, gain, money } from '@/lib/format'
 import { useNow } from '@/hooks/useNow'
 import { STAGE_LABEL, useIsProperty, useProgress, type Opportunity, type Tag } from '@/lib/opportunities'
+import { planForProperty, type PlanOption } from '@/lib/plan'
 import { cn } from '@/lib/utils'
 import { useDemo, type Outreach } from '@/store/demo'
 
@@ -53,6 +54,12 @@ function status(o: Opportunity): { main: string; sub?: string; hot?: boolean } {
   const dom = o.property.facts.daysOnMarket
   if (o.property.source === 'listings' && dom !== undefined) {
     return { main: 'Listed', sub: `${dom} DOM`, hot: dom > 30 }
+  }
+  if (o.property.source === 'market') {
+    const f = o.property.facts
+    if (f.expiredDaysAgo !== undefined) return { main: 'Expired', sub: `${f.expiredDaysAgo} days ago` }
+    if (f.withdrawnDaysAgo !== undefined) return { main: 'Withdrawn', sub: `${f.withdrawnDaysAgo} days ago` }
+    return { main: 'On market', sub: `${dom ?? 0} DOM`, hot: (dom ?? 0) > 30 }
   }
   const score = o.person?.sellScore
   if (score !== undefined) return { main: score >= 80 ? 'Likely seller' : score >= 70 ? 'Could sell' : 'Not listed', sub: `Selling score ${score}`, hot: score >= 80 }
@@ -149,6 +156,8 @@ export function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () =
   const checked = useDemo((s) => s.checked)
   const toggle = useDemo((s) => s.toggleChecked)
   const [msg, setMsg] = useState(false)
+  // the home's Revive plan: one main option for its path, and add-ons where the lot has room
+  const plan = o ? planForProperty(o.property, o.person?.sellScore) : null
   return (
     <DialogPrimitive.Root open={!!o} onOpenChange={(v) => !v && onClose()}>
       <DialogPrimitive.Portal>
@@ -178,24 +187,41 @@ export function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () =
                     </p>
                   </div>
 
-                  {o.property.scenarios.length > 0 && (
-                    <section className="rounded-2xl border border-[var(--brand-agent-border-subtle,#e0caf2)] bg-[var(--brand-agent-subtle)] p-4">
-                      <h3 className="flex items-center gap-1.5 text-[14px] font-semibold text-[var(--brand-agent)]">
-                        <Sparkles className="size-4" /> Revive insights
-                      </h3>
-                      <ul className="mt-3 flex flex-col gap-2.5">
-                        {o.property.scenarios.map((s) => (
-                          <li key={s.product} className="flex items-baseline justify-between gap-3 rounded-xl bg-white px-3.5 py-2.5 text-[13.5px]">
-                            <span className="min-w-0">
-                              <span className="font-semibold text-ink">{s.product}</span>
-                              <span className="block text-[12.5px] text-muted">{s.note}</span>
-                            </span>
-                            <span className={cn('shrink-0 font-semibold tabular-nums', s.gain ? 'text-[var(--green)]' : 'text-faint')}>{s.gain ? gain(s.gain) : 'Not eligible'}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  )}
+                  {(() => {
+                    // one main option for the home's path (sell or stay), then add-ons only where the lot has room
+                    const p = plan!
+                    const row = (x: PlanOption, tag?: string) => (
+                      <li key={x.key} className="flex items-baseline justify-between gap-3 rounded-xl bg-white px-3.5 py-2.5 text-[13.5px]">
+                        <span className="min-w-0">
+                          <span className="flex items-center gap-2 font-semibold text-ink">
+                            {x.name}
+                            {tag && <span className="rounded-full bg-ok-soft px-1.5 py-px text-[10.5px] font-semibold text-[var(--green)]">{tag}</span>}
+                          </span>
+                          <span className="block text-[12.5px] text-muted">{x.note ?? x.intro}</span>
+                        </span>
+                        <span className="shrink-0 font-semibold text-[var(--green)] tabular-nums">{gain(x.gain)}</span>
+                      </li>
+                    )
+                    return (
+                      <section className="rounded-2xl border border-[var(--brand-agent-border-subtle,#e0caf2)] bg-[var(--brand-agent-subtle)] p-4">
+                        <h3 className="flex items-center gap-1.5 text-[14px] font-semibold text-[var(--brand-agent)]">
+                          <Sparkles className="size-4" /> Revive insights
+                        </h3>
+                        <p className="mt-0.5 text-[12.5px] text-ink-2">
+                          <span className="font-semibold">{p.path === 'sell' ? 'Selling' : 'Staying'}</span> · {p.why}
+                        </p>
+                        <ul className="mt-3 flex flex-col gap-2.5">{row(p.primary, 'Recommended')}</ul>
+                        {p.addons.length > 0 ? (
+                          <>
+                            <p className="mt-3 text-[11.5px] font-semibold tracking-wide text-muted uppercase">Also possible on this lot</p>
+                            <ul className="mt-2 flex flex-col gap-2.5">{p.addons.map((x) => row(x))}</ul>
+                          </>
+                        ) : (
+                          p.noAddonReason && <p className="mt-2.5 text-[12px] text-muted">{p.noAddonReason}</p>
+                        )}
+                      </section>
+                    )
+                  })()}
 
                   {o.person && (
                     <div className="flex items-center gap-3 rounded-xl bg-head px-4 py-3">
@@ -222,8 +248,8 @@ export function OppDrawer({ o, onClose }: { o: Opportunity | null; onClose: () =
                     {[
                       ['Status', status(o).main, status(o).sub],
                       ['Value today', money(o.property.valueNow), undefined],
-                      ['Potential value', o.gain ? money(o.property.valueNow + o.gain) : '—', o.gain ? `${gain(o.gain)} with Revive` : undefined],
-                      ['Opportunity', o.product ?? '—', undefined],
+                      ['Potential value', money(o.property.valueNow + plan!.primary.gain), `${gain(plan!.primary.gain)} with ${plan!.primary.name}`],
+                      ['Opportunity', plan!.primary.name, undefined],
                     ].map(([k, v, sub]) => (
                       <div key={k} className="rounded-xl border border-line px-4 py-3">
                         <dt className="text-[11.5px] text-muted">{k}</dt>

@@ -1,4 +1,4 @@
-import { ArrowRight, Check, FileText, Hammer, HousePlus, Share2, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowRight, Building2, Check, FileText, Hammer, House, HousePlus, Share2, Sparkles, Wand2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -17,6 +17,7 @@ import { photoUrl } from '@/lib/assets'
 import { buildReport, draftFromAddress, PROJECT_STEPS, type CreatedProject, type GeneratedReport } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
 import { useOpportunities, type Opportunity } from '@/lib/opportunities'
+import { revivePlan, type PlanInput, type PlanKey, type PlanOption } from '@/lib/plan'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
@@ -45,6 +46,7 @@ interface Model {
   reportRun: boolean // a report already exists for this home (run earlier, or by the homeowner on the lead form)
   sqft?: number
   lot?: number
+  homeType?: string
 }
 
 export function usePropertyModel(id: string, address?: string): Model | null {
@@ -80,6 +82,7 @@ export function usePropertyModel(id: string, address?: string): Model | null {
       reportRun: !!report || !!known?.reportRun,
       sqft: r?.sqft ?? known?.sqft,
       lot: r?.lot ?? known?.lot,
+      homeType: r?.homeType ?? known?.homeType,
     }
   }, [id, address, opps, report, created])
 }
@@ -207,70 +210,104 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
   )
 }
 
-// The three ways Revive could add value, side by side: what each is, the value it adds, the space it adds.
-const OPTIONS = [
-  { key: 'sell', name: 'Renovate to Sell', icon: Hammer, intro: 'Revive renovates the kitchen, baths and finishes before listing, and is repaid at closing.', match: (p: string) => p === 'Renovate to Sell' },
-  { key: 'adu', name: 'ADU', icon: HousePlus, intro: 'Revive builds a detached unit for rental income or family, and you pay over time.', match: (p: string) => p.includes('ADU') },
-  { key: 's360', name: 'Sell 360', icon: Sparkles, intro: 'Light prep, paint and staging so the home lists in weeks, with no construction.', match: (p: string) => p === 'Sell 360' },
-]
+/** The home's Revive plan: its path (sell or stay), the one main option, and add-ons only where the lot has room. */
+export function planOf(m: Model) {
+  const f = m.opp?.property.facts
+  return revivePlan({
+    valueNow: m.valueNow,
+    sqft: m.sqft,
+    lot: m.lot,
+    homeType: m.homeType as PlanInput['homeType'],
+    scenarios: m.scenarios,
+    source: m.opp?.property.source,
+    daysOnMarket: f?.daysOnMarket,
+    offMarket: f?.expiredDaysAgo !== undefined || f?.withdrawnDaysAgo !== undefined,
+    sellScore: m.opp?.person?.sellScore,
+    selling: m.report?.selling,
+    goal: m.report?.goal,
+  })
+}
 
-/** A detached ADU sized to the open lot: about a tenth of it, between 400 and 1,200 sq ft. */
-const aduSqft = (m: Model) => (m.lot && m.sqft ? Math.min(1200, Math.max(400, Math.round(((m.lot - m.sqft) * 0.1) / 50) * 50)) : 600)
+const PLAN_ICON: Record<PlanKey, typeof Hammer> = { rts: Hammer, s360: Sparkles, rtstay: House, adu: HousePlus, build360: Building2 }
+
+function Numbers({ o, m, big }: { o: PlanOption; m: Model; big?: boolean }) {
+  return (
+    <dl className="grid grid-cols-2 gap-2">
+      <div className="rounded-lg bg-head px-3 py-2">
+        <dt className="text-[11px] text-muted">Value increase</dt>
+        <dd className={cn('font-semibold text-[var(--green)] tabular-nums', big ? 'text-[20px]' : 'text-[16px]')}>{gain(o.gain)}</dd>
+        <dd className="text-[11px] text-muted tabular-nums">{money(m.valueNow + o.gain)} after</dd>
+      </div>
+      <div className="rounded-lg bg-head px-3 py-2">
+        <dt className="text-[11px] text-muted">Sq ft increase</dt>
+        <dd className={cn('font-semibold text-ink tabular-nums', big ? 'text-[20px]' : 'text-[16px]')}>+{o.sqftAdded.toLocaleString()}</dd>
+        <dd className="text-[11px] text-muted">{o.sqftAdded ? 'New living space' : 'Same footprint'}</dd>
+      </div>
+    </dl>
+  )
+}
 
 function TopOptions({ m }: { m: Model }) {
-  const sell = m.scenarios.find((s) => s.product === 'Renovate to Sell')
-  const rows = OPTIONS.map((o) => {
-    let sc = m.scenarios.find((s) => o.match(s.product))
-    // no Sell 360 scenario on file: light prep usually adds a bit under half of a full renovation
-    if (!sc && o.key === 's360' && sell?.gain) sc = { product: 'Sell 360', note: 'Staging and light prep, no construction', gain: Math.round((sell.gain * 0.45) / 1000) * 1000 }
-    return { ...o, sc }
-  })
-  const best = Math.max(...rows.map((r) => r.sc?.gain ?? 0))
+  const plan = planOf(m)
+  const P = PLAN_ICON[plan.primary.key]
   return (
     <section aria-labelledby="top-options">
-      <h2 id="top-options" className="text-[15px] font-semibold text-ink">
-        Top opportunities
-      </h2>
-      <div className="mt-3 grid gap-3 md:grid-cols-3">
-        {rows.map(({ key, name, icon: Icon, intro, sc }) => {
-          const ok = !!sc?.gain
-          const top = ok && sc!.gain === best
-          return (
-            <div key={key} className={cn('flex flex-col rounded-xl border p-4', top ? 'border-[var(--brand-primary-border)] bg-white shadow-card' : ok ? 'border-line bg-white shadow-card' : 'border-line bg-head')}>
-              <div className="flex items-center justify-between gap-2">
-                <p className="flex items-center gap-2 text-[15px] font-semibold text-ink">
-                  <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
-                    <Icon className="size-4" />
-                  </span>
-                  {name}
-                </p>
-                {top && <span className="rounded-full bg-ok-soft px-2 py-0.5 text-[11px] font-semibold text-[var(--green)]">Best upside</span>}
-              </div>
-              <p className="mt-2.5 text-[13px] leading-5 text-ink-2">{intro}</p>
-              {sc?.note && <p className="mt-1.5 text-[12.5px] leading-5 text-muted">{sc.note}</p>}
-              <dl className="mt-auto grid grid-cols-2 gap-2 pt-4">
-                <div className="rounded-lg bg-head px-3 py-2">
-                  <dt className="text-[11px] text-muted">Value increase</dt>
-                  <dd className={cn('text-[16px] font-semibold tabular-nums', ok ? 'text-[var(--green)]' : 'text-faint')}>{ok ? gain(sc!.gain!) : 'Not eligible'}</dd>
-                  {ok && <dd className="text-[11px] text-muted tabular-nums">{money(m.valueNow + sc!.gain!)} after</dd>}
-                </div>
-                <div className="rounded-lg bg-head px-3 py-2">
-                  <dt className="text-[11px] text-muted">Sq ft increase</dt>
-                  <dd className="text-[16px] font-semibold text-ink tabular-nums">{key === 'adu' && ok ? `+${aduSqft(m).toLocaleString()}` : ok ? '+0' : '—'}</dd>
-                  {ok && <dd className="text-[11px] text-muted">{key === 'adu' ? 'New living space' : 'Same footprint'}</dd>}
-                </div>
-              </dl>
-            </div>
-          )
-        })}
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="top-options" className="text-[15px] font-semibold text-ink">
+          {plan.addons.length ? 'Revive opportunities' : 'Revive opportunity'}
+        </h2>
+        <p className="text-[12.5px] text-muted">
+          <span className="font-semibold text-ink-2">{plan.path === 'sell' ? 'Selling' : 'Staying'}</span> · {plan.why}
+        </p>
       </div>
+      {/* the one main option for the path; it fills the row when it's the only one */}
+      <div className="mt-3 grid gap-4 rounded-xl border border-[var(--brand-primary-border)] bg-white p-4 shadow-card md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-[16px] font-semibold text-ink">
+            <span className="grid size-9 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
+              <P className="size-[18px]" />
+            </span>
+            {plan.primary.name}
+            <span className="rounded-full bg-ok-soft px-2 py-0.5 text-[11px] font-semibold text-[var(--green)]">Recommended</span>
+          </p>
+          <p className="mt-2.5 text-[13.5px] leading-5 text-ink-2">{plan.primary.intro}</p>
+          {plan.primary.note && <p className="mt-1 text-[12.5px] leading-5 text-muted">{plan.primary.note}</p>}
+        </div>
+        <Numbers o={plan.primary} m={m} big />
+      </div>
+      {plan.addons.length > 0 ? (
+        <>
+          <p className="mt-4 text-[12px] font-semibold tracking-wide text-muted uppercase">Also possible on this lot</p>
+          <div className={cn('mt-2 grid gap-3', plan.addons.length > 1 && 'md:grid-cols-2')}>
+            {plan.addons.map((o) => {
+              const I = PLAN_ICON[o.key]
+              return (
+                <div key={o.key} className="flex flex-col gap-3 rounded-xl border border-line bg-white p-4">
+                  <div>
+                    <p className="flex items-center gap-2 text-[15px] font-semibold text-ink">
+                      <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-agent-subtle)] text-[var(--brand-agent)]">
+                        <I className="size-4" />
+                      </span>
+                      {o.name}
+                    </p>
+                    <p className="mt-2 text-[13px] leading-5 text-ink-2">{o.intro}</p>
+                  </div>
+                  <Numbers o={o} m={m} />
+                </div>
+              )
+            })}
+          </div>
+        </>
+      ) : (
+        plan.noAddonReason && <p className="mt-2.5 text-[12.5px] text-muted">{plan.noAddonReason}</p>
+      )}
     </section>
   )
 }
 
 function Report({ m }: { m: Model }) {
   const r = m.report
-  const best = [...m.scenarios].sort((a, b) => (b.gain ?? 0) - (a.gain ?? 0))[0]
+  const best = planOf(m).primary
   return (
     <div className="flex flex-col gap-5">
       {/* where the report came from: alone, or as the footer of the lead activity box when there's a homeowner */}
@@ -309,8 +346,8 @@ function Report({ m }: { m: Model }) {
         <h2 className="text-[15px] font-semibold text-ink">Value</h2>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
           <Stat label="Today" value={money(m.valueNow)} sub={`${money(m.valueLo)}–${money(m.valueHi)}`} />
-          {best?.gain ? <Stat label="After the best project" value={money(m.valueNow + best.gain)} sub={best.product} /> : null}
-          {best?.gain ? <Stat label="Est. upside" value={gain(best.gain)} tone="ok" /> : null}
+          {best.gain ? <Stat label={`After ${best.name}`} value={money(m.valueNow + best.gain)} sub="Recommended option" /> : null}
+          {best.gain ? <Stat label="Est. upside" value={gain(best.gain)} tone="ok" /> : null}
         </div>
         {m.sources.length > 0 && <p className="mt-2 text-[12px] text-muted">Sources: {m.sources.map((x) => `${x.name} ${money(x.value)}`).join(' · ')}</p>}
       </section>
