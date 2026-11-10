@@ -56,6 +56,19 @@ export function tileUrl(z: number, x: number, y: number) {
   return TILE_INDEX[`${z}/${x}/${y}`]
 }
 
+// High-res basemap for the Flip360 map: 512px (retina) tiles at zoom 14–15 around Eagle Rock and Highland Park,
+// rendered from OpenFreeMap (Liberty style, OpenStreetMap data) by scripts/hd-tiles/.
+const HD_TILES = import.meta.glob('/src/assets/tiles-hd/**/*.webp', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
+const HD_INDEX: Record<string, string> = {}
+for (const [path, url] of Object.entries(HD_TILES)) {
+  const m = /tiles-hd\/(\d+)\/(\d+)\/(\d+)\./.exec(path)
+  if (m) HD_INDEX[`${m[1]}/${m[2]}/${m[3]}`] = url
+}
+
+export function hdTileUrl(z: number, x: number, y: number) {
+  return HD_INDEX[`${z}/${x}/${y}`]
+}
+
 /** Keys of every bundled photo (used as the prototype's 'MLS photos'). */
 export function allPhotoKeys() {
   return [...KEYS].sort()

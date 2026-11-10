@@ -307,7 +307,7 @@ export default function OpportunityMap() {
   return (
     <div ref={page} className="relative h-full overflow-hidden [&_.leaflet-bottom]:mb-[calc(var(--tab-h)+2px)]">
       <div className="absolute inset-0">
-        <BaseMap center={ll(PLACES[0])} zoom={PLACES[0].zoom} zoomControl={false} minZoom={12} maxZoom={15.5}>
+        <BaseMap center={ll(PLACES[0])} zoom={PLACES[0].zoom} zoomControl={false} minZoom={13.5} maxZoom={15} hd>
           <Watch gotMap={setMap} changed={setView} tapped={() => (setSearching(false), close())} />
           {shown.map((l) => (
             <Pin key={l.id} l={l} on={l.id === selId} detail={detail} done={!!done[l.id]} pick={pick} />

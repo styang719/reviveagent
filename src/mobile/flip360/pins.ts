@@ -14,7 +14,7 @@ export const short = (n: number) => (n >= 1e6 ? `$${(n / 1e6).toFixed(2).replace
 
 /** How much a pin says at this zoom: far = every pin a dot, mid = plain listings are dots, near = all labeled. */
 export type Detail = 'far' | 'mid' | 'near'
-export const detailAt = (z: number): Detail => (z < 12.75 ? 'far' : z < 13.5 ? 'mid' : 'near')
+export const detailAt = (z: number): Detail => (z < 12.75 ? 'far' : z < 13.75 ? 'mid' : 'near')
 
 /** Selection isn't baked in: the page toggles `.on` on the pin so the change animates. */
 export function pinIcon(l: Listing, opts: { detail: Detail; done: boolean }) {

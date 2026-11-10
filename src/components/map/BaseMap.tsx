@@ -1,7 +1,7 @@
 import L from 'leaflet'
 import { useEffect } from 'react'
 import { MapContainer, TileLayer, useMap, ZoomControl } from 'react-leaflet'
-import { tileUrl } from '@/lib/assets'
+import { hdTileUrl, tileUrl } from '@/lib/assets'
 import { cn } from '@/lib/utils'
 
 // Basemap. Default: OpenStreetMap tiles bundled with the app (zoom 10–14 around the book), the same
@@ -46,6 +46,51 @@ const EmbeddedLayer = L.GridLayer.extend({
   },
 })
 
+// High-res tiles (512px, drawn at 256 for retina screens) for zoom 14–15 over Eagle Rock and Highland Park.
+// The map is held inside this area and between zoom 13.5 (zoom-14 tiles drawn smaller) and 15.
+export const HD_Z = { min: 13.5, max: 15 }
+const lng = (x: number, z: number) => (x / 2 ** z) * 360 - 180
+const lat = (y: number, z: number) => (180 / Math.PI) * Math.atan(Math.sinh(Math.PI - (2 * Math.PI * y) / 2 ** z))
+export const HD_BOUNDS: L.LatLngTuple[] = [
+  [lat(13080, 15), lng(5622, 15)],
+  [lat(13071, 15), lng(5629, 15)],
+]
+const HD_ATTRIBUTION = `${ATTRIBUTION} · <a href="https://openfreemap.org">OpenFreeMap</a> · <a href="https://www.openmaptiles.org/">OpenMapTiles</a>`
+
+const HdLayer = L.GridLayer.extend({
+  createTile(c: L.Coords) {
+    const el = document.createElement('div')
+    el.style.width = el.style.height = '256px'
+    el.style.background = '#f2f3f0'
+    const url = hdTileUrl(c.z, c.x, c.y)
+    if (url) {
+      el.style.backgroundImage = `url("${url}")`
+      el.style.backgroundSize = '256px 256px'
+    }
+    return el
+  },
+})
+
+function HdTiles({ maxZoom }: { maxZoom: number }) {
+  const map = useMap()
+  useEffect(() => {
+    const layer: L.GridLayer = new (HdLayer as unknown as new (o: L.GridLayerOptions) => L.GridLayer)({
+      minZoom: HD_Z.min,
+      maxZoom,
+      maxNativeZoom: HD_Z.max,
+      attribution: HD_ATTRIBUTION,
+    })
+    layer.addTo(map)
+    map.setMaxBounds(L.latLngBounds(HD_BOUNDS))
+    map.options.maxBoundsViscosity = 1
+    map.getContainer().style.background = '#f2f3f0'
+    return () => {
+      layer.remove()
+    }
+  }, [map, maxZoom])
+  return null
+}
+
 function EmbeddedTiles({ maxZoom }: { maxZoom: number }) {
   const map = useMap()
   useEffect(() => {
@@ -76,6 +121,7 @@ export function BaseMap({
   zoomControl = true,
   minZoom = TILE_Z.min,
   maxZoom = TILE_Z.max,
+  hd = false,
   className,
   children,
 }: {
@@ -89,6 +135,7 @@ export function BaseMap({
   zoomControl?: boolean // off on mobile, where you pinch
   minZoom?: number
   maxZoom?: number // above TILE_Z.max the bundled tiles are scaled up
+  hd?: boolean // the high-res Eagle Rock / Highland Park tiles (zoom 13+), with the view held to them
   className?: string
   children?: React.ReactNode
 }) {
@@ -108,7 +155,7 @@ export function BaseMap({
       className={cn('h-full w-full bg-[#eef0f3]', className)}
     >
       {interactive && zoomControl && <ZoomControl position={zoomPosition} />}
-      {LIVE_TILES ? <TileLayer url={LIVE_TILES} attribution={ATTRIBUTION} maxZoom={maxZoom} /> : <EmbeddedTiles maxZoom={maxZoom} />}
+      {LIVE_TILES ? <TileLayer url={LIVE_TILES} attribution={ATTRIBUTION} maxZoom={maxZoom} /> : hd ? <HdTiles maxZoom={maxZoom} /> : <EmbeddedTiles maxZoom={maxZoom} />}
       {children}
     </MapContainer>
   )

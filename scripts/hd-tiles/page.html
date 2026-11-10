@@ -1,0 +1,21 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="../../node_modules/maplibre-gl/dist/maplibre-gl.css">
+<style>html,body{margin:0;background:#fff}#m{position:absolute;left:0;top:0}</style>
+<div id="m"></div>
+<script src="../../node_modules/maplibre-gl/dist/maplibre-gl.js"></script>
+<script>
+// the style, minus point-of-interest and transit icons: the pins carry the meaning on this map
+window.render = async (styleUrl, w, h, lng, lat, zoom) => {
+  const style = await (await fetch(styleUrl)).json()
+  style.layers = style.layers.filter((l) => !/poi|transit|aerodrome|airport|housenumber/i.test(l.id))
+  return draw(style, w, h, lng, lat, zoom)
+}
+const draw = (style, w, h, lng, lat, zoom) => new Promise((ok, bad) => {
+  const el = document.getElementById('m'); el.style.width = w + 'px'; el.style.height = h + 'px'
+  if (window.map) window.map.remove()
+  const map = window.map = new maplibregl.Map({ container: el, style, center: [lng, lat], zoom, interactive: false, attributionControl: false, fadeDuration: 0, preserveDrawingBuffer: true, maxCanvasSize: [16384, 16384], pixelRatio: 2 })
+  map.on('error', (e) => console.log('maperr', e.error && e.error.message))
+  map.once('idle', () => ok({ cw: map.getCanvas().width, ch: map.getCanvas().height }))
+  setTimeout(() => bad('timeout'), 90000)
+})
+</script>

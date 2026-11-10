@@ -89,8 +89,9 @@ Answers "which homes nearby are actually worth pursuing, and why?" on top of the
   numbers (est. profit, margin, renovation); drag or tap it up for the full case: why Revive flagged it, deal math (ARV minus
   purchase, renovation and 8% holding/selling), what to verify, renovated comps, listing details. Actions: Submit to Flip360
   (or Request a Revive review for potential homes), save, share; plain listings offer Ask Revive AI.
-- Map tiles: the bundled OpenStreetMap tiles stop at zoom 14; this map scales them up to 15.5. Set `VITE_MAP_TILES_URL` for sharp
-  live tiles (Mapbox, MapTiler, Stadia).
+- Map tiles: high-res (512px, retina) tiles for zoom 14–15 over Eagle Rock and Highland Park, rendered from OpenFreeMap
+  (OpenStreetMap data, no API key) and bundled in `src/assets/tiles-hd/` (how to re-render: `scripts/hd-tiles/README.md`).
+  The map is held to that area, zoom 13.5–15. `VITE_MAP_TILES_URL` still switches to a live tile API.
 
 ## Where things live
 
