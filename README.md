@@ -73,10 +73,18 @@ The demo bar has three scenarios: **New agent · 0 deals** (nothing connected; c
 - **Revive AI** is the tool. Its results save to the home, never only to the chat.
 - **Home → Your Revive advisor** (`AdvisorCard`) sits in the right column in every scenario: Philip Philipson, with Schedule a call.
 
-## Flip360 opportunity map (mobile)
+## Flip360 opportunity map (its own app)
 
-`/m/map/flip360` (also `/m/flip360`; the **Flip360** chip on the mobile Map and **More → Flip360 opportunity map** link there).
-Answers "which homes nearby are actually worth pursuing, and why?" on top of the MLS map. Code in `src/mobile/flip360/`.
+A separate app from the agent prototype: its own page (`flip360.html`, served at **`/flip360`**), entry point and bundle,
+with no dashboard shell, tab bar or demo bar. Code in `src/flip360/`. It answers "which homes nearby are actually worth
+pursuing, and why?" on top of the MLS map.
+
+```bash
+npm run dev                                 # http://localhost:5173/flip360
+node scripts/build-preview.mjs flip360      # single-file preview → preview/flip360.html
+```
+
+On a phone it fills the screen; on a wide screen it sits in a phone frame with a short intro and the pin legend.
 
 - **Map**: every active MLS listing in view stays on as a quiet white price tag (a dot when zoomed out). Revive's layer marks
   **Flip360 opportunities** (solid Revive green with the Revive mark) and **potential** ones (outlined green, labeled
@@ -88,10 +96,10 @@ Answers "which homes nearby are actually worth pursuing, and why?" on top of the
 - **Opportunity summary**: tapping a pin opens a bottom sheet. The peek has price, address and Revive's answer in three
   numbers (est. profit, margin, renovation); drag or tap it up for the full case: why Revive flagged it, deal math (ARV minus
   purchase, renovation and 8% holding/selling), what to verify, renovated comps, listing details. Actions: Submit to Flip360
-  (or Request a Revive review for potential homes), save, share; plain listings offer Ask Revive AI.
-- Map tiles: high-res (512px, retina) tiles for zoom 14–15 over Eagle Rock and Highland Park, rendered from OpenFreeMap
-  (OpenStreetMap data, no API key) and bundled in `src/assets/tiles-hd/` (how to re-render: `scripts/hd-tiles/README.md`).
-  The map is held to that area, zoom 13.5–15. `VITE_MAP_TILES_URL` still switches to a live tile API.
+  (or Request a Revive review for potential homes), save, share; plain listings offer "Ask Revive for a second look".
+- **Basemap** (`FlipMap.tsx`): high-res (512px, retina) tiles for zoom 14–15 over Eagle Rock and Highland Park, rendered from
+  OpenFreeMap (OpenStreetMap data, no API key) and bundled in `src/assets/tiles-hd/` (how to re-render:
+  `scripts/hd-tiles/README.md`). The map is held to that area, zoom 13.5–15. `VITE_FLIP360_TILES_URL` switches to a live tile API.
 
 ## Where things live
 

@@ -1,4 +1,4 @@
-import { ChevronRight, Gift, Inbox, LayoutGrid, MapPinned, Megaphone, MessageCircle, RotateCcw, TrendingUp, UserRoundPen } from 'lucide-react'
+import { ChevronRight, Gift, Inbox, LayoutGrid, Megaphone, MessageCircle, RotateCcw, TrendingUp, UserRoundPen } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -65,9 +65,6 @@ export default function MobileMore() {
       <ul className="mx-3 divide-y divide-line-soft overflow-hidden rounded-2xl border border-line bg-white">
         <li>
           <Row icon={TrendingUp} label="Opportunities" sub="Your book, ranked by who to call" to="/m/opportunities" />
-        </li>
-        <li>
-          <Row icon={MapPinned} label="Flip360 opportunity map" sub="MLS listings worth flipping, near you" to="/m/map/flip360" />
         </li>
         <li>
           <Row icon={Megaphone} label="Marketing center" sub="Templates branded for you" to="/m/marketing" />

@@ -2,12 +2,11 @@ import L from 'leaflet'
 import { ChevronRight, List, LocateFixed, Map as MapIcon, MapPin, Navigation, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Marker, useMap, useMapEvents } from 'react-leaflet'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { BaseMap, TILE_BOUNDS } from '@/components/map/BaseMap'
 import { cn } from '@/lib/utils'
-import { miles } from '../areaHomes'
-import { DEMO_HERE, LISTINGS, PLACES, profitOf, type Listing, type Place } from './data'
+import { DEMO_HERE, LISTINGS, miles, PLACES, profitOf, type Listing, type Place } from './data'
+import { AREA } from './area'
+import { FlipMap } from './FlipMap'
 import { detailAt, hereIcon, pinIcon, pinZ, short, type Detail } from './pins'
 import { activeFilters, DEFAULT_FILTERS, passes, type Filters } from './filters'
 import { FilterSheet, SubmitSheet } from './Sheets'
@@ -21,7 +20,6 @@ import './flip360.css'
 
 type View = { b: L.LatLngBounds; z: number }
 const ll = (l: { lat: number; lng: number }) => [l.lat, l.lng] as [number, number]
-const world = L.latLngBounds(TILE_BOUNDS)
 const rank = { qualified: 0, potential: 1, standard: 2 } as const
 const TOP = 132 // the search bar and the count row
 
@@ -115,7 +113,6 @@ function StandardRow({ l, distMi, onOpen }: { l: Listing; distMi: number; onOpen
 }
 
 export default function OpportunityMap() {
-  const navigate = useNavigate()
   const [map, setMap] = useState<L.Map | null>(null)
   const [view, setView] = useState<View | null>(null)
   const [me, setMe] = useState(DEMO_HERE)
@@ -259,7 +256,7 @@ export default function OpportunityMap() {
     navigator.geolocation.getCurrentPosition(
       (p) => {
         const here = { lat: p.coords.latitude, lng: p.coords.longitude }
-        if (!world.contains(ll(here))) return fallback('You’re outside the sample map area')
+        if (!AREA.contains(ll(here))) return fallback('You’re outside the sample map area')
         setMe(here)
         map?.flyTo(ll(here), 14.5, { duration: 0.6 })
       },
@@ -278,8 +275,11 @@ export default function OpportunityMap() {
     setDone((d) => ({ ...d, [submitFor.id]: true }))
     setFull(false) // back on the map, the home stays open as a peek
   }, [submitFor])
-  const ask = (l: Listing) =>
-    navigate(`/m/ai?q=${encodeURIComponent(l.tier === 'standard' ? `Could ${l.address} work as a flip? It's listed at ${short(l.price)}.` : `Walk me through the Flip360 numbers on ${l.address}.`)}`)
+  // a plain listing Revive passed on: the agent can ask an underwriter to look again
+  const ask = (l: Listing) => {
+    setDone((d) => ({ ...d, [l.id]: true }))
+    toast.success('Second look requested', { description: `A Revive underwriter will re-check ${l.address} and tell you within 2 business days.` })
+  }
   const share = async (l: Listing) => {
     const text = `${l.address}, ${l.area}: ${short(l.price)}`
     try {
@@ -305,15 +305,15 @@ export default function OpportunityMap() {
   const nFilters = activeFilters(filters)
 
   return (
-    <div ref={page} className="relative h-full overflow-hidden [&_.leaflet-bottom]:mb-[calc(var(--tab-h)+2px)]">
+    <div ref={page} className="relative h-full overflow-hidden [--f3-bottom:env(safe-area-inset-bottom)] [&_.leaflet-bottom]:mb-[calc(var(--f3-bottom)+2px)]">
       <div className="absolute inset-0">
-        <BaseMap center={ll(PLACES[0])} zoom={PLACES[0].zoom} zoomControl={false} minZoom={13.5} maxZoom={15} hd>
+        <FlipMap center={ll(PLACES[0])} zoom={PLACES[0].zoom}>
           <Watch gotMap={setMap} changed={setView} tapped={() => (setSearching(false), close())} />
           {shown.map((l) => (
             <Pin key={l.id} l={l} on={l.id === selId} detail={detail} done={!!done[l.id]} pick={pick} />
           ))}
           <Marker position={ll(me)} icon={hereIcon} interactive={false} zIndexOffset={1000} />
-        </BaseMap>
+        </FlipMap>
       </div>
 
       {/* ── top: search, current location, filters; then what's in view ── */}
@@ -429,7 +429,7 @@ export default function OpportunityMap() {
 
       {/* ── bottom, nothing selected: Revive's read on what's in view ── */}
       {!sel && !searching && view && (
-        <section aria-label="Revive opportunities in view" className="f3-rise absolute inset-x-3 bottom-[calc(var(--tab-h)+18px)] z-[500] rounded-[22px] bg-white py-3 shadow-[0_10px_32px_rgba(28,46,88,0.18)]">
+        <section aria-label="Revive opportunities in view" className="f3-rise absolute inset-x-3 bottom-[calc(var(--f3-bottom)+18px)] z-[500] rounded-[22px] bg-white py-3 shadow-[0_10px_32px_rgba(28,46,88,0.18)]">
           {revive.length ? (
             <>
               <div className="flex items-center justify-between gap-2 px-3.5 pb-2.5">
@@ -521,7 +521,7 @@ export default function OpportunityMap() {
               <MapIcon className="size-4" /> Map
             </button>
           </header>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-3 pb-[calc(var(--tab-h)+16px)]">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-3 pb-[calc(var(--f3-bottom)+16px)]">
             {revive.length > 0 ? (
               <div className="flex flex-col gap-2">
                 {revive.map((l) => (

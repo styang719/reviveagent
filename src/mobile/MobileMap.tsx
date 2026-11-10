@@ -456,9 +456,6 @@ export default function MobileMap() {
               )}
             </label>
             <div className="-mx-3 flex gap-2 overflow-x-auto px-3 [scrollbar-width:none]" role="group" aria-label="Map layers">
-              <Link to="/m/map/flip360" className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[var(--green)] bg-white px-3.5 text-[13.5px] font-semibold text-[var(--green)] shadow-sm">
-                <span className="size-2 rounded-full bg-[var(--green)]" /> Flip360
-              </Link>
               {/* a new agent has no opportunities yet: the map shows the market, and how to add theirs */}
               {!hasBook && (
                 <Link to="/m/opportunities" className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-dashed border-[var(--brand-primary-border)] bg-white px-3.5 text-[13.5px] font-medium text-brand shadow-sm">

@@ -255,7 +255,7 @@ export function SummaryBody({ l, onAsk }: { l: Listing; onAsk: () => void }) {
             Revive checks every active listing against renovated sales, likely scope and Flip360’s 10% margin floor. This one doesn’t clear it: <span className="font-medium text-ink">{l.check.note}</span>
           </p>
           <button onClick={onAsk} className="mt-3 text-[13.5px] font-semibold text-brand">
-            Think Revive got it wrong? Ask Revive AI
+            Think Revive got it wrong? Ask for a second look
           </button>
         </Section>
       )}
@@ -283,9 +283,15 @@ export function SummaryActions({ l, done, saved, onPrimary, onSave, onShare, onA
   return (
     <div className="flex items-center gap-2 border-t border-line-soft bg-white px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
       {l.tier === 'standard' ? (
-        <button onClick={onAsk} className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-line text-[15px] font-semibold text-ink active:bg-head">
-          <Sparkles className="size-[18px] text-brand" /> Ask Revive AI about it
-        </button>
+        done ? (
+          <div className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-head text-[14.5px] font-semibold text-ink-2">
+            <CircleCheck className="size-[18px]" /> Second look requested
+          </div>
+        ) : (
+          <button onClick={onAsk} className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-line text-[15px] font-semibold text-ink active:bg-head">
+            <Sparkles className="size-[18px] text-[var(--green)]" /> Ask Revive for a second look
+          </button>
+        )
       ) : done ? (
         <div className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--green-soft)] text-[14.5px] font-semibold text-[var(--green)]">
           <CircleCheck className="size-[18px]" /> {l.tier === 'qualified' ? 'Submitted · reply within 24 hrs' : 'Review requested'}

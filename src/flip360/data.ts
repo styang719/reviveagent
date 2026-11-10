@@ -4,7 +4,6 @@ import ranch from '@/assets/homes/03-midcentury-ranch.jpg'
 import cottage from '@/assets/homes/06-stucco-cottage.jpg'
 import splitLevel from '@/assets/homes/07-split-level.jpg'
 import craftsman2 from '@/assets/homes/08-craftsman-two-story.jpg'
-import { mlsPhotos } from '@/lib/flows'
 
 // Flip360 opportunity map (sample data): the active MLS listings around Eagle Rock and Highland Park, and
 // Revive's read on each one. Most listings are not flips, and the map says why; a few qualify for Flip360,
@@ -78,7 +77,22 @@ export const profitRange = (l: Listing, buy = l.price): [number, number] =>
 export const marginOf = (l: Listing, buy = l.price) => (l.flip ? profitOf(l, buy) / l.flip.arv : 0)
 export const ppsf = (l: Listing) => Math.round(l.price / l.sqft)
 
-const photos = (id: string, own?: string) => (own ? [own, ...mlsPhotos(id).filter((p) => p !== own)].slice(0, 5) : mlsPhotos(id))
+// listing photos: the prototype's ten sample exteriors, a stable pick per listing
+const HOMES = Object.values(import.meta.glob('/src/assets/homes/*.jpg', { eager: true, query: '?url', import: 'default' }) as Record<string, string>).sort()
+const seed = (s: string) => [...s].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261)
+const photos = (id: string, own?: string) => {
+  const h = seed(id)
+  const picks = new Set<string>(own ? [own] : [])
+  for (let i = 0; picks.size < 4; i++) picks.add(HOMES[(h + i * 3) % HOMES.length])
+  return [...picks]
+}
+
+/** Straight-line miles between two points (good enough at neighborhood scale). */
+export function miles(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const dy = (a.lat - b.lat) * 69
+  const dx = (a.lng - b.lng) * 69 * Math.cos((a.lat * Math.PI) / 180)
+  return Math.hypot(dx, dy)
+}
 
 type Base = Omit<Listing, 'photos' | 'tier' | 'mls' | 'zip'> & { photo?: string }
 const ZIP = { 'Eagle Rock': '90041', 'Highland Park': '90042' } as const

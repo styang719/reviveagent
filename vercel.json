@@ -1,1 +1,6 @@
-{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+{
+  "rewrites": [
+    { "source": "/flip360", "destination": "/flip360.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
