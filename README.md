@@ -73,6 +73,25 @@ The demo bar has three scenarios: **New agent · 0 deals** (nothing connected; c
 - **Revive AI** is the tool. Its results save to the home, never only to the chat.
 - **Home → Your Revive advisor** (`AdvisorCard`) sits in the right column in every scenario: Philip Philipson, with Schedule a call.
 
+## Flip360 opportunity map (mobile)
+
+`/m/map/flip360` (also `/m/flip360`; the **Flip360** chip on the mobile Map and **More → Flip360 opportunity map** link there).
+Answers "which homes nearby are actually worth pursuing, and why?" on top of the MLS map. Code in `src/mobile/flip360/`.
+
+- **Map**: every active MLS listing in view stays on as a quiet white price tag (a dot when zoomed out). Revive's layer marks
+  **Flip360 opportunities** (solid Revive green with the Revive mark) and **potential** ones (outlined green, labeled
+  "Potential — needs review"). Selected pins grow and darken. Sample data (`data.ts`): 26 listings around Eagle Rock and
+  Highland Park, 3 qualified and 3 potential; every plain listing carries Revive's one-line reason it isn't a flip.
+- **Top**: search (neighborhoods and addresses), current location (falls back to a demo spot in Eagle Rock), filters with a
+  count badge, and a count row (Flip360 · to review · listings in view) with a List view.
+- **Sparse by design**: the bottom card shows the Revive homes in view, or says "none pencil out" and offers the nearest one.
+- **Opportunity summary**: tapping a pin opens a bottom sheet. The peek has price, address and Revive's answer in three
+  numbers (est. profit, margin, renovation); drag or tap it up for the full case: why Revive flagged it, deal math (ARV minus
+  purchase, renovation and 8% holding/selling), what to verify, renovated comps, listing details. Actions: Submit to Flip360
+  (or Request a Revive review for potential homes), save, share; plain listings offer Ask Revive AI.
+- Map tiles: the bundled OpenStreetMap tiles stop at zoom 14; this map scales them up to 15.5. Set `VITE_MAP_TILES_URL` for sharp
+  live tiles (Mapbox, MapTiler, Stadia).
+
 ## Where things live
 
 | Path | What |

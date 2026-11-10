@@ -16,6 +16,7 @@ import { AppLayout } from './AppLayout'
 import { MobileLayout } from '@/mobile/MobileLayout'
 import MobileChat from '@/mobile/MobileChat'
 import MobileMap from '@/mobile/MobileMap'
+import OpportunityMap from '@/mobile/flip360/OpportunityMap'
 import MobileMore from '@/mobile/MobileMore'
 import { RouteError } from './RouteError'
 
@@ -32,6 +33,8 @@ export const router = createRouter([
       { index: true, element: <MobileChat /> },
       { path: 'ai', element: <MobileChat /> },
       { path: 'map', element: <MobileMap /> },
+      { path: 'map/flip360', element: <OpportunityMap /> },
+      { path: 'flip360', element: <Navigate to="/m/map/flip360" replace /> },
       { path: 'more', element: <MobileMore /> },
       { path: 'opportunities', element: <Opportunities /> },
       { path: 'properties', element: <Properties /> },

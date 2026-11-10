@@ -46,12 +46,14 @@ const EmbeddedLayer = L.GridLayer.extend({
   },
 })
 
-function EmbeddedTiles() {
+function EmbeddedTiles({ maxZoom }: { maxZoom: number }) {
   const map = useMap()
   useEffect(() => {
+    // past zoom 14 Leaflet scales the street-level tiles up (maxNativeZoom), so a neighborhood can get closer
     const layer: L.GridLayer = new (EmbeddedLayer as unknown as new (o: L.GridLayerOptions) => L.GridLayer)({
       minZoom: TILE_Z.min,
-      maxZoom: TILE_Z.max,
+      maxZoom,
+      maxNativeZoom: TILE_Z.max,
       attribution: ATTRIBUTION,
     })
     layer.addTo(map)
@@ -59,7 +61,7 @@ function EmbeddedTiles() {
     return () => {
       layer.remove()
     }
-  }, [map])
+  }, [map, maxZoom])
   return null
 }
 
@@ -72,6 +74,8 @@ export function BaseMap({
   zoomPosition = 'topleft',
   padTop = 24,
   zoomControl = true,
+  minZoom = TILE_Z.min,
+  maxZoom = TILE_Z.max,
   className,
   children,
 }: {
@@ -83,15 +87,17 @@ export function BaseMap({
   zoomPosition?: L.ControlPosition
   padTop?: number // extra room at the top when something floats over the map
   zoomControl?: boolean // off on mobile, where you pinch
+  minZoom?: number
+  maxZoom?: number // above TILE_Z.max the bundled tiles are scaled up
   className?: string
   children?: React.ReactNode
 }) {
   return (
     <MapContainer
       {...(bounds && bounds.length > 1 ? { bounds, boundsOptions: { paddingTopLeft: [24, padTop] as L.PointTuple, paddingBottomRight: [24, 24] as L.PointTuple } } : { center, zoom })}
-      minZoom={TILE_Z.min}
+      minZoom={minZoom}
       zoomSnap={0.25}
-      maxZoom={TILE_Z.max}
+      maxZoom={maxZoom}
       zoomControl={false}
       scrollWheelZoom={wheelZoom}
       dragging={interactive}
@@ -102,7 +108,7 @@ export function BaseMap({
       className={cn('h-full w-full bg-[#eef0f3]', className)}
     >
       {interactive && zoomControl && <ZoomControl position={zoomPosition} />}
-      {LIVE_TILES ? <TileLayer url={LIVE_TILES} attribution={ATTRIBUTION} /> : <EmbeddedTiles />}
+      {LIVE_TILES ? <TileLayer url={LIVE_TILES} attribution={ATTRIBUTION} maxZoom={maxZoom} /> : <EmbeddedTiles maxZoom={maxZoom} />}
       {children}
     </MapContainer>
   )

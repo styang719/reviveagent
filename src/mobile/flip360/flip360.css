@@ -1,0 +1,45 @@
+/* Flip360 opportunity map pins. The tip of each tag sits on the home. */
+.f3-pin {
+  position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 6px)); transform-origin: 50% calc(100% + 6px);
+  font: 600 11.5px/1 var(--font-sans); letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+  padding: 5px 8px; border-radius: 999px; border: 1px solid transparent; cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.3, 1.4, 0.5, 1), background-color 0.15s, color 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.f3-pin::after {
+  content: ''; position: absolute; left: 50%; bottom: -4.5px; width: 7px; height: 7px; margin-left: -3.5px;
+  transform: rotate(45deg); background: inherit; border: inherit; border-top-color: transparent; border-left-color: transparent;
+  border-bottom-right-radius: 1.5px;
+}
+.f3-mark { width: 10px; height: 11px; flex-shrink: 0; margin-left: -1px; }
+
+/* MLS listing: understated */
+.f3-mls { color: #4b5563; background: #fff; border-color: #d9dde4; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.14); font-weight: 500; }
+.f3-mls.on { color: #fff; background: var(--ink); border-color: var(--ink); box-shadow: 0 4px 12px rgba(16, 24, 40, 0.3); transform: translate(-50%, calc(-100% - 6px)) scale(1.14); }
+
+/* Flip360 qualified: Revive green */
+.f3-go { color: #fff; background: var(--green); border-color: var(--green); box-shadow: 0 2px 6px rgba(5, 128, 113, 0.35); font-weight: 700; padding-left: 7px; }
+.f3-go.on { background: #03594f; border-color: #03594f; box-shadow: 0 0 0 4px rgba(5, 128, 113, 0.22), 0 6px 16px rgba(3, 89, 79, 0.4); transform: translate(-50%, calc(-100% - 6px)) scale(1.2); }
+
+/* potential: outlined green, never solid */
+.f3-maybe { color: var(--green); background: #fff; border: 1.5px solid var(--green); box-shadow: 0 1px 3px rgba(16, 24, 40, 0.16); font-weight: 700; padding-left: 7px; }
+.f3-maybe .f3-mark { opacity: 0.85; }
+.f3-maybe.on { background: var(--green-soft); box-shadow: 0 0 0 4px rgba(5, 128, 113, 0.16), 0 6px 16px rgba(16, 24, 40, 0.22); transform: translate(-50%, calc(-100% - 6px)) scale(1.2); }
+
+/* zoomed out, a plain listing is a dot */
+.f3-dot { display: block; width: 9px; height: 9px; transform: translate(-50%, -50%); border-radius: 50%; background: #fff; border: 2px solid #a3abb8; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.2); cursor: pointer; }
+
+.f3-dot-go { width: 13px; height: 13px; background: var(--green); border-color: #fff; }
+.f3-dot-maybe { width: 13px; height: 13px; background: #fff; border-color: var(--green); }
+.f3-dot.on { background: var(--ink); border-color: #fff; transform: translate(-50%, -50%) scale(1.5); }
+
+/* sheets lift in */
+@keyframes f3-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.f3-rise { animation: f3-up 0.28s cubic-bezier(0.32, 0.72, 0, 1); }
+@keyframes f3-spin { to { transform: rotate(360deg); } }
+.f3-spin { animation: f3-spin 0.8s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .f3-pin { transition: none; }
+  .f3-rise { animation: none; }
+}

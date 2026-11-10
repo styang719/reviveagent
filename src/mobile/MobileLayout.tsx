@@ -123,7 +123,7 @@ export function MobileLayout() {
   useEffect(() => {
     setDrawer(false)
   }, [pathname, setDrawer])
-  const fullBleed = /^\/m(\/ai|\/map)?\/?$/.test(pathname)
+  const fullBleed = /^\/m(\/ai|\/map(\/flip360)?)?\/?$/.test(pathname)
   if (wide) return <PhoneShell />
   return (
     <div className="relative h-[100dvh] overflow-hidden bg-white [--tab-h:calc(72px+env(safe-area-inset-bottom))]">
