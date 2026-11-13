@@ -1,5 +1,5 @@
-import { ArrowRight, Bell, Check, ChevronDown, FileText, Hammer, ImageIcon, LayoutGrid, Plus, Tag, TrendingUp } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { ArrowRight, Bell, Check, FileText, Hammer, ImageIcon, LayoutGrid, Plus, Tag, TrendingUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { photoUrl } from '@/lib/assets'
 import { gain, money } from '@/lib/format'
@@ -36,47 +36,6 @@ function useReportStyle() {
   return reportStyle
 }
 /** The one way to add: a "+ New" button beside search that opens a short menu (a new report, or a project). */
-export function NewMenu({ start }: { start: Parts['start'] }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!open) return
-    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false)
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [open])
-  const items = [
-    { k: 'reports' as const, icon: FileText, title: 'New AI report', sub: 'Any address. See what it could sell for.' },
-    { k: 'projects' as const, icon: Hammer, title: 'Start a project', sub: 'Send a home to Revive for review.' },
-  ]
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-primary)] px-4 text-[14px] font-medium text-white shadow-sm hover:opacity-90"
-      >
-        <Plus className="size-4" /> New <ChevronDown className="size-4 opacity-80" />
-      </button>
-      {open && (
-        <div className={cn('absolute z-30 mt-1.5 w-72 rounded-xl border border-line bg-white p-1.5 shadow-[0_16px_40px_rgba(28,46,88,0.16)]', 'right-0')}>
-          {items.map((it) => (
-            <button key={it.k} onClick={() => (setOpen(false), start[it.k].onClick?.())} className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-head">
-              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
-                <it.icon className="size-4" />
-              </span>
-              <span>
-                <span className="block text-[14px] font-semibold text-ink">{it.title}</span>
-                <span className="block text-[12.5px] text-muted">{it.sub}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
 export function ReportStyleSwitch() {
   const style = useReportStyle()
   return (

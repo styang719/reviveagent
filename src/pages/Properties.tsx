@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
-import { NewMenu, SideNavLayout } from '@/components/property/HomesLayouts'
+import { AddHomeButton, AddHomeDialog, type AddIntent } from '@/components/property/AddHome'
+import { SideNavLayout } from '@/components/property/HomesLayouts'
 import { needsYouOf, type Home, type HomeSort } from '@/components/property/HomesList'
 import { gradeOf, initialsOf, type ReportRow } from '@/components/property/homeRows'
 import { AGENT } from '@/data/tiers'
@@ -62,7 +63,7 @@ export default function Properties() {
   const conn = useConnections()
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<HomeSort>('recent')
-  const requestAi = useUi((s) => s.requestAi)
+  const [adding, setAdding] = useState<AddIntent | null>(null)
   const openStep = useUi((s) => s.openStep)
   const navigate = useNavigate()
   const needle = q.trim().toLowerCase()
@@ -192,8 +193,8 @@ export default function Properties() {
   )
 
   const start = {
-            projects: { label: 'Start project', onClick: () => requestAi('/ai?flow=project') },
-            reports: { label: 'New report', onClick: () => requestAi('/ai?flow=report') },
+            projects: { label: 'Start project', onClick: () => setAdding('project') },
+            reports: { label: 'New report', onClick: () => setAdding('report') },
             listings: { label: 'Add your listings', onClick: () => (openStep('license'), navigate('/')) },
           }
 
@@ -215,7 +216,7 @@ export default function Properties() {
             className="h-10 w-full rounded-lg border border-line bg-white pr-3 pl-9 text-[14px] outline-none focus:border-[var(--brand-primary-border)] focus:ring-2 focus:ring-[var(--brand-primary-subtle)]"
           />
         </label>
-        <NewMenu start={start} />
+        <AddHomeButton />
         </div>
       </div>
 
@@ -245,6 +246,7 @@ export default function Properties() {
           start={start}
         />
       )}
+      <AddHomeDialog open={!!adding} onOpenChange={(v) => !v && setAdding(null)} intent={adding ?? 'report'} />
     </div>
   )
 }
