@@ -102,6 +102,7 @@ export function DockedChat() {
     : STARTERS
 
   if (!open) {
+    if (pathname.endsWith('/properties/new')) return null // the intake has its own Questions? button and Next sits here
     // minimized: just the Revive AI mark, so it never covers the page. A dot means a conversation is mid-way.
     const label = hasChat ? `Revive AI · ${title ?? 'continue the conversation'}` : here ? `Ask Revive about ${here.label}` : 'Ask Revive AI'
     return (

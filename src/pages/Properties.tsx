@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { LicenseForm } from '@/components/home/ConnectBook'
 import { CaseStudies } from '@/components/home/NewAgentIntro'
 import { ProjectsEmpty, ReportsEmpty } from '@/components/property/HomesEmpty'
-import { AddHomeButton, AddHomeDialog, type AddIntent } from '@/components/property/AddHome'
+import { AddHomeButton } from '@/components/property/AddHome'
 import { SideNavLayout } from '@/components/property/HomesLayouts'
 import { needsYouOf, type Home, type HomeSort } from '@/components/property/HomesList'
 import { gradeOf, initialsOf, type ReportRow } from '@/components/property/homeRows'
@@ -63,7 +63,6 @@ export default function Properties() {
   const conn = useConnections()
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<HomeSort>('recent')
-  const [adding, setAdding] = useState<AddIntent | null>(null)
   const openStep = useUi((s) => s.openStep)
   const navigate = useNavigate()
   const needle = q.trim().toLowerCase()
@@ -193,8 +192,8 @@ export default function Properties() {
   )
 
   const start = {
-            projects: { label: 'Start project', onClick: () => setAdding('project') },
-            reports: { label: 'New report', onClick: () => setAdding('report') },
+            projects: { label: 'Start project', onClick: () => navigate('/properties/new') },
+            reports: { label: 'New report', onClick: () => navigate('/properties/new') },
             listings: { label: 'Add your listings', onClick: () => (openStep('license'), navigate('/')) },
           }
 
@@ -246,7 +245,6 @@ export default function Properties() {
           start={start}
         />
       )}
-      <AddHomeDialog open={!!adding} onOpenChange={(v) => !v && setAdding(null)} intent={adding ?? 'report'} />
     </div>
   )
 }

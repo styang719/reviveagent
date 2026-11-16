@@ -6,6 +6,7 @@ import Marketing from '@/pages/Marketing'
 import Opportunities from '@/pages/Opportunities'
 import Person from '@/pages/Person'
 import Properties from '@/pages/Properties'
+import AddHome from '@/pages/AddHome'
 import Referrals from '@/pages/Referrals'
 import ReferralDetail from '@/pages/ReferralDetail'
 import CaseStudies from '@/pages/CaseStudies'
@@ -35,6 +36,7 @@ export const router = createRouter([
       { path: 'more', element: <MobileMore /> },
       { path: 'opportunities', element: <Opportunities /> },
       { path: 'properties', element: <Properties /> },
+      { path: 'properties/new', element: <AddHome /> },
       { path: 'projects', element: <Navigate to="/m/properties" replace /> },
       { path: 'leads', element: <LeadTracking /> },
       { path: 'leads/referrals', element: <Referrals /> },
@@ -55,6 +57,7 @@ export const router = createRouter([
       { path: '/', element: <Home /> },
       { path: '/opportunities', element: <Opportunities /> },
       { path: '/properties', element: <Properties /> },
+      { path: '/properties/new', element: <AddHome /> },
       { path: '/leads', element: <LeadTracking /> },
       { path: '/leads/referrals', element: <Referrals /> },
       { path: '/leads/referrals/:id', element: <ReferralDetail /> },
