@@ -15,11 +15,11 @@ import { hash, type ReportDraft } from '@/lib/flows'
 export type IntakePath = 'sell' | 'renovate' | 'build'
 
 export const CONDITIONS = [
-  { label: 'Needs major work', sub: 'Roof, foundation or systems need attention' },
-  { label: 'Dated', sub: 'Original kitchen and baths, older systems' },
-  { label: 'Average', sub: 'Some updates, mostly older finishes' },
-  { label: 'Good', sub: 'Well kept, updated in the last 15 years' },
-  { label: 'Renovated', sub: 'Recently remodeled, close to new' },
+  { label: 'Disrepair', sub: 'Needs major repairs: roof, foundation or systems' },
+  { label: 'Poor', sub: 'Worn and dated, original kitchen and baths' },
+  { label: 'Good', sub: 'Well kept, with some updates' },
+  { label: 'Excellent', sub: 'Updated recently, move-in ready' },
+  { label: 'Luxury', sub: 'High-end finishes and design throughout' },
 ] as const
 const COND_PPSF = [0.8, 0.9, 1, 1.1, 1.22] // price per sq ft against an average-condition home
 

@@ -1,9 +1,10 @@
 import L from 'leaflet'
 import { Check, CircleAlert, Minus, Plus } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Marker } from 'react-leaflet'
 import { BaseMap } from '@/components/map/BaseMap'
-import type { ReportDraft } from '@/lib/flows'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { mlsPhotos, type ReportDraft } from '@/lib/flows'
 import { money } from '@/lib/format'
 import { CONDITIONS, short, valuesOf, type Comp, type Rule } from '@/lib/intake'
 import { cn } from '@/lib/utils'
@@ -19,16 +20,15 @@ function Eyebrow({ n }: { n: number }) {
 const AREAS = ['Kitchen', 'Bathrooms', 'Floors', 'Exterior']
 
 export function ConditionReview({ draft, condition, estimated, set, comps }: { draft: ReportDraft; condition: number; estimated: number; set: (c: number) => void; comps: Comp[] }) {
-  const counts = CONDITIONS.map((_, k) => comps.filter((c) => c.condition === k).length)
-  const avg = comps.reduce((s, c) => s + c.condition, 0) / Math.max(1, comps.length)
-  const vs = condition > avg + 0.4 ? 'better than most homes nearby' : condition < avg - 0.4 ? 'below most homes nearby' : 'about the same as homes nearby'
+  const [asking, setAsking] = useState<number | null>(null) // a condition the agent wants to switch to
   return (
     <div>
       <Eyebrow n={1} />
       <h1 className="mt-2 text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
-        We think the home is in {CONDITIONS[condition].label.toLowerCase()} condition, {vs}.
+        We think the home is in {CONDITIONS[condition].label.toLowerCase()} condition.
       </h1>
       <p className="mt-2 text-[15px] text-ink-2">Based on the listing photos. If it doesn’t look right, change it: it sets which sales we compare against.</p>
+      {asking !== null && <ConditionCheck target={asking} current={condition} comps={comps} close={() => setAsking(null)} set={set} />}
 
       <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div>
@@ -56,7 +56,7 @@ export function ConditionReview({ draft, condition, estimated, set, comps }: { d
             {CONDITIONS.map((c, k) => (
               <button
                 key={c.label}
-                onClick={() => set(k)}
+                onClick={() => k !== condition && setAsking(k)}
                 aria-pressed={condition === k}
                 className={cn('flex w-full items-center gap-3 rounded-xl border px-4 py-2.5 text-left', condition === k ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-subtle)] ring-1 ring-[var(--brand-primary)]' : 'border-line hover:border-ink-2/40')}
               >
@@ -70,24 +70,84 @@ export function ConditionReview({ draft, condition, estimated, set, comps }: { d
             ))}
           </div>
 
-          <p className="mt-6 mb-2 text-[13px] font-semibold text-ink">Compared with {comps.length} homes sold nearby</p>
-          <div className="flex h-16 items-end gap-1.5">
-            {counts.map((n, k) => (
-              <div key={k} className="flex flex-1 flex-col items-center justify-end gap-1">
-                <div className={cn('w-full rounded-t-md', k === condition ? 'bg-[var(--brand-primary)]' : 'bg-line')} style={{ height: `${Math.max(6, (n / Math.max(...counts, 1)) * 48)}px` }} />
-              </div>
-            ))}
-          </div>
-          <div className="mt-1 flex gap-1.5 text-center text-[11px] leading-tight text-muted">
-            {CONDITIONS.map((c, k) => (
-              <span key={k} className={cn('flex-1', k === condition && 'font-semibold text-brand')}>
-                {k === condition ? 'This home' : c.label}
-              </span>
-            ))}
-          </div>
         </div>
       </div>
     </div>
+  )
+}
+
+// Changing the condition: compare the home with a few sales nearby in the condition the agent picked,
+// one at a time, then say whether that condition holds up or the current one still fits.
+const ANSWERS = ['Better', 'About the same', 'Not as nice'] as const
+type Answer = (typeof ANSWERS)[number]
+
+function ConditionCheck({ target, current, comps, close, set }: { target: number; current: number; comps: Comp[]; close: () => void; set: (c: number) => void }) {
+  const examples = useMemo(() => [...comps].sort((a, b) => Math.abs(a.condition - target) - Math.abs(b.condition - target) || a.miles - b.miles).slice(0, 3), [comps, target])
+  const [answers, setAnswers] = useState<Record<string, Answer>>({})
+  const done = examples.every((c) => answers[c.id])
+  const up = target > current
+  // raising it holds up when the home is as good or better than most; lowering it, when it's as good or worse
+  const agree = examples.filter((c) => (up ? answers[c.id] !== 'Not as nice' : answers[c.id] !== 'Better')).length
+  const verdict = agree >= 2 ? target : current
+  const T = CONDITIONS[target].label
+  return (
+    <Dialog open onOpenChange={(o) => !o && close()}>
+      <DialogContent className="max-w-[640px]">
+        <DialogTitle>{up ? `Is the home in better shape than these?` : `Is the home in worse shape than these?`}</DialogTitle>
+        <DialogDescription>
+          {examples.length} homes sold nearby that look {T.toLowerCase()}. Compare each with this home.
+        </DialogDescription>
+        <ul className="mt-5 space-y-3">
+          {examples.map((c) => (
+            <li key={c.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-line p-2.5 sm:flex-nowrap">
+              <img src={mlsPhotos(c.address)[0]} alt="" className="h-16 w-24 shrink-0 rounded-lg object-cover" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[14px] font-medium text-ink">{c.address}</p>
+                <p className="text-[12.5px] text-muted">
+                  {CONDITIONS[c.condition].label} · sold {short(c.price)} · {c.sqft.toLocaleString()} sq ft
+                </p>
+              </div>
+              <div className="flex w-full gap-1 sm:w-auto">
+                {ANSWERS.map((a) => (
+                  <button
+                    key={a}
+                    onClick={() => setAnswers({ ...answers, [c.id]: a })}
+                    aria-pressed={answers[c.id] === a}
+                    className={cn('h-8 flex-1 rounded-lg border px-2.5 text-[12.5px] font-medium whitespace-nowrap sm:flex-none', answers[c.id] === a ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-subtle)] text-brand' : 'border-line text-ink-2 hover:border-ink-2/40')}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {done && (
+          <div className="rv-fade mt-5 rounded-xl bg-head px-4 py-3">
+            <p className="text-[14.5px] font-semibold text-ink">
+              {verdict === target ? `Then ${T.toLowerCase()} fits. We’ll update it.` : `We still recommend ${CONDITIONS[current].label.toLowerCase()}.`}
+            </p>
+            <p className="mt-0.5 text-[13px] text-ink-2">
+              {verdict === target ? `The home compares well with homes rated ${T.toLowerCase()}.` : `From your answers, the home is closer to ${CONDITIONS[current].label.toLowerCase()} than ${T.toLowerCase()}.`}
+            </p>
+          </div>
+        )}
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          {done && verdict !== target && (
+            <button onClick={() => (set(target), close())} className="h-10 rounded-lg px-3 text-[14px] font-medium text-ink-2 hover:text-ink">
+              Use {T.toLowerCase()} anyway
+            </button>
+          )}
+          <button
+            disabled={!done}
+            onClick={() => (set(verdict), close())}
+            className="h-10 rounded-lg bg-[var(--brand-primary)] px-5 text-[14px] font-medium text-white hover:opacity-90 disabled:opacity-40"
+          >
+            {!done ? 'Answer all three' : verdict === target ? `Update to ${T.toLowerCase()}` : `Keep ${CONDITIONS[current].label.toLowerCase()}`}
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
