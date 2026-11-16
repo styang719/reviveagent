@@ -162,7 +162,6 @@ const medianOf = (xs: number[]) => {
 
 export function CompsReview({ home, comps, set, condition, sqft, fallback }: { home: [number, number]; comps: Comp[]; set: (c: Comp[]) => void; condition: number; sqft: number; fallback: number }) {
   const v = valuesOf(comps, condition, sqft, fallback)
-  const left = comps.filter((c) => !c.picked)
   const toggle = (id: string) => set(comps.map((c) => (c.id === id ? { ...c, picked: !c.picked } : c)))
   const homeIcon = useMemo(() => L.divIcon({ className: 'rv-pinwrap', html: '<span class="rv-office"></span>', iconAnchor: [0, 0] }), [])
   const asIsPpsf = medianOf(v.same.map(ppsfOf)) || Math.round(v.asIs / sqft)
@@ -199,9 +198,10 @@ export function CompsReview({ home, comps, set, condition, sqft, fallback }: { h
         </div>
       </div>
 
-      <CompGroup title="Sets the as-is value" sub={`Sold in ${C} condition or below`} comps={v.same} condition={condition} onToggle={toggle} />
-      <CompGroup title="Sets the potential value" sub="Sold in better condition" comps={v.better} condition={condition} onToggle={toggle} good />
-      <CompGroup title="Not used" sub="Too far, too long ago, or too different in size. Add any you think compare." comps={left} condition={condition} onToggle={toggle} off />
+      {/* every sale goes by its condition: same or worse sets the as-is value, better sets the potential.
+          Within each, the ones in use first, then the ones left out (they can be added). */}
+      <CompGroup title="Sets the as-is value" sub={`Sold in ${C} condition or below`} comps={comps.filter((c) => c.condition <= condition)} condition={condition} onToggle={toggle} />
+      <CompGroup title="Sets the potential value" sub="Sold in better condition than this home" comps={comps.filter((c) => c.condition > condition)} condition={condition} onToggle={toggle} good />
     </div>
   )
 }
@@ -265,23 +265,32 @@ function Spread({ comps, condition, asIs, potential }: { comps: Comp[]; conditio
   )
 }
 
-function CompGroup({ title, sub, comps, condition, onToggle, good, off }: { title: string; sub: string; comps: Comp[]; condition: number; onToggle: (id: string) => void; good?: boolean; off?: boolean }) {
+function CompGroup({ title, sub, comps, condition, onToggle, good }: { title: string; sub: string; comps: Comp[]; condition: number; onToggle: (id: string) => void; good?: boolean }) {
+  const used = comps.filter((c) => c.picked)
+  const out = comps.filter((c) => !c.picked)
+  const grid = (cs: Comp[], off?: boolean) => (
+    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {cs.map((c) => (
+        <CompCard key={c.id} c={c} condition={condition} onToggle={() => onToggle(c.id)} good={good} off={off} />
+      ))}
+    </div>
+  )
   return (
     <section className="mt-9">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h2 className="text-[17px] font-semibold text-ink">
-          {title} <span className="font-normal text-muted">· {comps.length}</span>
+          {title} <span className="font-normal text-muted">· {used.length} used</span>
         </h2>
         <p className="text-[13.5px] text-muted">{sub}</p>
       </div>
-      {comps.length === 0 ? (
-        <p className="mt-3 rounded-xl border border-dashed border-line px-4 py-3 text-[13.5px] text-muted">None yet.</p>
-      ) : (
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {comps.map((c) => (
-            <CompCard key={c.id} c={c} condition={condition} onToggle={() => onToggle(c.id)} good={good} off={off} />
-          ))}
-        </div>
+      {used.length ? grid(used) : <p className="mt-3 rounded-xl border border-dashed border-line px-4 py-3 text-[13.5px] text-muted">None in use. Add one from below.</p>}
+      {out.length > 0 && (
+        <>
+          <p className="mt-5 text-[13px] font-medium text-ink-2">
+            Not used · {out.length} <span className="font-normal text-muted">Too far, too long ago, or too different in size. Add any you think compare.</span>
+          </p>
+          {grid(out, true)}
+        </>
       )}
     </section>
   )
