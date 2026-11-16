@@ -1,5 +1,5 @@
 import L from 'leaflet'
-import { Check, CircleAlert, Minus, Plus } from 'lucide-react'
+import { CalendarDays, Check, CircleAlert, MapPin, Plus, Ruler } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Marker } from 'react-leaflet'
 import { BaseMap } from '@/components/map/BaseMap'
@@ -151,40 +151,40 @@ function ConditionCheck({ target, current, comps, close, set }: { target: number
   )
 }
 
+// How the home's value is worked out: price per sq ft from sales nearby, times this home's size.
+// Sales in the same or worse condition set the as-is value; sales in better condition set the potential.
+// Each sale is a photo card that says, at a glance, why it counts (close by, recent, similar size).
+const ppsfOf = (c: Comp) => Math.round(c.price / c.sqft)
+const medianOf = (xs: number[]) => {
+  const s = [...xs].sort((a, b) => a - b)
+  return s.length ? Math.round(s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : 0
+}
+
 export function CompsReview({ home, comps, set, condition, sqft, fallback }: { home: [number, number]; comps: Comp[]; set: (c: Comp[]) => void; condition: number; sqft: number; fallback: number }) {
   const v = valuesOf(comps, condition, sqft, fallback)
-  const picked = comps.filter((c) => c.picked)
   const left = comps.filter((c) => !c.picked)
   const toggle = (id: string) => set(comps.map((c) => (c.id === id ? { ...c, picked: !c.picked } : c)))
   const homeIcon = useMemo(() => L.divIcon({ className: 'rv-pinwrap', html: '<span class="rv-office"></span>', iconAnchor: [0, 0] }), [])
+  const asIsPpsf = medianOf(v.same.map(ppsfOf)) || Math.round(v.asIs / sqft)
+  const potPpsf = medianOf(v.better.map(ppsfOf)) || asIsPpsf
+  const C = CONDITIONS[condition].label.toLowerCase()
   return (
     <div>
       <Eyebrow n={2} />
-      <h1 className="mt-2 text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">How we picked the comps</h1>
-      <p className="mt-2 text-[15px] text-ink-2">Sales within 0.6 mi, in the last 6 months, close in size. Add or remove any and the values update.</p>
+      <h1 className="mt-2 text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">How we worked out the home’s value</h1>
+      <p className="mt-2 text-[15px] text-ink-2">
+        What similar homes nearby sold for per sq ft, times this home’s {sqft.toLocaleString()} sq ft. Homes in {C} condition or below give today’s value; homes in better condition show what it could sell for.
+      </p>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-line px-5 py-4">
-          <p className="text-[13px] font-medium text-muted">As-is value</p>
-          <p className="mt-1 text-[28px] leading-none font-semibold text-ink">{money(v.asIs)}</p>
-          <p className="mt-2 text-[13px] text-ink-2">
-            From {v.same.length} {v.same.length === 1 ? 'sale' : 'sales'} in the same or worse condition ({CONDITIONS[condition].label.toLowerCase()} or below)
-          </p>
+      <div className="mt-7 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ValueCard label="As-is value" value={v.asIs} ppsf={asIsPpsf} sqft={sqft} n={v.same.length} what={`in ${C} condition or below`} />
+          <ValueCard label="Potential value" value={v.potential} ppsf={potPpsf} sqft={sqft} n={v.better.length} what="in better condition" up={v.potential - v.asIs} />
+          <div className="sm:col-span-2">
+            <Spread comps={comps} condition={condition} asIs={asIsPpsf} potential={potPpsf} />
+          </div>
         </div>
-        <div className="rounded-xl border border-[var(--green)]/30 bg-[var(--green-soft,#e7f6ee)]/40 px-5 py-4">
-          <p className="text-[13px] font-medium text-muted">Potential value</p>
-          <p className="mt-1 flex items-baseline gap-2 text-[28px] leading-none font-semibold text-ink">
-            {money(v.potential)}
-            {v.potential > v.asIs && <span className="text-[15px] font-semibold text-[var(--green)]">+{short(v.potential - v.asIs)}</span>}
-          </p>
-          <p className="mt-2 text-[13px] text-ink-2">
-            {v.better.length ? `From ${v.better.length} ${v.better.length === 1 ? 'sale' : 'sales'} in better condition than this home` : 'No sales in better condition picked yet. Add one below.'}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-        <div className="h-[300px] overflow-hidden rounded-xl border border-line lg:sticky lg:top-6 lg:h-[520px]">
+        <div className="h-[260px] overflow-hidden rounded-xl border border-line lg:h-auto lg:min-h-[300px]">
           <BaseMap center={home} zoom={13.5} wheelZoom={false}>
             {comps.map((c) => (
               <Marker
@@ -197,48 +197,140 @@ export function CompsReview({ home, comps, set, condition, sqft, fallback }: { h
             <Marker position={home} icon={homeIcon} zIndexOffset={1000} />
           </BaseMap>
         </div>
-
-        <div className="space-y-6">
-          <CompList title={`Comps we used (${picked.length})`} comps={picked} condition={condition} onToggle={toggle} used />
-          <CompList title={`Comps we left out (${left.length})`} comps={left} condition={condition} onToggle={toggle} />
-        </div>
       </div>
+
+      <CompGroup title="Sets the as-is value" sub={`Sold in ${C} condition or below`} comps={v.same} condition={condition} onToggle={toggle} />
+      <CompGroup title="Sets the potential value" sub="Sold in better condition" comps={v.better} condition={condition} onToggle={toggle} good />
+      <CompGroup title="Not used" sub="Too far, too long ago, or too different in size. Add any you think compare." comps={left} condition={condition} onToggle={toggle} off />
     </div>
   )
 }
 
-function CompList({ title, comps, condition, onToggle, used }: { title: string; comps: Comp[]; condition: number; onToggle: (id: string) => void; used?: boolean }) {
+function ValueCard({ label, value, ppsf, sqft, n, what, up }: { label: string; value: number; ppsf: number; sqft: number; n: number; what: string; up?: number }) {
   return (
-    <div>
-      <p className="mb-2 text-[13px] font-semibold text-ink">{title}</p>
+    <div className={cn('rounded-xl border px-5 py-4', up !== undefined ? 'border-[var(--green)]/30 bg-[var(--green-soft,#e7f6ee)]/40' : 'border-line')}>
+      <p className="text-[13px] font-medium text-muted">{label}</p>
+      <p className="mt-1 flex items-baseline gap-2 text-[28px] leading-none font-semibold text-ink">
+        {money(value)}
+        {up ? <span className="text-[14px] font-semibold text-[var(--green)]">+{short(up)}</span> : null}
+      </p>
+      <p className="mt-3 flex flex-wrap items-center gap-1.5 text-[13px] text-ink-2">
+        <span className="rounded-md bg-white px-1.5 py-0.5 font-semibold text-ink ring-1 ring-line">{money(ppsf)}/sq ft</span>
+        <span className="text-muted">×</span>
+        <span className="rounded-md bg-white px-1.5 py-0.5 font-semibold text-ink ring-1 ring-line">{sqft.toLocaleString()} sq ft</span>
+      </p>
+      <p className="mt-2 text-[12.5px] text-muted">
+        {n ? `Median of ${n} ${n === 1 ? 'sale' : 'sales'} ${what}` : `No sales ${what} yet. Add one below.`}
+      </p>
+    </div>
+  )
+}
+
+/** Every sale on one line by price per sq ft, with where the two values land. */
+function Spread({ comps, condition, asIs, potential }: { comps: Comp[]; condition: number; asIs: number; potential: number }) {
+  const xs = comps.map(ppsfOf)
+  const lo = Math.min(...xs, asIs) * 0.97
+  const hi = Math.max(...xs, potential) * 1.03
+  const at = (x: number) => `${((x - lo) / (hi - lo)) * 100}%`
+  return (
+    <div className="rounded-xl border border-line px-5 pt-4 pb-3">
+      <p className="text-[13px] font-semibold text-ink">Price per sq ft of sales nearby</p>
+      <div className="relative mt-6 mb-9 h-2 rounded-full bg-line-soft">
+        {comps.map((c) => (
+          <span
+            key={c.id}
+            title={`${c.address}: ${money(ppsfOf(c))}/sq ft`}
+            className={cn('absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white', !c.picked ? 'bg-line' : c.condition > condition ? 'bg-[var(--green)]' : 'bg-navy')}
+            style={{ left: at(ppsfOf(c)) }}
+          />
+        ))}
+        {[
+          { x: asIs, label: 'As-is', cls: 'text-ink' },
+          { x: potential, label: 'Potential', cls: 'text-[var(--green)]' },
+        ].map((m) => (
+          <span key={m.label} className="absolute top-1/2 -translate-x-1/2" style={{ left: at(m.x) }}>
+            <span className="absolute left-1/2 h-6 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-ink/70" />
+            <span className={cn('absolute top-3 left-1/2 -translate-x-1/2 text-[11.5px] font-semibold whitespace-nowrap', m.cls)}>
+              {m.label} {money(m.x)}
+            </span>
+          </span>
+        ))}
+      </div>
+      <p className="flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-muted">
+        <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-navy" /> Same or worse condition</span>
+        <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[var(--green)]" /> Better condition</span>
+        <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-line" /> Not used</span>
+      </p>
+    </div>
+  )
+}
+
+function CompGroup({ title, sub, comps, condition, onToggle, good, off }: { title: string; sub: string; comps: Comp[]; condition: number; onToggle: (id: string) => void; good?: boolean; off?: boolean }) {
+  return (
+    <section className="mt-9">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h2 className="text-[17px] font-semibold text-ink">
+          {title} <span className="font-normal text-muted">· {comps.length}</span>
+        </h2>
+        <p className="text-[13.5px] text-muted">{sub}</p>
+      </div>
       {comps.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-line px-4 py-3 text-[13px] text-muted">None.</p>
+        <p className="mt-3 rounded-xl border border-dashed border-line px-4 py-3 text-[13.5px] text-muted">None yet.</p>
       ) : (
-        <ul className="divide-y divide-line-soft overflow-hidden rounded-xl border border-line">
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {comps.map((c) => (
-            <li key={c.id} className={cn('flex items-center gap-3 px-4 py-3', !used && 'bg-head/40')}>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-baseline gap-x-2">
-                  <p className="truncate text-[14px] font-medium text-ink">{c.address}</p>
-                  <span className={cn('rounded-full px-1.5 py-0.5 text-[11px] font-medium', c.condition > condition ? 'bg-[var(--green-soft,#e7f6ee)] text-[var(--green)]' : 'bg-head text-ink-2')}>{CONDITIONS[c.condition].label}</span>
-                </div>
-                <p className="mt-0.5 text-[12.5px] text-ink-2">
-                  {money(c.price)} · {c.beds} bd · {c.baths} ba · {c.sqft.toLocaleString()} sq ft · {money(Math.round(c.price / c.sqft))}/sq ft
-                </p>
-                <p className="mt-0.5 text-[12px] text-muted">{c.why}</p>
-              </div>
-              <button
-                onClick={() => onToggle(c.id)}
-                aria-label={used ? `Remove ${c.address}` : `Add ${c.address}`}
-                className={cn('inline-flex h-8 shrink-0 items-center gap-1 rounded-lg border px-2.5 text-[12.5px] font-medium', used ? 'border-line text-ink-2 hover:text-ink' : 'border-[var(--brand-primary-border)] text-brand hover:bg-[var(--brand-primary-subtle)]')}
-              >
-                {used ? <Minus className="size-3.5" /> : <Plus className="size-3.5" />} {used ? 'Remove' : 'Add'}
-              </button>
+            <CompCard key={c.id} c={c} condition={condition} onToggle={() => onToggle(c.id)} good={good} off={off} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function CompCard({ c, condition, onToggle, good, off }: { c: Comp; condition: number; onToggle: () => void; good?: boolean; off?: boolean }) {
+  // the three tests a sale has to pass; the one it fails is what keeps it out
+  const near = c.miles <= 0.6
+  const recent = c.months <= 6
+  const sized = !/too (big|small)/.test(c.why)
+  const tags = [
+    { ok: near, icon: MapPin, text: `${c.miles} mi away` },
+    { ok: recent, icon: CalendarDays, text: `Sold ${c.months} mo ago` },
+    { ok: sized, icon: Ruler, text: sized ? 'Similar size' : c.sqft > 0 && /big/.test(c.why) ? 'Much bigger' : 'Much smaller' },
+  ]
+  return (
+    <article className={cn('flex flex-col overflow-hidden rounded-xl border bg-white', off ? 'border-line' : good ? 'border-[var(--green)]/40' : 'border-line')}>
+      <div className="relative">
+        <img src={mlsPhotos(c.address)[0]} alt="" className={cn('h-32 w-full object-cover', off && 'opacity-60 grayscale')} />
+        <span className="absolute top-2 left-2 rounded-full bg-white/95 px-2 py-0.5 text-[12.5px] font-semibold text-ink shadow-sm">{short(c.price)}</span>
+        <span className={cn('absolute bottom-2 left-2 rounded-full px-2 py-0.5 text-[11.5px] font-semibold shadow-sm', c.condition > condition ? 'bg-[var(--green)] text-white' : 'bg-white/95 text-ink')}>{CONDITIONS[c.condition].label}</span>
+        <button
+          onClick={onToggle}
+          aria-label={off ? `Use ${c.address}` : `Don’t use ${c.address}`}
+          title={off ? 'Use this sale' : 'Don’t use this sale'}
+          className={cn('absolute top-2 right-2 grid size-7 place-items-center rounded-full border-2 border-white shadow-sm', off ? 'bg-white/90 text-ink hover:bg-white' : 'bg-[var(--brand-primary)] text-white hover:opacity-90')}
+        >
+          {off ? <Plus className="size-4" /> : <Check className="size-4" />}
+        </button>
+      </div>
+      <div className="flex flex-1 flex-col px-3.5 pt-3 pb-3.5">
+        <p className="truncate text-[14px] font-semibold text-ink">{c.address}</p>
+        <p className="mt-0.5 text-[12.5px] text-muted">
+          {c.beds} bd · {c.baths} ba · {c.sqft.toLocaleString()} sq ft
+        </p>
+        <p className="mt-2 text-[16px] font-semibold text-ink">
+          {money(Math.round(c.price / c.sqft))}
+          <span className="text-[12.5px] font-normal text-muted">/sq ft</span>
+        </p>
+        <ul className="mt-2.5 space-y-1">
+          {tags.map((t) => (
+            <li key={t.text} className={cn('flex items-center gap-1.5 text-[12.5px]', t.ok ? 'text-ink-2' : 'font-medium text-[var(--amber)]')}>
+              <t.icon className={cn('size-3.5', t.ok ? 'text-[var(--green)]' : 'text-[var(--amber)]')} />
+              {t.text}
             </li>
           ))}
         </ul>
-      )}
-    </div>
+      </div>
+    </article>
   )
 }
 

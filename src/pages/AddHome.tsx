@@ -302,7 +302,7 @@ export default function AddHome() {
                 onClick={() => (at === 'rules' ? finish() : go(1))}
                 className="inline-flex h-10 items-center rounded-lg bg-[var(--brand-primary)] px-6 text-[14px] font-medium text-white hover:opacity-90 disabled:opacity-40"
               >
-                {at === 'details' || at === 'condition' ? 'Looks right' : at === 'comps' ? 'Use these comps' : at === 'rules' ? 'See the report' : at === 'visit' && !visit.time ? 'Skip for now' : path[i + 1] === 'working' ? 'Run the analysis' : 'Next'}
+                {at === 'details' || at === 'condition' ? 'Looks right' : at === 'comps' ? 'Looks right' : at === 'rules' ? 'See the report' : at === 'visit' && !visit.time ? 'Skip for now' : path[i + 1] === 'working' ? 'Run the analysis' : 'Next'}
               </button>
             )}
           </div>
