@@ -436,3 +436,4 @@
   border: 2px solid var(--blue); background: rgba(62, 98, 182, 0.08); animation: rv-ring 1.8s ease-out infinite;
 }
 .rv-office.rv-reading::after { animation-delay: 0.9s; }
+.rv-pill.k-off { background: #fff; color: var(--muted, #6b7280); border-color: #d4d8e0; }

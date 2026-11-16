@@ -17,7 +17,7 @@ import { photoUrl } from '@/lib/assets'
 import { buildReport, draftFromAddress, PROJECT_STEPS, type CreatedProject, type GeneratedReport } from '@/lib/flows'
 import { gain, money } from '@/lib/format'
 import { useOpportunities, type Opportunity } from '@/lib/opportunities'
-import { revivePlan, type PlanInput, type PlanKey, type PlanOption } from '@/lib/plan'
+import { OPPORTUNITY, revivePlan, type PlanInput, type PlanKey, type PlanOption } from '@/lib/plan'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 
@@ -254,7 +254,7 @@ function TopOptions({ m }: { m: Model }) {
     <section aria-labelledby="top-options">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="top-options" className="text-[15px] font-semibold text-ink">
-          {plan.addons.length ? 'Revive opportunities' : 'Revive opportunity'}
+          {plan.addons.length ? 'Opportunities' : 'Opportunity'}
         </h2>
         <p className="text-[12.5px] text-muted">
           <span className="font-semibold text-ink-2">{plan.path === 'sell' ? 'Selling' : 'Staying'}</span> · {plan.why}
@@ -267,10 +267,10 @@ function TopOptions({ m }: { m: Model }) {
             <span className="grid size-9 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
               <P className="size-[18px]" />
             </span>
-            {plan.primary.name}
-            <span className="rounded-full bg-ok-soft px-2 py-0.5 text-[11px] font-semibold text-[var(--green)]">Recommended</span>
+            {plan.primary.title}
+            <span className="rounded-full bg-ok-soft px-2 py-0.5 text-[11px] font-semibold text-[var(--green)]">Best fit</span>
           </p>
-          <p className="mt-2.5 text-[13.5px] leading-5 text-ink-2">{plan.primary.intro}</p>
+          <p className="mt-2.5 text-[13.5px] leading-5 text-ink-2">{OPPORTUNITY[plan.primary.key].intro}</p>
           {plan.primary.note && <p className="mt-1 text-[12.5px] leading-5 text-muted">{plan.primary.note}</p>}
         </div>
         <Numbers o={plan.primary} m={m} big />
@@ -288,9 +288,9 @@ function TopOptions({ m }: { m: Model }) {
                       <span className="grid size-8 place-items-center rounded-lg bg-[var(--brand-agent-subtle)] text-[var(--brand-agent)]">
                         <I className="size-4" />
                       </span>
-                      {o.name}
+                      {o.title}
                     </p>
-                    <p className="mt-2 text-[13px] leading-5 text-ink-2">{o.intro}</p>
+                    <p className="mt-2 text-[13px] leading-5 text-ink-2">{OPPORTUNITY[o.key].intro}</p>
                   </div>
                   <Numbers o={o} m={m} />
                 </div>
@@ -345,8 +345,8 @@ function Report({ m }: { m: Model }) {
       <section>
         <h2 className="text-[15px] font-semibold text-ink">Value</h2>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
-          <Stat label="Today" value={money(m.valueNow)} sub={`${money(m.valueLo)}–${money(m.valueHi)}`} />
-          {best.gain ? <Stat label={`After ${best.name}`} value={money(m.valueNow + best.gain)} sub="Recommended option" /> : null}
+          <Stat label="As-is value" value={money(m.valueNow)} sub={`${money(m.valueLo)}–${money(m.valueHi)}`} />
+          {best.gain ? <Stat label="Potential value" value={money(m.valueNow + best.gain)} sub={best.after} /> : null}
           {best.gain ? <Stat label="Est. upside" value={gain(best.gain)} tone="ok" /> : null}
         </div>
         {m.sources.length > 0 && <p className="mt-2 text-[12px] text-muted">Sources: {m.sources.map((x) => `${x.name} ${money(x.value)}`).join(' · ')}</p>}

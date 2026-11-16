@@ -1,22 +1,24 @@
 import L from 'leaflet'
-import { ArrowLeft, Check, CircleHelp, Hammer, Home, House, HousePlus, MapPin, Search, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, Check, CircleHelp, Hammer, Home, House, HousePlus, MapPin, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Marker } from 'react-leaflet'
 import { useNavigate } from 'react-router-dom'
 import { BaseMap } from '@/components/map/BaseMap'
 import { IntakeScan } from '@/components/property/IntakeScan'
+import { CompsReview, ConditionReview, RulesReview } from '@/components/property/IntakeReview'
 import { properties } from '@/data/properties'
 import type { Property } from '@/data/types'
 import { money } from '@/lib/format'
 import { buildReport, draftFromAddress, hash, reportIdFor, suggestAddresses, type ReportDraft } from '@/lib/flows'
-import { revivePlan, type PlanKey, type RevivePlan } from '@/lib/plan'
+import { compsFor, conditionOf, rulesFor, valuesOf, type Comp } from '@/lib/intake'
 import { cn } from '@/lib/utils'
 import { useDemo } from '@/store/demo'
 import { useUi } from '@/store/ui'
 
 // Add a home: a full-screen intake (the sidebar stays). One question per screen, three paths after
 // "what can Revive help with": sell, renovate, or build. Follows the Revive AI intake board in FigJam.
-// It ends with Revive checking the home, then what fits, with a report made and a project one click away.
+// It ends with Revive analyzing the home on a map, then a walkthrough of how it got its numbers (condition,
+// comps with as-is and potential values, the rules), each one editable, then the home's AI report.
 
 type Help = 'sell' | 'renovate' | 'build'
 type StepId =
@@ -24,7 +26,7 @@ type StepId =
   | 'situation' | 'listed'
   | 'areas' | 'maintenance' | 'budget' | 'start'
   | 'build' | 'buildWhen' | 'buildWhy' | 'process'
-  | 'visit' | 'working' | 'result'
+  | 'visit' | 'working' | 'condition' | 'comps' | 'rules'
 
 const CONNECTION = ['My client owns it', 'It’s my listing', 'I own it', 'Not in touch with the owner yet'] as const
 const HELP: { k: Help; label: string; sub: string; icon: typeof Home }[] = [
@@ -71,7 +73,9 @@ const TITLE: Record<StepId, string> = {
   process: 'Where are they in the process?',
   visit: 'Schedule a home visit',
   working: 'Finding the best solution…',
-  result: '',
+  condition: '',
+  comps: '',
+  rules: '',
 }
 const SUB: Partial<Record<StepId, string>> = {
   details: 'From public records and the MLS. Fix anything that’s off.',
@@ -93,7 +97,6 @@ function weekdays(n: number) {
 export default function AddHome() {
   const navigate = useNavigate()
   const addReport = useDemo((s) => s.addReport)
-  const addProject = useDemo((s) => s.addProject)
   const reports = useDemo((s) => s.reports)
   const setDock = useUi((s) => s.setDock)
 
@@ -120,7 +123,7 @@ export default function AddHome() {
     ...(help === 'sell' ? (['situation', ...(myListing ? [] : ['listed']), 'visit'] as StepId[]) : []),
     ...(help === 'renovate' ? (['areas', 'maintenance', 'budget', 'start', 'visit'] as StepId[]) : []),
     ...(help === 'build' ? (['build', 'buildWhen', 'buildWhy', 'process'] as StepId[]) : []),
-    'working', 'result',
+    'working', 'condition', 'comps', 'rules',
   ]
   const i = path.indexOf(at)
   const go = (d: 1 | -1) => setAt(path[Math.max(0, Math.min(path.length - 1, i + d))])
@@ -137,14 +140,27 @@ export default function AddHome() {
   const selling = help === 'sell' ? 'Yes, in the next 6 months' : help ? 'No, they plan to stay' : undefined
   const goal = help === 'sell' ? situation : help === 'build' && buildPick?.fit === 'adu' ? 'Add rental income (ADU)' : help ? 'Stay and improve' : undefined
   const report = useMemo(() => (draft ? buildReport({ ...draft, selling, goal }) : null), [draft, selling, goal])
-  const plan: RevivePlan | null = report
-    ? revivePlan({ valueNow: report.valueNow, sqft: report.sqft, lot: report.lot, homeType: report.homeType, scenarios: report.scenarios, selling, goal, source: myListing || listed ? 'listings' : undefined })
-    : null
 
-  // Revive checks the home (IntakeScan), then the result; the report is saved as it finishes
-  const finishScan = () => {
-    if (report) addReport({ ...report, createdAt: Date.now() }, true)
-    setAt('result')
+  // what the analysis finds, which the walkthrough lets the agent change: condition and comps
+  const home = coordsOf(draft)
+  const estimated = draft ? conditionOf(draft) : 2
+  const [cond, setCond] = useState<number>()
+  const condition = cond ?? estimated
+  const baseComps = useMemo(() => (draft && home && report ? compsFor(home, draft, report.valueNow) : []), [draft, report]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [picks, setPicks] = useState<Record<string, boolean>>({})
+  const comps = baseComps.map((c) => (c.id in picks ? { ...c, picked: picks[c.id] } : c))
+  const setComps = (cs: Comp[]) => setPicks(Object.fromEntries(cs.map((c) => [c.id, c.picked])))
+  const rules = useMemo(() => (draft ? rulesFor(draft, help ?? 'sell') : []), [draft, help])
+
+  // the end: save the report with the values the agent settled on, and open it
+  const finish = () => {
+    if (!report || !draft) return
+    const v = valuesOf(comps, condition, draft.sqft ?? 1600, report.valueNow)
+    const best = Math.max(1, ...report.scenarios.filter((x) => !/ADU/.test(x.product)).map((x) => x.gain ?? 0))
+    const k = v.potential > v.asIs ? (v.potential - v.asIs) / best : 1
+    const scenarios = report.scenarios.map((x) => (x.gain ? { ...x, gain: Math.round((x.gain * k) / 1000) * 1000 } : x))
+    addReport({ ...report, createdAt: Date.now(), valueNow: v.asIs, valueLo: Math.round((v.asIs * 0.95) / 5000) * 5000, valueHi: Math.round((v.asIs * 1.05) / 5000) * 5000, scenarios })
+    navigate(`/property/${report.id}`)
   }
 
   const days = useMemo(() => weekdays(6), [])
@@ -164,21 +180,12 @@ export default function AddHome() {
     buildWhy: !!buildWhy,
     process: !!process,
     visit: true,
+    condition: true,
+    comps: true,
+    rules: true,
   }
   const exit = () => navigate('/properties')
   const existing = draft && reports[reportIdFor(`${draft.address}, ${draft.city}`, draft.propertyId)] && at === 'details'
-
-  const startProject = () => {
-    if (!report || !plan) return
-    const product = fits && chosen ? chosen.name : plan.primary.name
-    const when = visit.time && visit.day !== undefined ? `Home visit ${days[visit.day].toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}, ${visit.time}` : (start ?? buildWhen ?? 'In 1–3 months')
-    addProject({ id: `pj-${Date.now()}`, createdAt: Date.now(), propertyId: report.id, address: report.address, city: report.city, product, timeline: when, occupancy: 'Owner lives there' })
-    navigate(`/property/${report.id}?tab=project`)
-  }
-
-  // the build path: does what they want fit this lot?
-  const chosen = help === 'build' && buildPick?.fit ? plan?.addons.find((a) => a.key === (buildPick.fit as PlanKey)) : undefined
-  const fits = help !== 'build' || !!chosen
 
   return (
     <div className="flex min-h-[calc(100dvh-var(--demo-h,0px))] flex-col bg-white">
@@ -202,11 +209,15 @@ export default function AddHome() {
       </header>
 
       <section data-intake className="flex-1 px-5 pt-6 pb-10 sm:px-8 sm:pt-12">
-        <div className={cn('mx-auto w-full', at === 'working' ? 'max-w-[1200px]' : 'max-w-[680px]')}>
-          {at === 'working' && draft && report ? (
-            <IntakeScan draft={draft} home={coordsOf(draft)!} value={report.valueNow} path={help ?? 'sell'} onDone={finishScan} />
-          ) : at === 'result' && plan && report ? (
-            <Result plan={plan} report={report} fits={fits} chosen={chosen} build={build} visit={visit.time && visit.day !== undefined ? `${days[visit.day].toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} at ${visit.time}` : undefined} onProject={startProject} onReport={() => navigate(`/property/${report.id}`)} />
+        <div className={cn('mx-auto w-full', at === 'working' || at === 'comps' ? 'max-w-[1200px]' : at === 'condition' ? 'max-w-[1000px]' : 'max-w-[680px]')}>
+          {at === 'working' && draft && report && home ? (
+            <IntakeScan draft={draft} home={home} value={report.valueNow} comps={comps} rules={rules} condition={condition} onDone={() => setAt('condition')} />
+          ) : at === 'condition' && draft ? (
+            <ConditionReview draft={draft} condition={condition} estimated={estimated} set={setCond} comps={comps} />
+          ) : at === 'comps' && draft && report && home ? (
+            <CompsReview home={home} comps={comps} set={setComps} condition={condition} sqft={draft.sqft ?? 1600} fallback={report.valueNow} />
+          ) : at === 'rules' && draft ? (
+            <RulesReview draft={draft} rules={rules} />
           ) : (
             <>
               <h1 className="text-[26px] leading-tight font-semibold text-ink sm:text-[34px]">{TITLE[at]}</h1>
@@ -258,13 +269,13 @@ export default function AddHome() {
       </section>
 
       {/* bottom: progress, back, next */}
-      {at !== 'result' && at !== 'working' && (
+      {at !== 'working' && (
         <footer className="sticky bottom-0 bg-white px-5 pb-5 sm:px-8">
           <div className="h-1 overflow-hidden rounded-full bg-[var(--brand-primary-subtle)]">
             <div className="h-full rounded-full bg-[var(--brand-primary)] transition-all duration-300" style={{ width: `${Math.max(4, ((i + 1) / path.length) * 100)}%` }} />
           </div>
           <div className="mt-4 flex items-center justify-between">
-            {i > 0 ? (
+            {i > 0 && at !== 'condition' ? (
               <button onClick={() => go(-1)} className="inline-flex h-10 items-center gap-1.5 rounded-lg px-1 text-[14px] font-medium text-ink-2 hover:text-ink">
                 <ArrowLeft className="size-4" /> Back
               </button>
@@ -274,10 +285,10 @@ export default function AddHome() {
             {(
               <button
                 disabled={!can[at]}
-                onClick={() => go(1)}
+                onClick={() => (at === 'rules' ? finish() : go(1))}
                 className="inline-flex h-10 items-center rounded-lg bg-[var(--brand-primary)] px-6 text-[14px] font-medium text-white hover:opacity-90 disabled:opacity-40"
               >
-                {at === 'details' ? 'Looks right' : at === 'visit' && !visit.time ? 'Skip for now' : path[i + 1] === 'working' ? 'See what fits' : 'Next'}
+                {at === 'details' || at === 'condition' ? 'Looks right' : at === 'comps' ? 'Use these comps' : at === 'rules' ? 'See the report' : at === 'visit' && !visit.time ? 'Skip for now' : path[i + 1] === 'working' ? 'Run the analysis' : 'Next'}
               </button>
             )}
           </div>
@@ -428,69 +439,6 @@ function Visit({ days, value, set }: { days: Date[]; value: { day?: number; time
           ))}
         </div>
       )}
-    </div>
-  )
-}
-
-function Result({ plan, report, fits, chosen, build, visit, onProject, onReport }: { plan: RevivePlan; report: ReturnType<typeof buildReport>; fits: boolean; chosen?: RevivePlan['addons'][number]; build?: string; visit?: string; onProject: () => void; onReport: () => void }) {
-  const main = fits && chosen ? chosen : plan.primary
-  const others = [plan.primary, ...plan.addons].filter((o) => o.key !== main.key)
-  return (
-    <div>
-      {fits ? (
-        <>
-          <p className="flex items-center gap-1.5 text-[13px] font-semibold tracking-wide text-brand uppercase">
-            <Sparkles className="size-4" /> Revive recommends
-          </p>
-          <h1 className="mt-2 text-[26px] leading-tight font-semibold text-ink sm:text-[34px]">{main.name}</h1>
-          <p className="mt-2 text-[15px] text-ink-2">{main.intro}</p>
-        </>
-      ) : (
-        <>
-          <h1 className="text-[26px] leading-tight font-semibold text-ink sm:text-[34px]">{build ?? 'That'} may not fit.</h1>
-          <p className="mt-2 text-[15px] text-ink-2">
-            {BUILD.find((b) => b.label === build)?.fit ? plan.noAddonReason ?? 'This lot doesn’t have room for it.' : 'Revive doesn’t take on this kind of project yet.'} Here’s what does fit {report.address}.
-          </p>
-        </>
-      )}
-
-      <div className="mt-7 rounded-xl border border-line p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-          <p className="text-[17px] font-semibold text-ink">{fits ? main.name : plan.primary.name}</p>
-          <p className="text-[17px] font-semibold text-[var(--green)]">+{money((fits ? main : plan.primary).gain)}</p>
-        </div>
-        <p className="mt-1 text-[14px] text-ink-2">
-          {(fits ? main : plan.primary).note ?? plan.why} · worth {money(report.valueNow)} today
-        </p>
-        {(fits ? others : plan.addons).length > 0 && (
-          <div className="mt-4 border-t border-line-soft pt-3">
-            <p className="text-[12.5px] font-semibold text-muted uppercase">Also possible</p>
-            <ul className="mt-1.5 space-y-1">
-              {(fits ? others : plan.addons).map((o) => (
-                <li key={o.key} className="flex justify-between gap-4 text-[14px]">
-                  <span className="text-ink">{o.name}</span>
-                  <span className="font-medium text-ink-2">+{money(o.gain)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-      {visit && (
-        <p className="mt-4 flex items-center gap-2 rounded-xl bg-head px-4 py-3 text-[14px] text-ink">
-          <Check className="size-4 text-[var(--green)]" /> Home visit requested for {visit}. Revive confirms by email.
-        </p>
-      )}
-
-      <div className="mt-7 flex flex-wrap gap-3">
-        <button onClick={onProject} className="inline-flex h-11 items-center rounded-lg bg-[var(--brand-primary)] px-5 text-[14.5px] font-medium text-white hover:opacity-90">
-          Start {fits ? main.name : plan.primary.name} with Revive
-        </button>
-        <button onClick={onReport} className="inline-flex h-11 items-center rounded-lg border border-line px-5 text-[14.5px] font-medium text-ink hover:bg-head">
-          {fits ? 'Open the AI report' : 'Explore other opportunities'}
-        </button>
-      </div>
-      <p className="mt-3 text-[13px] text-muted">The Revive AI report is saved to Homes. Share it with the owner when you’re ready.</p>
     </div>
   )
 }

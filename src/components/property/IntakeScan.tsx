@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Circle, Marker, useMap } from 'react-leaflet'
 import { BaseMap } from '@/components/map/BaseMap'
 import { money } from '@/lib/format'
-import { hash, type ReportDraft } from '@/lib/flows'
+import type { ReportDraft } from '@/lib/flows'
+import { CONDITIONS, short, valuesOf, type Comp, type Rule } from '@/lib/intake'
 import { cn } from '@/lib/utils'
 
 // "Finding the best solution…" for the intake: a map on the left that shows what Revive is reading, and
@@ -17,60 +18,10 @@ import { cn } from '@/lib/utils'
 // common city rules (permits, Title 24 energy code, EPA lead-safe work for pre-1978 homes). Overlays and
 // zoning are sample data for the prototype.
 
-export type ScanPath = 'sell' | 'renovate' | 'build'
 type Line = { text: string; tone?: 'ok' | 'flag' }
-type Comp = { at: [number, number]; address: string; price: number; sqft: number; ago: string; kind: 'Renovated' | 'As-is' | 'Updated' }
 
-const STEP_MS = [3600, 5200, 5600, 2200]
-const STEPS = ['Analyzing the property', 'Checking comps nearby', 'Checking local regulations', 'Finding the best fit']
-const STREETS = ['N Hill Ave', 'N Allen Ave', 'E Orange Grove Blvd', 'N Catalina Ave', 'Holliston Ave', 'N Chester Ave', 'Craig Ave', 'N Wilson Ave', 'E Mountain St', 'N Michigan Ave']
-
-const short = (n: number) => (n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(2).replace(/0$/, '')}M` : `$${Math.round(n / 1000)}K`)
-
-function compsFor(home: [number, number], value: number, sqft: number, seed: string): Comp[] {
-  const h = hash(seed)
-  return Array.from({ length: 7 }, (_, k) => {
-    const a = ((h >>> k) % 360) * (Math.PI / 180) + k * 0.9
-    const r = 0.0035 + (((h >>> (k + 3)) % 60) / 10000)
-    const kind = (['Renovated', 'As-is', 'Updated'] as const)[(h >>> (k * 2)) % 3]
-    const f = kind === 'Renovated' ? 1.14 + ((h >>> k) % 12) / 100 : kind === 'Updated' ? 1.02 + ((h >>> k) % 8) / 100 : 0.88 + ((h >>> k) % 8) / 100
-    return {
-      at: [home[0] + Math.sin(a) * r, home[1] + Math.cos(a) * r * 1.2],
-      address: `${200 + ((h >>> (k + 1)) % 1700)} ${STREETS[(h + k) % STREETS.length]}`,
-      price: Math.round((value * f) / 5000) * 5000,
-      sqft: Math.round((sqft * (0.85 + ((h >>> (k + 5)) % 30) / 100)) / 10) * 10,
-      ago: `${1 + ((h >>> (k + 2)) % 5)} mo ago`,
-      kind,
-    }
-  })
-}
-
-function rulesFor(d: ReportDraft, path: ScanPath): Line[] {
-  const h = hash(d.address)
-  const city = d.city || 'Pasadena'
-  const sf = d.homeType === 'Single family'
-  const open = (d.lot ?? 0) - (d.sqft ?? 0)
-  const overlay = h % 5 === 0 ? 'landmark' : h % 7 === 0 ? 'hillside' : null
-  const lines: Line[] = [
-    { text: `${city} zoning: ${sf ? 'R-1, single-family residential' : 'RM, multi-family residential'}`, tone: 'ok' },
-    overlay === 'landmark'
-      ? { text: 'In a landmark district: exterior changes need design review, and an ADU must stay out of view from the street', tone: 'flag' }
-      : overlay === 'hillside'
-        ? { text: 'In a hillside overlay: stricter limits on detached ADU size and height', tone: 'flag' }
-        : { text: 'Not in a landmark district or hillside overlay', tone: 'ok' },
-  ]
-  if (path !== 'build') lines.push({ text: 'Kitchen and bath remodels need a city permit and must meet Title 24 energy rules (efficient lighting, exhaust fans)', tone: 'ok' })
-  if (d.yearBuilt && d.yearBuilt < 1978) lines.push({ text: `Built in ${d.yearBuilt}, before 1978: paint work follows EPA lead-safe rules (certified crew)`, tone: 'flag' })
-  if (sf) {
-    lines.push({ text: 'State ADU law: up to 800 sq ft and 16 ft tall allowed with 4 ft side and rear setbacks', tone: 'ok' })
-    lines.push(open >= 6000 ? { text: `${open.toLocaleString()} sq ft of open lot: room for a detached ADU`, tone: 'ok' } : { text: `${Math.max(0, open).toLocaleString()} sq ft of open lot: tight for a detached ADU`, tone: 'flag' })
-    lines.push({ text: 'ADUs of 750 sq ft or less pay no impact fees, and no owner needs to live on site', tone: 'ok' })
-  } else lines.push({ text: `ADU and lot-split rules are for single-family lots; this is a ${d.homeType.toLowerCase()}`, tone: 'flag' })
-  if (path === 'build' && sf)
-    lines.push((d.lot ?? 0) >= 2400 ? { text: 'SB 9 lot split possible: each new lot at least 1,200 sq ft, owner lives there 3 years', tone: 'ok' } : { text: 'Too small for an SB 9 lot split (needs 1,200 sq ft per lot)', tone: 'flag' })
-  if (path === 'sell') lines.push({ text: 'Seller disclosures: permits on file for past work are checked before listing', tone: 'ok' })
-  return lines
-}
+const STEP_MS = [3600, 6000, 5600, 2600]
+const STEPS = ['Analyzing the property', 'Checking comps nearby', 'Checking local regulations', 'Working out the values']
 
 /** Moves the map for each step. */
 function Camera({ step, home }: { step: number; home: [number, number] }) {
@@ -82,29 +33,26 @@ function Camera({ step, home }: { step: number; home: [number, number] }) {
   return null
 }
 
-export function IntakeScan({ draft, home, value, path, onDone }: { draft: ReportDraft; home: [number, number]; value: number; path: ScanPath; onDone: () => void }) {
+export function IntakeScan({ draft, home, value, comps, rules: ruleList, condition, onDone }: { draft: ReportDraft; home: [number, number]; value: number; comps: Comp[]; rules: Rule[]; condition: number; onDone: () => void }) {
   const [step, setStep] = useState(0)
   const [tick, setTick] = useState(0) // what's been read within the step
-  const comps = useMemo(() => compsFor(home, value, draft.sqft ?? 1600, draft.address), [home, value, draft.sqft, draft.address])
-  const rules = useMemo(() => rulesFor(draft, path), [draft, path])
+  const rules: Line[] = ruleList.map((r) => ({ text: r.title, tone: r.tone }))
+  const vals = valuesOf(comps, condition, draft.sqft ?? 1600, value)
   const open = (draft.lot ?? 0) - (draft.sqft ?? 0)
   const record: Line[] = [
     { text: `Public record: ${draft.beds ?? '–'} bd · ${draft.baths ?? '–'} ba · ${(draft.sqft ?? 0).toLocaleString()} sq ft` },
     { text: `Lot: ${(draft.lot ?? 0).toLocaleString()} sq ft · ${Math.max(0, open).toLocaleString()} sq ft open` },
     { text: `Built ${draft.yearBuilt ?? '—'} · ${draft.homeType}` },
-    { text: `MLS photos: ${(draft.yearBuilt ?? 2000) < 1995 ? 'kitchen and baths look original' : 'finishes look dated'}` },
-    { text: `Estimated value today: ${money(value)}` },
+    { text: `MLS photos: condition looks ${CONDITIONS[condition].label.toLowerCase()}` },
   ]
-  const avgPpsf = Math.round(comps.reduce((s, c) => s + c.price / c.sqft, 0) / comps.length)
-  const reno = comps.filter((c) => c.kind === 'Renovated')
-  const asis = comps.filter((c) => c.kind === 'As-is')
-  const premium = reno.length && asis.length ? Math.round((reno.reduce((s, c) => s + c.price / c.sqft, 0) / reno.length / (asis.reduce((s, c) => s + c.price / c.sqft, 0) / asis.length) - 1) * 100) : 18
+  const picked = comps.filter((c) => c.picked)
+  const avgPpsf = Math.round(picked.reduce((s, c) => s + c.price / c.sqft, 0) / Math.max(1, picked.length))
   const fit: Line[] = [
-    { text: path === 'sell' ? 'Renovate to Sell vs Sell 360: time to list and the gain' : path === 'build' ? 'What the lot can hold, and what it would add' : 'Renovate to Stay: scope and budget' },
-    { text: 'Revive’s past projects in this area' },
-    { text: 'Your answers about the owner’s plans' },
+    { text: `As-is value: ${vals.same.length} sales in the same or worse condition` },
+    { text: `Potential value: ${vals.better.length} sales in better condition` },
+    { text: 'What the lot and the rules allow' },
   ]
-  const lists: Line[][] = [record, comps.map((c) => ({ text: `${c.address} · sold ${short(c.price)} · ${c.kind.toLowerCase()}` })), rules, fit]
+  const lists: Line[][] = [record, comps.map((c) => ({ text: `${c.address} · sold ${short(c.price)} · ${CONDITIONS[c.condition].label.toLowerCase()}`, tone: c.picked ? 'ok' : undefined })), rules, fit]
   const per = [record.length, comps.length, rules.length, fit.length]
 
   useEffect(() => {
@@ -141,7 +89,7 @@ export function IntakeScan({ draft, home, value, path, onDone }: { draft: Report
   const pulsing = step === 0 || step === 3
   const homeIcon = useMemo(() => L.divIcon({ className: 'rv-pinwrap', html: `<span class="rv-office${pulsing ? ' rv-reading' : ''}"></span>`, iconAnchor: [0, 0] }), [pulsing])
   const reading = step === 1 ? comps[Math.max(0, tick - 1)] : undefined
-  const done = (k: number) => (k === 0 ? `${record.length} facts read` : k === 1 ? `${comps.length} sales read · ${money(avgPpsf)}/sq ft` : k === 2 ? `${rules.length} rules checked` : 'Done')
+  const done = (k: number) => (k === 0 ? `${record.length} facts read` : k === 1 ? `${comps.length} sales read · ${picked.length} close matches` : k === 2 ? `${rules.length} rules checked` : 'Done')
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-10">
@@ -157,7 +105,7 @@ export function IntakeScan({ draft, home, value, path, onDone }: { draft: Report
           )}
           {step === 1 &&
             comps.slice(0, tick).map((c, k) => (
-              <Marker key={k} position={c.at} icon={L.divIcon({ className: 'rv-pinwrap', html: `<span class="rv-pill${c === reading ? ' on' : ''}">${short(c.price)}</span>`, iconAnchor: [0, 0] })} />
+              <Marker key={k} position={c.at} icon={L.divIcon({ className: 'rv-pinwrap', html: `<span class="rv-pill${c === reading ? ' on' : ''}${c.picked ? '' : ' k-off'}">${short(c.price)}</span>`, iconAnchor: [0, 0] })} />
             ))}
           <Marker position={home} icon={homeIcon} zIndexOffset={1000} />
         </BaseMap>
@@ -188,12 +136,12 @@ export function IntakeScan({ draft, home, value, path, onDone }: { draft: Report
             <p className="text-[11.5px] font-semibold tracking-wide text-muted uppercase">Reading comp {tick} of {comps.length}</p>
             <p className="mt-1 text-[13.5px] font-semibold text-ink">{reading.address}</p>
             <p className="mt-0.5 text-[12.5px] text-ink-2">
-              Sold {money(reading.price)} · {reading.ago}
+              Sold {money(reading.price)} · {reading.months} mo ago · {reading.miles} mi
             </p>
             <p className="mt-0.5 text-[12.5px] text-ink-2">
               {reading.sqft.toLocaleString()} sq ft · {money(Math.round(reading.price / reading.sqft))}/sq ft
             </p>
-            <span className={cn('mt-2 inline-block rounded-full px-2 py-0.5 text-[11.5px] font-medium', reading.kind === 'Renovated' ? 'bg-[var(--green-soft,#e7f6ee)] text-[var(--green)]' : 'bg-head text-ink-2')}>{reading.kind}</span>
+            <span className={cn('mt-2 inline-block rounded-full px-2 py-0.5 text-[11.5px] font-medium', reading.condition > condition ? 'bg-[var(--green-soft,#e7f6ee)] text-[var(--green)]' : 'bg-head text-ink-2')}>{CONDITIONS[reading.condition].label}</span>
           </div>
         )}
         {step === 2 && (
@@ -227,7 +175,7 @@ export function IntakeScan({ draft, home, value, path, onDone }: { draft: Report
                   ))}
                   {k === 1 && tick === comps.length && (
                     <li className="rv-fade text-[13.5px] font-medium text-ink">
-                      Renovated homes nearby sold for about {premium}% more per sq ft.
+                      {picked.length} close matches · about {money(avgPpsf)}/sq ft
                     </li>
                   )}
                 </ul>

@@ -9,7 +9,9 @@ import type { Property, Scenario } from '@/data/types'
 export type PlanKey = 'rts' | 's360' | 'rtstay' | 'adu' | 'build360'
 export interface PlanOption {
   key: PlanKey
-  name: string
+  name: string // the Revive product
+  title: string // the opportunity, in plain words (the report is product-agnostic)
+  after: string // label for the value after it, e.g. "After renovating"
   intro: string
   gain: number
   sqftAdded: number
@@ -34,6 +36,14 @@ export const INTRO: Record<PlanKey, string> = {
   rtstay: 'Upgrades for owners who are staying, with flexible payment.',
   adu: 'A detached unit for rental income or family, paid over time.',
   build360: 'Revive builds a second house on the lot, to sell or rent.',
+}
+// what each opportunity is, without the product name: the report talks about the home, not about Revive
+export const OPPORTUNITY: Record<PlanKey, { title: string; intro: string; after: string }> = {
+  rts: { title: 'Renovate before selling', intro: 'Update the kitchen, baths and finishes before listing, to sell for more.', after: 'After renovating' },
+  s360: { title: 'Prep and stage to sell fast', intro: 'Light repairs, paint and staging. Listed in weeks, with no construction.', after: 'After prep and staging' },
+  rtstay: { title: 'Renovate and stay', intro: 'Upgrade the home for the owners who live there.', after: 'After renovating' },
+  adu: { title: 'Add an ADU', intro: 'A detached unit in the back yard, for rental income or family.', after: 'With an ADU' },
+  build360: { title: 'Build a second home', intro: 'A second house on the lot, to sell or rent.', after: 'With a second home' },
 }
 const NAME: Record<PlanKey, string> = { rts: 'Renovate to Sell', s360: 'Sell 360', rtstay: 'Renovate to Stay', adu: 'ADU', build360: 'Build 360' }
 
@@ -68,7 +78,7 @@ export function revivePlan(h: PlanInput): RevivePlan {
   const fast = h.goal === 'Sell fast' || (listed && !h.offMarket && (h.daysOnMarket ?? 0) > AREA_DOM)
 
   const rtsGain = find(/^Renovate to Sell/, /ADU/)?.gain ?? find(/^Renovate to Sell/)?.gain ?? round(h.valueNow * 0.08)
-  const opt = (key: PlanKey, gain: number, sqftAdded = 0, note?: string): PlanOption => ({ key, name: NAME[key], intro: INTRO[key], gain: round(gain), sqftAdded, note })
+  const opt = (key: PlanKey, gain: number, sqftAdded = 0, note?: string): PlanOption => ({ key, name: NAME[key], title: OPPORTUNITY[key].title, after: OPPORTUNITY[key].after, intro: INTRO[key], gain: round(gain), sqftAdded, note })
 
   let primary: PlanOption
   let why: string
