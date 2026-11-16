@@ -46,12 +46,13 @@ const EmbeddedLayer = L.GridLayer.extend({
   },
 })
 
-function EmbeddedTiles() {
+function EmbeddedTiles({ overzoom = 0 }: { overzoom?: number }) {
   const map = useMap()
   useEffect(() => {
     const layer: L.GridLayer = new (EmbeddedLayer as unknown as new (o: L.GridLayerOptions) => L.GridLayer)({
       minZoom: TILE_Z.min,
-      maxZoom: TILE_Z.max,
+      maxZoom: TILE_Z.max + overzoom,
+      maxNativeZoom: TILE_Z.max, // past it, the street-level tiles are scaled up
       attribution: ATTRIBUTION,
     })
     layer.addTo(map)
@@ -59,7 +60,7 @@ function EmbeddedTiles() {
     return () => {
       layer.remove()
     }
-  }, [map])
+  }, [map, overzoom])
   return null
 }
 
@@ -72,6 +73,7 @@ export function BaseMap({
   zoomPosition = 'topleft',
   padTop = 24,
   zoomControl = true,
+  overzoom = 0,
   className,
   children,
 }: {
@@ -83,6 +85,7 @@ export function BaseMap({
   zoomPosition?: L.ControlPosition
   padTop?: number // extra room at the top when something floats over the map
   zoomControl?: boolean // off on mobile, where you pinch
+  overzoom?: number // zoom levels past the street-level tiles (scaled up), for a close look at one home
   className?: string
   children?: React.ReactNode
 }) {
@@ -91,7 +94,7 @@ export function BaseMap({
       {...(bounds && bounds.length > 1 ? { bounds, boundsOptions: { paddingTopLeft: [24, padTop] as L.PointTuple, paddingBottomRight: [24, 24] as L.PointTuple } } : { center, zoom })}
       minZoom={TILE_Z.min}
       zoomSnap={0.25}
-      maxZoom={TILE_Z.max}
+      maxZoom={TILE_Z.max + overzoom}
       zoomControl={false}
       scrollWheelZoom={wheelZoom}
       dragging={interactive}
@@ -102,7 +105,7 @@ export function BaseMap({
       className={cn('h-full w-full bg-[#eef0f3]', className)}
     >
       {interactive && zoomControl && <ZoomControl position={zoomPosition} />}
-      {LIVE_TILES ? <TileLayer url={LIVE_TILES} attribution={ATTRIBUTION} /> : <EmbeddedTiles />}
+      {LIVE_TILES ? <TileLayer url={LIVE_TILES} attribution={ATTRIBUTION} /> : <EmbeddedTiles overzoom={overzoom} />}
       {children}
     </MapContainer>
   )

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Marker } from 'react-leaflet'
 import { useNavigate } from 'react-router-dom'
 import { BaseMap } from '@/components/map/BaseMap'
+import { IntakeScan } from '@/components/property/IntakeScan'
 import { properties } from '@/data/properties'
 import type { Property } from '@/data/types'
 import { money } from '@/lib/format'
@@ -52,7 +53,6 @@ const BUILD_WHY = ['Rental income', 'Space for family', 'Home office or studio',
 const PROCESS = ['Just exploring', 'Talked to an architect or builder', 'Have plans drawn', 'Permits submitted']
 const TIMES = ['9:00 AM', '11:00 AM', '1:00 PM', '3:00 PM']
 const HOME_TYPES: Property['homeType'][] = ['Single family', 'Condo', 'Townhouse', 'Multi-family']
-const CHECKS = ['Analyzing the property', 'Checking comps nearby', 'Local regulations and lot rules', 'Finding the best fit']
 
 const TITLE: Record<StepId, string> = {
   address: 'What’s the property address?',
@@ -113,7 +113,6 @@ export default function AddHome() {
   const [buildWhy, setBuildWhy] = useState<string>()
   const [process, setProcess] = useState<string>()
   const [visit, setVisit] = useState<{ day?: number; time?: string }>({})
-  const [checked, setChecked] = useState(0)
 
   const myListing = connection === 'It’s my listing'
   const path: StepId[] = [
@@ -142,19 +141,11 @@ export default function AddHome() {
     ? revivePlan({ valueNow: report.valueNow, sqft: report.sqft, lot: report.lot, homeType: report.homeType, scenarios: report.scenarios, selling, goal, source: myListing || listed ? 'listings' : undefined })
     : null
 
-  // checking the home, then the result; the report is saved as it finishes
-  useEffect(() => {
-    if (at !== 'working') return
-    setChecked(0)
-    const ts = CHECKS.map((_, k) => setTimeout(() => setChecked(k + 1), 650 * (k + 1)))
-    ts.push(
-      setTimeout(() => {
-        if (report) addReport({ ...report, createdAt: Date.now() }, true)
-        setAt('result')
-      }, 650 * (CHECKS.length + 1)),
-    )
-    return () => ts.forEach(clearTimeout)
-  }, [at]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Revive checks the home (IntakeScan), then the result; the report is saved as it finishes
+  const finishScan = () => {
+    if (report) addReport({ ...report, createdAt: Date.now() }, true)
+    setAt('result')
+  }
 
   const days = useMemo(() => weekdays(6), [])
   const can: Partial<Record<StepId, boolean>> = {
@@ -211,8 +202,10 @@ export default function AddHome() {
       </header>
 
       <section data-intake className="flex-1 px-5 pt-6 pb-10 sm:px-8 sm:pt-12">
-        <div className="mx-auto w-full max-w-[680px]">
-          {at === 'result' && plan && report ? (
+        <div className={cn('mx-auto w-full', at === 'working' ? 'max-w-[1200px]' : 'max-w-[680px]')}>
+          {at === 'working' && draft && report ? (
+            <IntakeScan draft={draft} home={coordsOf(draft)!} value={report.valueNow} path={help ?? 'sell'} onDone={finishScan} />
+          ) : at === 'result' && plan && report ? (
             <Result plan={plan} report={report} fits={fits} chosen={chosen} build={build} visit={visit.time && visit.day !== undefined ? `${days[visit.day].toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} at ${visit.time}` : undefined} onProject={startProject} onReport={() => navigate(`/property/${report.id}`)} />
           ) : (
             <>
@@ -258,7 +251,6 @@ export default function AddHome() {
                 {at === 'buildWhy' && <Options items={BUILD_WHY} value={buildWhy} onPick={pickThen(setBuildWhy)} />}
                 {at === 'process' && <Options items={PROCESS} value={process} onPick={pickThen(setProcess)} />}
                 {at === 'visit' && <Visit days={days} value={visit} set={setVisit} />}
-                {at === 'working' && <Working at={checked} address={draft?.address ?? ''} />}
               </div>
             </>
           )}
@@ -266,20 +258,20 @@ export default function AddHome() {
       </section>
 
       {/* bottom: progress, back, next */}
-      {at !== 'result' && (
+      {at !== 'result' && at !== 'working' && (
         <footer className="sticky bottom-0 bg-white px-5 pb-5 sm:px-8">
           <div className="h-1 overflow-hidden rounded-full bg-[var(--brand-primary-subtle)]">
             <div className="h-full rounded-full bg-[var(--brand-primary)] transition-all duration-300" style={{ width: `${Math.max(4, ((i + 1) / path.length) * 100)}%` }} />
           </div>
           <div className="mt-4 flex items-center justify-between">
-            {i > 0 && at !== 'working' ? (
+            {i > 0 ? (
               <button onClick={() => go(-1)} className="inline-flex h-10 items-center gap-1.5 rounded-lg px-1 text-[14px] font-medium text-ink-2 hover:text-ink">
                 <ArrowLeft className="size-4" /> Back
               </button>
             ) : (
               <span />
             )}
-            {at !== 'working' && (
+            {(
               <button
                 disabled={!can[at]}
                 onClick={() => go(1)}
@@ -436,27 +428,6 @@ function Visit({ days, value, set }: { days: Date[]; value: { day?: number; time
           ))}
         </div>
       )}
-    </div>
-  )
-}
-
-function Working({ at, address }: { at: number; address: string }) {
-  return (
-    <div>
-      <p className="text-[15px] text-ink-2">Revive is looking at {address}.</p>
-      <div className="mt-6 h-2 overflow-hidden rounded-full bg-[var(--brand-primary-subtle)]">
-        <div className="h-full rounded-full bg-[var(--brand-primary)] transition-all duration-500" style={{ width: `${(at / CHECKS.length) * 100}%` }} />
-      </div>
-      <ul className="mt-6 space-y-3">
-        {CHECKS.map((s, k) => (
-          <li key={s} className={cn('flex items-center gap-3 text-[15px]', k < at ? 'text-ink' : k === at ? 'text-ink-2' : 'text-muted')}>
-            <span className={cn('grid size-5 place-items-center rounded-full', k < at ? 'bg-[var(--brand-primary)] text-white' : 'border border-line')}>
-              {k < at ? <Check className="size-3" /> : k === at ? <span className="size-2 animate-pulse rounded-full bg-[var(--brand-primary)]" /> : null}
-            </span>
-            {s}…
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }

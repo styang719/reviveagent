@@ -425,3 +425,14 @@
 .rv-pill.k-sale { background: #fff; color: var(--navy); border-color: var(--navy); }
 .rv-pill.k-revive { background: var(--teal); color: var(--navy); }
 .rv-pill.sel { transform: translate(-50%, -50%) scale(1.18); box-shadow: 0 0 0 3px rgba(62, 98, 182, 0.35); z-index: 1; }
+/* something Revive just read, in the intake's "finding the best solution" screen */
+@keyframes rv-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.rv-fade { animation: rv-fade-in 0.35s ease-out both; }
+/* the home Revive is reading: rings pulse out from it */
+@keyframes rv-ring { from { transform: translate(-50%, -50%) scale(0.4); opacity: 0.7; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+.rv-office.rv-reading { position: relative; overflow: visible; }
+.rv-office.rv-reading::before, .rv-office.rv-reading::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; border-radius: 50%;
+  border: 2px solid var(--blue); background: rgba(62, 98, 182, 0.08); animation: rv-ring 1.8s ease-out infinite;
+}
+.rv-office.rv-reading::after { animation-delay: 0.9s; }
