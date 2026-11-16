@@ -1,5 +1,5 @@
 import L from 'leaflet'
-import { ArrowLeft, Check, CircleHelp, Hammer, Home, House, HousePlus, MapPin, Search, X } from 'lucide-react'
+import { ArrowLeft, Check, CircleHelp, Plus, Hammer, Home, House, HousePlus, MapPin, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Marker } from 'react-leaflet'
 import { useNavigate } from 'react-router-dom'
@@ -22,7 +22,7 @@ import { useUi } from '@/store/ui'
 
 type Help = 'sell' | 'renovate' | 'build'
 type StepId =
-  | 'address' | 'details' | 'connection' | 'help'
+  | 'address' | 'details' | 'photos' | 'connection' | 'help'
   | 'situation' | 'listed'
   | 'areas' | 'maintenance' | 'budget' | 'start'
   | 'build' | 'buildWhen' | 'buildWhy' | 'process'
@@ -59,6 +59,7 @@ const HOME_TYPES: Property['homeType'][] = ['Single family', 'Condo', 'Townhouse
 const TITLE: Record<StepId, string> = {
   address: 'What’s the property address?',
   details: 'Confirm the property details',
+  photos: 'Confirm the listing photos',
   connection: 'What’s your connection to this home?',
   help: 'What can Revive help with?',
   situation: 'Which best describes the situation?',
@@ -79,6 +80,7 @@ const TITLE: Record<StepId, string> = {
 }
 const SUB: Partial<Record<StepId, string>> = {
   details: 'From public records and the MLS. Fix anything that’s off.',
+  photos: 'Revive reads these to judge the home’s condition. Deselect any that aren’t this home, or add your own.',
   areas: 'Pick all that apply.',
   maintenance: 'Pick all that apply. It helps Revive scope the work.',
   visit: 'A Revive specialist walks the home with you to firm up the numbers. Optional.',
@@ -103,6 +105,12 @@ export default function AddHome() {
   const [at, setAt] = useState<StepId>('address')
   const [q, setQ] = useState('')
   const [draft, setDraft] = useState<ReportDraft | null>(null)
+  // the listing photos, each kept or dropped, plus any the agent adds; the kept ones are the home's photos
+  const [shots, setShots] = useState<Shot[]>([])
+  const updateShots = (next: Shot[]) => {
+    setShots(next)
+    setDraft((d) => (d ? { ...d, photos: next.filter((x) => x.on).map((x) => x.src) } : d))
+  }
   const [connection, setConnection] = useState<string>()
   const [help, setHelp] = useState<Help>()
   const [situation, setSituation] = useState<string>()
@@ -119,7 +127,7 @@ export default function AddHome() {
 
   const myListing = connection === 'It’s my listing'
   const path: StepId[] = [
-    'address', 'details', 'connection', 'help',
+    'address', 'details', 'photos', 'connection', 'help',
     ...(help === 'sell' ? (['situation', ...(myListing ? [] : ['listed']), 'visit'] as StepId[]) : []),
     ...(help === 'renovate' ? (['areas', 'maintenance', 'budget', 'start', 'visit'] as StepId[]) : []),
     ...(help === 'build' ? (['build', 'buildWhen', 'buildWhy', 'process'] as StepId[]) : []),
@@ -167,6 +175,7 @@ export default function AddHome() {
   const can: Partial<Record<StepId, boolean>> = {
     address: !!draft,
     details: !!draft?.sqft,
+    photos: shots.some((x) => x.on),
     connection: !!connection,
     help: !!help,
     situation: !!situation,
@@ -223,7 +232,13 @@ export default function AddHome() {
               <h1 className="text-[26px] leading-tight font-semibold text-ink sm:text-[34px]">{TITLE[at]}</h1>
               {SUB[at] && <p className="mt-2 text-[15px] text-ink-2">{SUB[at]}</p>}
               <div className="mt-7">
-                {at === 'address' && <AddressStep q={q} setQ={setQ} draft={draft} pick={(v) => (setDraft(draftFromAddress(v)), setQ(v))} />}
+                {at === 'address' && <AddressStep q={q} setQ={setQ} draft={draft} pick={(v) => {
+                      const d = draftFromAddress(v)
+                      setDraft(d)
+                      setShots(d.photos.map((src) => ({ src, on: true })))
+                      setQ(v)
+                    }} />}
+                {at === 'photos' && <Photos shots={shots} set={updateShots} />}
                 {at === 'details' && draft && (
                   <>
                     {existing && (
@@ -380,15 +395,15 @@ function Details({ draft, patch, value }: { draft: ReportDraft; patch: (p: Parti
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-xl border border-line">
-        <div className="grid h-44 grid-cols-4 grid-rows-2 gap-0.5 bg-line-soft sm:h-56">
-          {draft.photos.slice(0, 5).map((src, k) => (
-            <img key={k} src={src} alt="" className={cn('size-full object-cover', k === 0 && 'col-span-2 row-span-2')} />
-          ))}
-        </div>
-        <div className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3">
-          <div>
-            <p className="text-[16px] font-semibold text-ink">{draft.address}</p>
-            <p className="text-[13.5px] text-muted">{draft.city}, CA · MLS photos</p>
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-lg bg-[var(--brand-primary-subtle)] text-brand">
+              <MapPin className="size-5" />
+            </span>
+            <div>
+              <p className="text-[16px] font-semibold text-ink">{draft.address}</p>
+              <p className="text-[13.5px] text-muted">{draft.city}, CA</p>
+            </div>
           </div>
           {value && (
             <p className="text-[14px] text-ink-2">
@@ -439,6 +454,64 @@ function Visit({ days, value, set }: { days: Date[]; value: { day?: number; time
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+type Shot = { src: string; on: boolean; own?: boolean }
+
+function Photos({ shots, set }: { shots: Shot[]; set: (s: Shot[]) => void }) {
+  const input = useRef<HTMLInputElement>(null)
+  const kept = shots.filter((x) => x.on).length
+  const add = (files: FileList | null) => {
+    if (!files?.length) return
+    const reads = [...files].filter((f) => f.type.startsWith('image/')).map((f) => new Promise<string>((ok) => {
+      const r = new FileReader()
+      r.onload = () => ok(String(r.result))
+      r.readAsDataURL(f)
+    }))
+    Promise.all(reads).then((srcs) => set([...shots, ...srcs.map((src) => ({ src, on: true, own: true }))]))
+  }
+  return (
+    <div>
+      <p className="mb-3 text-[13.5px] text-ink-2">
+        <span className="font-semibold text-ink">{kept}</span> of {shots.length} selected
+      </p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {shots.map((x, k) => (
+          <button
+            key={k}
+            onClick={() => set(shots.map((y, j) => (j === k ? { ...y, on: !y.on } : y)))}
+            aria-pressed={x.on}
+            aria-label={`${x.on ? 'Deselect' : 'Select'} photo ${k + 1}`}
+            className={cn('group relative aspect-[4/3] overflow-hidden rounded-xl border-2', x.on ? 'border-[var(--brand-primary)]' : 'border-transparent')}
+          >
+            <img src={x.src} alt="" className={cn('size-full object-cover transition', !x.on && 'opacity-40 grayscale')} />
+            <span className={cn('absolute top-2 right-2 grid size-6 place-items-center rounded-full border-2', x.on ? 'border-white bg-[var(--brand-primary)] text-white' : 'border-white bg-black/20')}>
+              {x.on && <Check className="size-3.5" />}
+            </span>
+            <span className="absolute bottom-2 left-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[11px] font-medium text-white">{x.own ? 'Added' : 'MLS'}</span>
+          </button>
+        ))}
+        <button
+          onClick={() => input.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault()
+            add(e.dataTransfer.files)
+          }}
+          className="grid aspect-[4/3] place-items-center rounded-xl border-2 border-dashed border-line text-center hover:border-[var(--brand-primary-border)] hover:bg-head/60"
+        >
+          <span>
+            <span className="mx-auto grid size-10 place-items-center rounded-full bg-[var(--brand-primary-subtle)] text-brand">
+              <Plus className="size-5" />
+            </span>
+            <span className="mt-2 block text-[14px] font-medium text-ink">Add photos</span>
+            <span className="block text-[12.5px] text-muted">Click or drop images</span>
+          </span>
+        </button>
+      </div>
+      <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => (add(e.target.files), (e.target.value = ''))} />
     </div>
   )
 }
