@@ -8,7 +8,6 @@ import { IntakeScan } from '@/components/property/IntakeScan'
 import { CompsReview, ConditionReview, RulesReview } from '@/components/property/IntakeReview'
 import { properties } from '@/data/properties'
 import type { Property } from '@/data/types'
-import { money } from '@/lib/format'
 import { buildReport, draftFromAddress, hash, reportIdFor, suggestAddresses, type ReportDraft } from '@/lib/flows'
 import { compsFor, conditionOf, rulesFor, valuesOf, type Comp } from '@/lib/intake'
 import { cn } from '@/lib/utils'
@@ -249,7 +248,7 @@ export default function AddHome() {
                         </button>
                       </div>
                     )}
-                    <Details draft={draft} patch={(p) => setDraft((d) => (d ? { ...d, ...p } : d))} value={report?.valueNow} />
+                    <Details draft={draft} patch={(p) => setDraft((d) => (d ? { ...d, ...p } : d))} />
                   </>
                 )}
                 {at === 'connection' && <Options items={CONNECTION} value={connection} onPick={pickThen(setConnection)} />}
@@ -385,7 +384,7 @@ function AddressStep({ q, setQ, draft, pick }: { q: string; setQ: (v: string) =>
   )
 }
 
-function Details({ draft, patch, value }: { draft: ReportDraft; patch: (p: Partial<ReportDraft>) => void; value?: number }) {
+function Details({ draft, patch }: { draft: ReportDraft; patch: (p: Partial<ReportDraft>) => void }) {
   const num = (k: 'beds' | 'baths' | 'sqft' | 'lot' | 'yearBuilt', label: string) => (
     <label className="block">
       <span className="mb-1.5 block text-[13px] font-medium text-ink-2">{label}</span>
@@ -405,11 +404,6 @@ function Details({ draft, patch, value }: { draft: ReportDraft; patch: (p: Parti
               <p className="text-[13.5px] text-muted">{draft.city}, CA</p>
             </div>
           </div>
-          {value && (
-            <p className="text-[14px] text-ink-2">
-              Worth about <span className="font-semibold text-ink">{money(value)}</span>
-            </p>
-          )}
         </div>
       </div>
       <div>
