@@ -49,6 +49,8 @@ export const router = createRouter([
       { path: '*', element: <Navigate to="/m" replace /> },
     ],
   },
+  // the "Add a home" intake on its own, outside the dashboard; it ends on the home's page in the dashboard
+  { path: '/intake', element: <AddHome standalone />, errorElement: <RouteError /> },
   {
     element: <AppLayout />,
     errorElement: <RouteError />,

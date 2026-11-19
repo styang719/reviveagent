@@ -20,8 +20,12 @@ const css = files.filter((f) => f.endsWith('.css')).map((f) => readFileSync(`${d
 // the stylesheet ships base64-encoded (as a data URI string) and a tiny script adds it as a <style> on load: hosted
 // previews cap a page's inline code but don't count data URIs, and they block stylesheets loaded from data: links
 const safeJs = js.replace(/<\/script/gi, '<\\/script')
+// PREVIEW_START opens the preview on another route (e.g. /intake); PREVIEW_OUT and PREVIEW_TITLE name the file
+const start = process.env.PREVIEW_START
+const out = process.env.PREVIEW_OUT || 'revive-prototype.html'
 const html = `<meta charset="utf-8">
-<title>Revive Agent Prototype</title>
+<title>${process.env.PREVIEW_TITLE || 'Revive Agent Prototype'}</title>
+${start ? `<script>if(!location.hash||location.hash==='#/')location.replace('#${start}')</script>` : ''}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
@@ -30,6 +34,6 @@ const html = `<meta charset="utf-8">
 <script type="module">${safeJs}</script>
 `
 mkdirSync('preview', { recursive: true })
-writeFileSync('preview/revive-prototype.html', html)
-console.log('preview/revive-prototype.html', (html.length / 1024).toFixed(0) + ' KB')
+writeFileSync(`preview/${out}`, html)
+console.log(`preview/${out}`, (html.length / 1024).toFixed(0) + ' KB')
 

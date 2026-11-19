@@ -3,6 +3,7 @@ import { ArrowLeft, Check, CircleHelp, Plus, Hammer, Home, House, HousePlus, Map
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Marker } from 'react-leaflet'
 import { useNavigate } from 'react-router-dom'
+import wordmark from '@/assets/revive-wordmark.svg'
 import { BaseMap } from '@/components/map/BaseMap'
 import { IntakeScan } from '@/components/property/IntakeScan'
 import { CompsReview, ConditionReview, RulesReview } from '@/components/property/IntakeReview'
@@ -95,7 +96,8 @@ function weekdays(n: number) {
   return out
 }
 
-export default function AddHome() {
+export default function AddHome({ standalone }: { standalone?: boolean } = {}) {
+  const [faq, setFaq] = useState(false)
   const navigate = useNavigate()
   const addReport = useDemo((s) => s.addReport)
   const reports = useDemo((s) => s.reports)
@@ -199,15 +201,26 @@ export default function AddHome() {
     <div className="flex min-h-[calc(100dvh-var(--demo-h,0px))] flex-col bg-white">
       {/* top: where you are, help, exit */}
       <header className="flex items-center justify-between gap-3 px-5 py-4 sm:px-8">
-        <p className="text-[13.5px] text-muted">
-          <button onClick={exit} className="hover:text-ink">
-            Homes
-          </button>
-          <span className="mx-1.5">/</span>
-          <span className="font-medium text-ink">Add a home</span>
-        </p>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setDock(true)} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-[13.5px] font-medium text-ink hover:bg-head">
+        {standalone ? (
+          // on its own (outside the dashboard): the Revive logo, in navy
+          <span
+            role="img"
+            aria-label="Revive"
+            className="block h-8 w-[118px] bg-navy"
+            style={{ maskImage: `url(${wordmark})`, WebkitMaskImage: `url(${wordmark})`, maskSize: 'contain', WebkitMaskSize: 'contain', maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat' }}
+          />
+        ) : (
+          <p className="text-[13.5px] text-muted">
+            <button onClick={exit} className="hover:text-ink">
+              Homes
+            </button>
+            <span className="mx-1.5">/</span>
+            <span className="font-medium text-ink">Add a home</span>
+          </p>
+        )}
+        <div className="relative flex items-center gap-2">
+          {standalone && faq && <Faq close={() => setFaq(false)} />}
+          <button onClick={() => (standalone ? setFaq(!faq) : setDock(true))} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-[13.5px] font-medium text-ink hover:bg-head">
             <CircleHelp className="size-4 text-muted" /> Questions?
           </button>
           <button onClick={exit} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-[13.5px] font-medium text-ink hover:bg-head">
@@ -448,6 +461,33 @@ function Visit({ days, value, set }: { days: Date[]; value: { day?: number; time
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+const FAQ = [
+  ['How long does this take?', 'About three minutes. Most answers are one tap.'],
+  ['Where do the numbers come from?', 'Public records, the listing photos, and homes sold nearby. You can see and change each one before the report.'],
+  ['What happens at the end?', 'The home is added to your Revive dashboard with its AI report, ready to share with the owner.'],
+]
+
+function Faq({ close }: { close: () => void }) {
+  return (
+    <div className="absolute top-11 right-0 z-30 w-80 rounded-xl border border-line bg-white p-4 shadow-[0_16px_40px_rgba(28,46,88,0.16)]">
+      <div className="flex items-center justify-between">
+        <p className="text-[14px] font-semibold text-ink">Questions</p>
+        <button onClick={close} aria-label="Close" className="rounded-md p-1 text-muted hover:bg-head">
+          <X className="size-4" />
+        </button>
+      </div>
+      <dl className="mt-2 space-y-3">
+        {FAQ.map(([q, a]) => (
+          <div key={q}>
+            <dt className="text-[13.5px] font-medium text-ink">{q}</dt>
+            <dd className="mt-0.5 text-[13px] text-ink-2">{a}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   )
 }
